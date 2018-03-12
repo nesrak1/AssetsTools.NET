@@ -1,4 +1,4 @@
-﻿namespace AssetsTools.NET.Standard.AssetsReplacer
+﻿namespace AssetsTools.NET
 {
     public enum AssetsReplacementType
     {
