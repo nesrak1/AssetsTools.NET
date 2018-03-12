@@ -1,33 +1,18 @@
-﻿////////////////////////////
-//   ASSETSTOOLS.NET        
-//   Original by DerPopo    
-//   Ported by nesrak1      
-//   Hey, watch out! This   
-//   library isn't done yet.
-//   You've been warned!    
-
-using System.IO;
+﻿using System.IO;
 
 namespace AssetsTools.NET
 {
-    public class AssetFileInfoEx : AssetFileInfo
-    {
-        public uint curFileType;
-        public ulong absoluteFilePos;
-        public string name; //-blank unless the first field in that type (so gameobjects would have blank names)
-    }
-
     public class AssetsFileTable
     {
         public AssetsFile pFile;
         public AssetsFileReader reader;
         public Stream readerPar;
-        
-		public AssetFileInfoEx[] pAssetFileInfo;
+
+        public AssetFileInfoEx[] pAssetFileInfo;
         public uint assetFileInfoCount;
-        
-		//Reading names requires a high random access, set readNames to false if you don't need them
-		public AssetsFileTable(AssetsFile pFile, bool readNames = true)
+
+        //Reading names requires a high random access, set readNames to false if you don't need them
+        public AssetsFileTable(AssetsFile pFile, bool readNames = true)
         {
             this.pFile = pFile;
             reader = new AssetsFileReader(pFile.readerPar); //-todo, look back and see why I made a new reader here
