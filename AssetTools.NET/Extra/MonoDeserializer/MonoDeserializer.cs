@@ -86,6 +86,9 @@ namespace AssetsTools.NET.Extra
                 {
                     field.childrenCount = 0;
                     field.children = new AssetTypeTemplateField[] { };
+                } else if (DerivesFromUEObject(fieldType))
+                {
+                    SetPPtr(field);
                 } else if (fieldType.Name.Equals("String"))
                 {
                     SetString(field);
@@ -95,10 +98,7 @@ namespace AssetsTools.NET.Extra
                 } else if (IsAcceptableUnityType(fieldType))
                 {
                     SetSpecialUnity(field, fieldType);
-                } else if (DerivesFromUEObject(fieldType))
-                {
-                    SetPPtr(field);
-                }
+                } 
                 string baseFieldType = fieldDef.FieldType.Name;
                 if ((baseFieldType.EndsWith("[]") && !baseFieldType.EndsWith("[][]")) //IsArray won't work here for whatever reason
                     || baseFieldType.StartsWith("List"))
