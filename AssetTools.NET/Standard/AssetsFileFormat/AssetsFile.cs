@@ -174,8 +174,8 @@ namespace AssetsTools.NET
             {
                 writer.Write((byte)0x00);
             }
-
-            reader.Position = header.offs_firstFile;
+            
+            header.offs_firstFile = (uint)writer.Position;
 
             for (int i = 0; i < assetInfos.Count; i++)
             {
@@ -205,6 +205,8 @@ namespace AssetsTools.NET
             }
 
             ulong fileSizeMarker = writer.Position;
+
+            reader.Position = header.offs_firstFile;
 
             writer.Position = 0;
             header.metadataSize = metadataSize;
