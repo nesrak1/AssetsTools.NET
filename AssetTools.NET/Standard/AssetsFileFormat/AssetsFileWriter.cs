@@ -81,6 +81,14 @@ namespace AssetsTools.NET
         {
             while (BaseStream.Position % 4 != 0) Write((byte)0x00);
         }
+        public void Align8()
+        {
+            while (BaseStream.Position % 8 != 0) Write((byte)0x00);
+        }
+        public void Align16()
+        {
+            while (BaseStream.Position % 16 != 0) Write((byte)0x00);
+        }
         public void WriteNullTerminated(string text)
         {
             Write(text);

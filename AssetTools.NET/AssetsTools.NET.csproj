@@ -115,6 +115,7 @@
     <Compile Include="Standard\AssetsFileFormat\AssetsFile.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetsFileDependency.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetsFileDependencyList.cs" />
+    <Compile Include="Standard\AssetsFileFormat\AssetsFileExtra.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetsFileHeader.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetsFileReader.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetsFileWriter.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Standard\AssetsFileTable\AssetsFileTable.cs" />
     <Compile Include="Standard\AssetsReplacer\AssetsReplacementType.cs" />
     <Compile Include="Standard\AssetsReplacer\AssetsReplacer.cs" />
+    <Compile Include="Standard\AssetsReplacer\AssetsReplacerFromMemory.cs" />
     <Compile Include="Standard\AssetsReplacer\AssetsReplacerFromFile.cs" />
     <Compile Include="Standard\AssetTypeClass\AssetTypeArray.cs" />
     <Compile Include="Standard\AssetTypeClass\AssetTypeByteArray.cs" />

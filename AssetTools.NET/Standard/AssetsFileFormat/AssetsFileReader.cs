@@ -77,6 +77,16 @@ namespace AssetsTools.NET
             long pad = 4 - (BaseStream.Position % 4);
             if (pad != 4) BaseStream.Position += pad;
         }
+        public void Align8()
+        {
+            long pad = 8 - (BaseStream.Position % 8);
+            if (pad != 8) BaseStream.Position += pad;
+        }
+        public void Align16()
+        {
+            long pad = 16 - (BaseStream.Position % 16);
+            if (pad != 16) BaseStream.Position += pad;
+        }
         public string ReadStringLength(int len)
         {
             return Encoding.ASCII.GetString(ReadBytes(len));

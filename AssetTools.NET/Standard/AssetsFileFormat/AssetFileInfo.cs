@@ -29,7 +29,61 @@ namespace AssetsTools.NET
             if (0x0F <= version && version <= 0x10) size += 4;
             return size;
         }
-        ///public ulong Read(uint version, ulong pos, AssetsFileReader reader, FileStream readerPar, bool bigEndian);
-        ///public ulong Write(uint version, ulong pos, BinaryWriter writer, FileStream writerPar);
+        public ulong Read(uint version, ulong pos, AssetsFileReader reader, bool bigEndian)
+        {
+            if (version >= 0x0E)
+            {
+                index = reader.ReadUInt64();
+            }
+            else
+            {
+                index = reader.ReadUInt32();
+            }
+            offs_curFile = reader.ReadUInt32();
+            curFileSize = reader.ReadUInt32();
+            curFileTypeOrIndex = reader.ReadUInt32();
+            if (version < 0x10)
+            {
+                inheritedUnityClass = reader.ReadUInt16();
+            }
+            if (version <= 0x10)
+            {
+                scriptIndex = reader.ReadUInt16();
+            }
+            if (0x0F <= version && version <= 0x10)
+            {
+                unknown1 = reader.ReadByte();
+                reader.ReadBytes(3);
+            }
+            return reader.Position;
+        }
+        public ulong Write(uint version, ulong pos, AssetsFileWriter writer)
+        {
+            if (version >= 0x0E)
+            {
+                writer.Write(index);
+            }
+            else
+            {
+                writer.Write((uint)index);
+            }
+            writer.Write(offs_curFile);
+            writer.Write(curFileSize);
+            writer.Write(curFileTypeOrIndex);
+            if (version < 0x10)
+            {
+                writer.Write(inheritedUnityClass);
+            }
+            if (version <= 0x10)
+            {
+                writer.Write(scriptIndex);
+            }
+            if (0x0F <= version && version <= 0x10)
+            {
+                writer.Write(unknown1);
+                writer.Write(new byte[] { 0x00, 0x00, 0x00 });
+            }
+            return writer.Position;
+        }
     }
 }

@@ -85,11 +85,13 @@ namespace UABE.NET.Winforms
             string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
             string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
             string assemblyPath = Path.Combine(rootDir, "Managed", assemblyName);
-            if (File.Exists(assemblyPath)) {
+            if (File.Exists(assemblyPath))
+            {
                 MonoClass mc = new MonoClass();
                 mc.Read(scriptName, assemblyPath);
                 return mc.children;
-            } else
+            }
+            else
             {
                 return null;
             }
@@ -113,54 +115,6 @@ namespace UABE.NET.Winforms
         private void button4_Click(object sender, System.EventArgs e)
         {
             rawViewTree.SelectedNode.Collapse(false);
-        }
-
-        private void button5_Click(object sender, System.EventArgs e)
-        {
-            SaveFileDialog sfd = new SaveFileDialog();
-            if (sfd.ShowDialog() == DialogResult.OK)
-            {
-                TreeNode rootNode = rawViewTree.Nodes[0];
-                JTree JTreeSimp = new JTree();
-                createSimplifiedJSONTree(rootNode, ref JTreeSimp);
-                // serialize JSON directly to a file using JSON.Net Serializer
-                using (StreamWriter file = File.CreateText(sfd.FileName))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    serializer.Formatting = Formatting.Indented;
-                    serializer.Serialize(file, JTreeSimp);
-                }
-            }
-        }
-
-        private void createSimplifiedJSONTree(TreeNode parentNode, ref JTree JTreeSimp)
-        {
-            // Start recursion on all subnodes
-            foreach (TreeNode childNode in parentNode.Nodes)
-            {
-                JTree jchild = new JTree();
-                jchild.name = childNode.Text;
-                JTreeSimp.children.Add(jchild);
-                createSimplifiedJSONTree(childNode, ref jchild);
-            }
-        }
-    }
-
-    public class JTree
-    {
-        public List<JTree> children = new List<JTree>();
-        private string _name;
-
-        public string name
-        {
-            get
-            {
-                return _name;
-            }
-            set
-            {
-                _name = value;
-            }
         }
     }
 }
