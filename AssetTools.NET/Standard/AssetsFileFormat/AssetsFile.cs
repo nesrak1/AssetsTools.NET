@@ -175,6 +175,8 @@ namespace AssetsTools.NET
                 writer.Write((byte)0x00);
             }
 
+            reader.Position = header.offs_firstFile;
+
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
@@ -201,13 +203,7 @@ namespace AssetsTools.NET
                     }
                 }
             }
-            
-            reader.Position = header.offs_firstFile;
-            
-            for (int i = 0; i < pReplacers.Length; i++)
-            {
-                pReplacers[i].Write(writer.Position, writer);
-            }
+
             ulong fileSizeMarker = writer.Position;
 
             writer.Position = 0;
