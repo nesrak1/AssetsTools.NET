@@ -2,25 +2,21 @@
 
 namespace AssetsTools.NET
 {
-    public class AssetsReplacerFromFile : AssetsReplacer
+    public class AssetsReplacerFromMemory : AssetsReplacer
     {
-        public AssetsReplacerFromFile(uint fileID, ulong pathID, int classID, ushort monoScriptIndex, FileStream stream, ulong offset, ulong size)
+        public AssetsReplacerFromMemory(uint fileID, ulong pathID, int classID, ushort monoScriptIndex, byte[] buffer/*, cbFreeMemoryResource freeResourceCallback*/)
         {
             this.fileID = fileID;
             this.pathID = pathID;
             this.classID = classID;
             this.monoScriptIndex = monoScriptIndex;
-            this.stream = stream;
-            this.offset = offset;
-            this.size = size;
+            this.buffer = buffer;
         }
         private uint fileID;
         private ulong pathID;
         private int classID;
         private ushort monoScriptIndex;
-        private FileStream stream;
-        private ulong offset;
-        private ulong size;
+        private byte[] buffer;
         public override AssetsReplacementType GetReplacementType()
         {
             return AssetsReplacementType.AssetsReplacement_AddOrModify;
@@ -43,14 +39,11 @@ namespace AssetsTools.NET
         }
         public override ulong GetSize()
         {
-            return size;
+            return (ulong)buffer.Length;
         }
         public override ulong Write(ulong pos, AssetsFileWriter writer)
         {
-            stream.Position = (int)offset;
-            byte[] assetData = new byte[size];
-            stream.Read(assetData, (int)offset, (int)size);
-            writer.Write(assetData);
+            writer.Write(buffer);
             return writer.Position;
         }
         public override ulong WriteReplacer(ulong pos, AssetsFileWriter writer)

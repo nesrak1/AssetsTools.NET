@@ -32,7 +32,6 @@ namespace AssetsTools.NET
         public ulong Read(bool hasTypeTree, ulong absFilePos, AssetsFileReader reader, uint version, uint typeVersion, bool bigEndian)
         {
             classId = reader.ReadInt32();
-            //-The below may or may not be big endian. UABE's API headers and disunity's docs claim so, but doesn't appear to be
             if (version >= 0x10) unknown16_1 = reader.ReadByte();
             if (version >= 0x11) scriptIndex = reader.ReadUInt16();
             if ((version < 0x11 && classId < 0) || (version >= 0x11 && scriptIndex != 0xFFFF))
@@ -88,7 +87,7 @@ namespace AssetsTools.NET
                 {
                     pTypeFieldsEx[i].Write(writer.Position, writer);
                 }
-                //im gonna regret this someday
+                //-im gonna regret this someday
                 stringTableLen = 0;
                 for (int i = 0; i < pStringTable.Length; i++)
                 {

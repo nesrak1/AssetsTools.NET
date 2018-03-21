@@ -40,7 +40,6 @@
             this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.button5 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -57,7 +56,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(348, 344);
+            this.tabControl1.Size = new System.Drawing.Size(348, 373);
             this.tabControl1.TabIndex = 0;
             // 
             // tabPage1
@@ -66,7 +65,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(340, 318);
+            this.tabPage1.Size = new System.Drawing.Size(340, 347);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Raw View";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -78,7 +77,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.rawViewTree.Location = new System.Drawing.Point(6, 6);
             this.rawViewTree.Name = "rawViewTree";
-            this.rawViewTree.Size = new System.Drawing.Size(328, 306);
+            this.rawViewTree.Size = new System.Drawing.Size(328, 335);
             this.rawViewTree.TabIndex = 0;
             // 
             // tabPage2
@@ -88,7 +87,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(340, 318);
+            this.tabPage2.Size = new System.Drawing.Size(340, 347);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Prettified View";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -111,7 +110,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.prettifiedViewTree.Location = new System.Drawing.Point(6, 19);
             this.prettifiedViewTree.Name = "prettifiedViewTree";
-            this.prettifiedViewTree.Size = new System.Drawing.Size(328, 342);
+            this.prettifiedViewTree.Size = new System.Drawing.Size(328, 322);
             this.prettifiedViewTree.TabIndex = 1;
             // 
             // tableLayoutPanel1
@@ -191,24 +190,11 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // button5
-            // 
-            this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.button5.Location = new System.Drawing.Point(19, 362);
-            this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(334, 23);
-            this.button5.TabIndex = 2;
-            this.button5.Text = "Export as JSON (this will be removed!)";
-            this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.button5_Click);
-            // 
             // AssetData
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(372, 417);
-            this.Controls.Add(this.button5);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.tabControl1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -235,6 +221,5 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button button5;
     }
 }

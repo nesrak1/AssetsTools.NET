@@ -36,7 +36,7 @@ namespace AssetsTools.NET
             writer.Write(fileSize);
             writer.Write(format);
             writer.Write(offs_firstFile);
-            writer.Write(endianness);
+            writer.Write((byte)endianness);
             writer.bigEndian = endianness == 1 ? true : false;
             writer.Write(unknown);
             return writer.Position;
