@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="Extra\AssetHelper.cs" />
     <Compile Include="Extra\AssetToBundle\AssetToBundle.cs" />
+    <Compile Include="Extra\CldbTypeTreeConverters\C2T5.cs" />
     <Compile Include="Extra\ContentExtractors\Libraries\FBXBIN.cs" />
     <Compile Include="Extra\ContentExtractors\Libraries\Half.cs" />
     <Compile Include="Extra\ContentExtractors\Mesh.cs" />

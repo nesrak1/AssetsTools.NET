@@ -113,7 +113,7 @@ namespace AssetsTools.NET.Extra
         //nothing more can be said
         public FieldDefinition[] GetAcceptableFields(TypeDefinition typeDef)
         {
-            foreach (FieldDefinition def in typeDef.Fields)
+            /*foreach (FieldDefinition def in typeDef.Fields)
             {
                 if (def.Name == "m_ObjectArgument")
                 {
@@ -138,7 +138,7 @@ namespace AssetsTools.NET.Extra
                         Debug.WriteLine("misc");
                     }
                 }
-            }
+            }*/
             return typeDef.Fields
                 .Where(f =>
                     (f.Attributes.HasFlag(FieldAttributes.Public) ||

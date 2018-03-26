@@ -27,14 +27,14 @@ namespace AssetsTools.NET
         public TypeField_0D[] pTypeFieldsEx;
 
         public uint stringTableLen; //if (TypeTree.enabled) //0x18 or 0x28
-        public string[] pStringTable;
+        public string pStringTable;
 
         public ulong Read(bool hasTypeTree, ulong absFilePos, AssetsFileReader reader, uint version, uint typeVersion, bool bigEndian)
         {
             classId = reader.ReadInt32();
             if (version >= 0x10) unknown16_1 = reader.ReadByte();
             if (version >= 0x11) scriptIndex = reader.ReadUInt16();
-            if ((version < 0x11 && classId < 0) || (version >= 0x11 && scriptIndex != 0xFFFF))
+            if ((version < 0x11 && classId < 0) || (version >= 0x11 && scriptIndex != 0xFFFF)) //original is if (classId == 114)
             {
                 unknown1 = reader.ReadUInt32();
                 unknown2 = reader.ReadUInt32();
@@ -56,10 +56,7 @@ namespace AssetsTools.NET
                     typefield0d.Read(reader.Position, reader, bigEndian);
                     pTypeFieldsEx[i] = typefield0d;
                 }
-                string rawStringTable = Encoding.UTF8.GetString(reader.ReadBytes((int)stringTableLen));
-                pStringTable = rawStringTable.Split('\0');
-                Array.Resize(ref pStringTable, pStringTable.Length - 1);
-                //Debug.WriteLine(pStringTable);
+                pStringTable = Encoding.UTF8.GetString(reader.ReadBytes((int)stringTableLen));
             }
             return reader.Position;
         }
@@ -82,26 +79,16 @@ namespace AssetsTools.NET
             if (hasTypeTree)
             {
                 writer.Write(typeFieldsExCount);
-                writer.Write(stringTableLen);
+                writer.Write(pStringTable.Length);
                 for (int i = 0; i < typeFieldsExCount; i++)
                 {
                     pTypeFieldsEx[i].Write(writer.Position, writer);
                 }
-                //-im gonna regret this someday
-                stringTableLen = 0;
-                for (int i = 0; i < pStringTable.Length; i++)
-                {
-                    stringTableLen += (uint)pStringTable[i].Length + 1;
-                }
-                writer.Write(stringTableLen);
-                for (int i = 0; i < pStringTable.Length; i++)
-                {
-                    writer.WriteNullTerminated(pStringTable[i]);
-                }
+                writer.Write(pStringTable);
             }
             return writer.Position;
         }
-        //0x28212B0
-        public static readonly string strTable = "AABB.AnimationClip.AnimationCurve.AnimationState.Array.Base.BitField.bitset.bool.char.ColorRGBA.Component.data.deque.double.dynamic_array.FastPropertyName.first.float.Font.GameObject.Generic Mono.GradientNEW.GUID.GUIStyle.int.list.long long.map.Matrix4x4f.MdFour.MonoBehaviour.MonoScript.m_ByteSize.m_Curve.m_EditorClassIdentifier.m_EditorHideFlags.m_Enabled.m_ExtensionPtr.m_GameObject.m_Index.m_IsArray.m_IsStatic.m_MetaFlag.m_Name.m_ObjectHideFlags.m_PrefabInternal.m_PrefabParentObject.m_Script.m_StaticEditorFlags.m_Type.m_Version.Object.pair.PPtr<Component>.PPtr<GameObject>.PPtr<Material>.PPtr<MonoBehaviour>.PPtr<MonoScript>.PPtr<Object>.PPtr<Prefab>.PPtr<Sprite>.PPtr<TextAsset>.PPtr<Texture>.PPtr<Texture2D>.PPtr<Transform>.Prefab.Quaternionf.Rectf.RectInt.RectOffset.second.set.short.size.SInt16.SInt32.SInt64.SInt8.staticvector.string.TextAsset.TextMesh.Texture.Texture2D.Transform.TypelessData.UInt16.UInt32.UInt64.UInt8.unsigned int.unsigned long long.unsigned short.vector.Vector2f.Vector3f.Vector4f.m_ScriptingClassIdentifier.Gradient.Type*";
+        //?
+        public static readonly string strTable = "AABB\0AnimationClip\0AnimationCurve\0AnimationState\0Array\0Base\0BitField\0bitset\0bool\0char\0ColorRGBA\0Component\0data\0deque\0double\0dynamic_array\0FastPropertyName\0first\0float\0Font\0GameObject\0Generic Mono\0GradientNEW\0GUID\0GUIStyle\0int\0list\0long long\0map\0Matrix4x4f\0MdFour\0MonoBehaviour\0MonoScript\0m_ByteSize\0m_Curve\0m_EditorClassIdentifier\0m_EditorHideFlags\0m_Enabled\0m_ExtensionPtr\0m_GameObject\0m_Index\0m_IsArray\0m_IsStatic\0m_MetaFlag\0m_Name\0m_ObjectHideFlags\0m_PrefabInternal\0m_PrefabParentObject\0m_Script\0m_StaticEditorFlags\0m_Type\0m_Version\0Object\0pair\0PPtr<Component>\0PPtr<GameObject>\0PPtr<Material>\0PPtr<MonoBehaviour>\0PPtr<MonoScript>\0PPtr<Object>\0PPtr<Prefab>\0PPtr<Sprite>\0PPtr<TextAsset>\0PPtr<Texture>\0PPtr<Texture2D>\0PPtr<Transform>\0Prefab\0Quaternionf\0Rectf\0RectInt\0RectOffset\0second\0set\0short\0size\0SInt16\0SInt32\0SInt64\0SInt8\0staticvector\0string\0TextAsset\0TextMesh\0Texture\0Texture2D\0Transform\0TypelessData\0UInt16\0UInt32\0UInt64\0UInt8\0unsigned int\0unsigned long long\0unsigned short\0vector\0Vector2f\0Vector3f\0Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0";
     }
 }

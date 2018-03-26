@@ -23,24 +23,24 @@ namespace AssetsTools.NET
         {
             this.reader = reader;
             readerPar = reader.BaseStream;
-
+            
             header = new AssetsFileHeader();
             header.Read(0, reader);
-
+            
             typeTree = new TypeTree();
             typeTree.Read(reader.Position, reader, header.format, reader.bigEndian);
-
+            
             AssetCount = reader.ReadUInt32();
             reader.Align();
             AssetTablePos = Convert.ToUInt32(reader.BaseStream.Position);
-
+            
             reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * AssetCount;
             if (header.format > 0x0B)
             {
                 preloadTable = new PreloadList();
                 preloadTable.Read(reader.Position, reader, header.format, reader.bigEndian);
             }
-
+            
             dependencies = new AssetsFileDependencyList();
             dependencies.Read(reader.Position, reader, header.format, reader.bigEndian);
         }
@@ -50,23 +50,11 @@ namespace AssetsTools.NET
         public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
             header.Write(writer.Position, writer);
-
-            Type_07[] pTypes_Unity4 = typeTree.pTypes_Unity4 != null ? (Type_07[])typeTree.pTypes_Unity4.Clone() : null;
-            Type_0D[] pTypes_Unity5 = typeTree.pTypes_Unity5 != null ? (Type_0D[])typeTree.pTypes_Unity5.Clone() : null;
-            TypeTree newTypeTree = new TypeTree()
-            {
-                dwUnknown = typeTree.dwUnknown,
-                fieldCount = typeTree.fieldCount,
-                hasTypeTree = typeTree.hasTypeTree,
-                pTypes_Unity4 = pTypes_Unity4,
-                pTypes_Unity5 = pTypes_Unity5,
-                unityVersion = typeTree.unityVersion,
-                version = typeTree.version
-            };
+            
             for (int i = 0; i < pReplacers.Length; i++)
             {
                 AssetsReplacer replacer = pReplacers[i];
-                if (!newTypeTree.pTypes_Unity5.Any(t => t.classId == replacer.GetClassID()))
+                if (!typeTree.pTypes_Unity5.Any(t => t.classId == replacer.GetClassID()))
                 {
                     Type_0D type = new Type_0D()
                     {
@@ -79,12 +67,12 @@ namespace AssetsTools.NET
                         unknown8 = 0,
                         typeFieldsExCount = 0,
                         stringTableLen = 0,
-                        pStringTable = new string[] { "" }
+                        pStringTable = ""
                     };
-                    newTypeTree.pTypes_Unity5.Concat(new Type_0D[] { type });
+                    typeTree.pTypes_Unity5.Concat(new Type_0D[] { type });
                 }
             }
-            newTypeTree.Write(writer.Position, writer, header.format);
+            typeTree.Write(writer.Position, writer, header.format);
 
             int initialSize = (int)(AssetFileInfo.GetSize(header.format) * AssetCount);
             int newSize = (int)(AssetFileInfo.GetSize(header.format) * (AssetCount + pReplacers.Length));
@@ -176,11 +164,11 @@ namespace AssetsTools.NET
             }
             
             header.offs_firstFile = (uint)writer.Position;
-
+            
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
-                AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
+                AssetsReplacer replacer = pReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
                 if (replacer != null)
                 {
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)

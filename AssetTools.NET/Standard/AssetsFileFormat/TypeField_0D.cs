@@ -5,7 +5,7 @@
         public ushort version;                      //0x00
         public byte depth;                          //0x02 //specifies the amount of parents
         public bool isArray;                        //0x03
-        public uint typeStringOffset;               //0x04 //-was this previously different? if so, then when?
+        public uint typeStringOffset;               //0x04 //-the hardcoded table is offset by 0x80000000
         public uint nameStringOffset;               //0x08 //-same here
         public uint size;                           //0x0C //size in bytes; if not static (if it contains an array), set to -1
         public uint index;                          //0x10
@@ -15,10 +15,8 @@
             version = reader.ReadUInt16();
             depth = reader.ReadByte();
             isArray = reader.ReadBoolean();
-            typeStringOffset = reader.ReadUInt16();
-            reader.ReadUInt16();
-            nameStringOffset = reader.ReadUInt16();
-            reader.ReadUInt16();
+            typeStringOffset = reader.ReadUInt32();
+            nameStringOffset = reader.ReadUInt32();
             size = reader.ReadUInt32();
             index = reader.ReadUInt32();
             flags = reader.ReadUInt32();
@@ -37,6 +35,6 @@
             return writer.Position;
         }
         ///public string GetTypeString(string stringTable, ulong stringTableLen);
-	    ///public string GetNameString(string stringTable, ulong stringTableLen);
+        ///public string GetNameString(string stringTable, ulong stringTableLen);
     }
 }
