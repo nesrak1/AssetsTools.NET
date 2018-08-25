@@ -49,6 +49,7 @@ namespace AssetsTools.NET
         //typeMeta is used to add the type information (hash and type fields) for format >= 0x10 if necessary
         public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
+            uint OriginalObjectsPosition = header.offs_firstFile;
             header.Write(writer.Position, writer);
             
             for (int i = 0; i < pReplacers.Length; i++)
@@ -95,14 +96,13 @@ namespace AssetsTools.NET
                 {
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
-                        int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
-                        info = new AssetFileInfo()
-                        {
+                        int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID()); //todo: dublicates fix
+                        info = new AssetFileInfo() {
                             index = replacer.GetPathID(),
                             offs_curFile = currentOffset,
-                            curFileSize = (uint)classIndex,
-                            curFileTypeOrIndex = (uint)replacer.GetClassID(),
-                            inheritedUnityClass = (ushort)replacer.GetClassID(), //-what is this
+                            curFileSize = (uint)replacer.GetSize(),
+                            curFileTypeOrIndex = (uint)classIndex,
+                            inheritedUnityClass = (ushort)replacer.GetClassID(),
                             scriptIndex = replacer.GetMonoScriptID(),
                             unknown1 = 0
                         };
@@ -124,9 +124,8 @@ namespace AssetsTools.NET
                 AssetsReplacer replacer = currentReplacers.First();
                 if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                 {
-                    int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
-                    AssetFileInfo info = new AssetFileInfo()
-                    {
+                    int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID()); //todo: dublicates fix
+                    AssetFileInfo info = new AssetFileInfo() {
                         index = replacer.GetPathID(),
                         offs_curFile = currentOffset,
                         curFileSize = (uint)replacer.GetSize(),
@@ -162,9 +161,10 @@ namespace AssetsTools.NET
             {
                 writer.Write((byte)0x00);
             }
-            
-            header.offs_firstFile = (uint)writer.Position;
-            
+
+            writer.Align16(); //- this also fixes writing from wrong position, it should start from 0x00, anyway, where i checked.
+            header.offs_firstFile = (uint)writer.Position; //- this causes reader start read from the wrong pos. Alos, this corrups rewriting header at the end
+
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
@@ -184,7 +184,7 @@ namespace AssetsTools.NET
                     AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
                     if (originalInfo != null)
                     {
-                        reader.Position = header.offs_firstFile + originalInfo.offs_curFile;
+                        reader.Position = OriginalObjectsPosition + originalInfo.offs_curFile;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
                         writer.Write(assetData);
                         writer.Align8();
