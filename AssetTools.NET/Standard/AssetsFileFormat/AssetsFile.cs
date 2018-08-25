@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AssetsTools.NET
-{
-    public class AssetsFile
-    {
+namespace AssetsTools.NET {
+    public class AssetsFile {
         public AssetsFileHeader header;
         public TypeTree typeTree;
 
@@ -19,46 +17,40 @@ namespace AssetsTools.NET
         public AssetsFileReader reader;
         public Stream readerPar;
 
-        public AssetsFile(AssetsFileReader reader)
-        {
+        public AssetsFile(AssetsFileReader reader) {
             this.reader = reader;
             readerPar = reader.BaseStream;
-            
+
             header = new AssetsFileHeader();
             header.Read(0, reader);
-            
+
             typeTree = new TypeTree();
             typeTree.Read(reader.Position, reader, header.format, reader.bigEndian);
-            
+
             AssetCount = reader.ReadUInt32();
             reader.Align();
             AssetTablePos = Convert.ToUInt32(reader.BaseStream.Position);
-            
+
             reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * AssetCount;
-            if (header.format > 0x0B)
-            {
+            if(header.format > 0x0B) {
                 preloadTable = new PreloadList();
                 preloadTable.Read(reader.Position, reader, header.format, reader.bigEndian);
             }
-            
+
             dependencies = new AssetsFileDependencyList();
             dependencies.Read(reader.Position, reader, header.format, reader.bigEndian);
         }
 
         //set fileID to -1 if all replacers are for this .assets file but don't have the fileID set to the same one
         //typeMeta is used to add the type information (hash and type fields) for format >= 0x10 if necessary
-        public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null)
-        {
+        public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null) {
             uint OriginalObjectsPosition = header.offs_firstFile;
             header.Write(writer.Position, writer);
-            
-            for (int i = 0; i < pReplacers.Length; i++)
-            {
+
+            for(int i = 0; i < pReplacers.Length; i++) {
                 AssetsReplacer replacer = pReplacers[i];
-                if (!typeTree.pTypes_Unity5.Any(t => t.classId == replacer.GetClassID()))
-                {
-                    Type_0D type = new Type_0D()
-                    {
+                if(!typeTree.pTypes_Unity5.Any(t => t.classId == replacer.GetClassID())) {
+                    Type_0D type = new Type_0D() {
                         classId = replacer.GetClassID(),
                         unknown16_1 = 0,
                         scriptIndex = 0xFFFF,
@@ -86,17 +78,14 @@ namespace AssetsTools.NET
             uint currentOffset = 0;
 
             //-write all original assets, modify sizes if needed and skip those to be removed
-            for (int i = 0; i < AssetCount; i++)
-            {
+            for(int i = 0; i < AssetCount; i++) {
                 AssetFileInfo info = new AssetFileInfo();
                 info.Read(header.format, reader.Position, reader, reader.bigEndian);
                 originalAssetInfos.Add(info);
                 AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
-                if (replacer != null)
-                {
-                    if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
-                    {
-                        int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID()); //todo: dublicates fix
+                if(replacer != null) {
+                    if(replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify) {
+                        int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID()); //todo: dublicates fix
                         info = new AssetFileInfo() {
                             index = replacer.GetPathID(),
                             offs_curFile = currentOffset,
@@ -106,25 +95,29 @@ namespace AssetsTools.NET
                             scriptIndex = replacer.GetMonoScriptID(),
                             unknown1 = 0
                         };
-                    } else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
-                    {
+                        currentReplacers.Remove(replacer);
+                    }
+                    else if(replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove) {
+                        currentReplacers.Remove(replacer);
                         continue;
                     }
                 }
+                else {
+                    info.offs_curFile = currentOffset;
+                }
                 currentOffset += info.curFileSize;
                 uint pad = 8 - (currentOffset % 8);
-                if (pad != 8) currentOffset += pad;
+                if(pad != 8)
+                    currentOffset += pad;
 
                 assetInfos.Add(info);
             }
 
             //-write new assets
-            while (currentReplacers.Count > 0)
-            {
+            while(currentReplacers.Count > 0) {
                 AssetsReplacer replacer = currentReplacers.First();
-                if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
-                {
-                    int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID()); //todo: dublicates fix
+                if(replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify) {
+                    int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID()); //todo: dublicates fix
                     AssetFileInfo info = new AssetFileInfo() {
                         index = replacer.GetPathID(),
                         offs_curFile = currentOffset,
@@ -136,20 +129,20 @@ namespace AssetsTools.NET
                     };
                     currentOffset += info.curFileSize;
                     uint pad = 8 - (currentOffset % 8);
-                    if (pad != 8) currentOffset += pad;
+                    if(pad != 8)
+                        currentOffset += pad;
 
                     assetInfos.Add(info);
                 }
                 currentReplacers.Remove(replacer);
             }
-            
+
             writer.Write(assetInfos.Count);
             writer.Align();
-            for (int i = 0; i < assetInfos.Count; i++)
-            {
+            for(int i = 0; i < assetInfos.Count; i++) {
                 assetInfos[i].Write(header.format, writer.Position, writer);
             }
-            
+
             preloadTable.Write(writer.Position, writer, header.format);
 
             dependencies.Write(writer.Position, writer, header.format);
@@ -157,33 +150,28 @@ namespace AssetsTools.NET
             uint metadataSize = (uint)writer.Position - 0x13;
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
-            while (writer.Position < 0x1000/*header.offs_firstFile*/)
-            {
+            while(writer.Position < 0x1000/*header.offs_firstFile*/) {
                 writer.Write((byte)0x00);
             }
 
             writer.Align16(); //- this also fixes writing from wrong position, it should start from 0x00, anyway, where i checked.
             header.offs_firstFile = (uint)writer.Position; //- this causes reader start read from the wrong pos. Alos, this corrups rewriting header at the end
 
-            for (int i = 0; i < assetInfos.Count; i++)
-            {
+            for(int i = 0; i < assetInfos.Count; i++) {
                 AssetFileInfo info = assetInfos[i];
                 AssetsReplacer replacer = pReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
-                if (replacer != null)
-                {
-                    if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
-                    {
+                if(replacer != null) {
+                    if(replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify) {
                         replacer.Write(writer.Position, writer);
                         writer.Align8();
-                    } else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
-                    {
+                    }
+                    else if(replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove) {
                         continue;
                     }
-                } else
-                {
+                }
+                else {
                     AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
-                    if (originalInfo != null)
-                    {
+                    if(originalInfo != null) {
                         reader.Position = OriginalObjectsPosition + originalInfo.offs_curFile;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
                         writer.Write(assetData);
