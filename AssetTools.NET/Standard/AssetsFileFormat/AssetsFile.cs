@@ -89,6 +89,7 @@ namespace AssetsTools.NET {
                         info = new AssetFileInfo() {
                             index = replacer.GetPathID(),
                             offs_curFile = currentOffset,
+                            reader_offs_curFile = uint.MaxValue, //CRAZY WTF SHIT
                             curFileSize = (uint)replacer.GetSize(),
                             curFileTypeOrIndex = (uint)classIndex,
                             inheritedUnityClass = (ushort)replacer.GetClassID(),
@@ -172,7 +173,7 @@ namespace AssetsTools.NET {
                 else {
                     AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
                     if(originalInfo != null) {
-                        reader.Position = OriginalObjectsPosition + originalInfo.offs_curFile;
+                        reader.Position = OriginalObjectsPosition + originalInfo.reader_offs_curFile;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
                         writer.Write(assetData);
                         writer.Align8();

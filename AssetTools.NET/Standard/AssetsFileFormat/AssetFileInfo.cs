@@ -18,6 +18,9 @@ namespace AssetsTools.NET
         //scriptIndex                        //for Unity classes, this is 0xFFFF; for MonoBehaviours, this is the index of the script in the MonoManager asset
         public ushort scriptIndex;           //0x16 //little-endian//only version <= 0x10
         public byte unknown1;                //0x18 //only 0x0F <= version <= 0x10 //with alignment always a DWORD
+
+        public uint reader_offs_curFile;            //idk how to do it cool, so we have that shitcode:F
+
         public static uint GetSize(uint version)
         {
             uint size = 0;
@@ -40,6 +43,7 @@ namespace AssetsTools.NET
                 index = reader.ReadUInt32();
             }
             offs_curFile = reader.ReadUInt32();
+            reader_offs_curFile = offs_curFile;
             curFileSize = reader.ReadUInt32();
             curFileTypeOrIndex = reader.ReadUInt32();
             if (version < 0x10)
