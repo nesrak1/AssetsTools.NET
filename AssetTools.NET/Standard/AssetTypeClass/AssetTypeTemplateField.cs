@@ -61,6 +61,11 @@ namespace AssetsTools.NET
             return reader.Position;
         }
 
+        public ulong WriteValue(AssetsFileWriter writer, AssetTypeValueField ppValueField, bool bigEndian) {
+            WriteType(writer, ppValueField, bigEndian);
+            return writer.Position;
+        }
+
         public AssetTypeValueField ReadType(AssetsFileReader reader, ulong filePos, AssetTypeValueField valueField, bool bigEndian)
         {
             if (valueField.templateField.isArray)
@@ -163,6 +168,95 @@ namespace AssetsTools.NET
             }
             return valueField;
         }
+
+        //like ReadType, but without filePos
+        //i think that the filePos is rudiment
+        public void WriteType(AssetsFileWriter writer, AssetTypeValueField valueField, bool bigEndian) {
+            if(valueField.templateField.isArray) {
+                if(valueField.templateField.childrenCount == 2) {
+                    EnumValueTypes sizeType = valueField.templateField.children[0].valueType;
+                    if(sizeType == EnumValueTypes.ValueType_Int32 ||
+                        sizeType == EnumValueTypes.ValueType_UInt32) {
+                        writer.Write(valueField.childrenCount);
+                        for(int i = 0; i < valueField.childrenCount; i++) {
+                            WriteType(writer, valueField.pChildren[i], bigEndian);
+                        }
+                        if(valueField.templateField.align)
+                            writer.Align();
+                    }
+                    else {
+                        Debug.WriteLine("Invalid array value type! Found an unexpected " + sizeType.ToString() + " type instead!");
+                    }
+                }
+                else {
+                    Debug.WriteLine("Invalid array!");
+                }
+            }
+            else {
+                EnumValueTypes type = valueField.templateField.valueType;
+                //if(type != 0)
+                //    valueField.value = new AssetTypeValue(type, 0);
+                if(type == EnumValueTypes.ValueType_String) {
+                    writer.WriteCountStringInt32(valueField.value.value.asString);
+                    writer.Align();
+                }
+                else {
+                    if(valueField.childrenCount == 0) {
+                        switch(valueField.templateField.valueType) {
+                            case EnumValueTypes.ValueType_Int8:
+                                writer.Write(valueField.value.value.asInt8);
+                                if(valueField.templateField.align)
+                                    writer.Align();
+                                break;
+                            case EnumValueTypes.ValueType_UInt8:
+                                writer.Write(valueField.value.value.asUInt8);
+                                if(valueField.templateField.align)
+                                    writer.Align();
+                                break;
+                            case EnumValueTypes.ValueType_Bool:
+                                writer.Write(valueField.value.value.asBool);
+                                if(valueField.templateField.align)
+                                    writer.Align();
+                                break;
+                            case EnumValueTypes.ValueType_Int16:
+                                writer.Write(valueField.value.value.asInt16);
+                                if(valueField.templateField.align)
+                                    writer.Align();
+                                break;
+                            case EnumValueTypes.ValueType_UInt16:
+                                writer.Write(valueField.value.value.asUInt16);
+                                break;
+                            case EnumValueTypes.ValueType_Int32:
+                                writer.Write(valueField.value.value.asInt32);
+                                break;
+                            case EnumValueTypes.ValueType_UInt32:
+                                writer.Write(valueField.value.value.asUInt32);
+                                break;
+                            case EnumValueTypes.ValueType_Int64:
+                                writer.Write(valueField.value.value.asInt64);
+                                break;
+                            case EnumValueTypes.ValueType_UInt64:
+                                writer.Write(valueField.value.value.asUInt64);
+                                break;
+                            case EnumValueTypes.ValueType_Float:
+                                writer.Write(valueField.value.value.asFloat);
+                                break;
+                            case EnumValueTypes.ValueType_Double:
+                                writer.Write(valueField.value.value.asDouble);
+                                break;
+                        }
+                    }
+                    else {
+                        for(int i = 0; i < valueField.childrenCount; i++) {
+                            WriteType(writer, valueField.pChildren[i], bigEndian);
+                        }
+                        if(valueField.templateField.align)
+                            writer.Align();
+                    }
+                }
+            }
+        }
+
         ///public AssetTypeTemplateField SearchChild(string name)
     }
 }

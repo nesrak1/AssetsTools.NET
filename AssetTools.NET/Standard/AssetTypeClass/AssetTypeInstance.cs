@@ -25,6 +25,17 @@
         ///public bool SetChildList(AssetTypeValueField pValueField, AssetTypeValueField[] pChildrenList, uint childrenCount, bool freeMemory = true);
         ///public bool AddTempMemory(byte[] pMemory);
 
+        public void Write(AssetsFileWriter writer, AssetTypeTemplateField[] ppBaseFields, ulong filePos = 0) {
+            writer.bigEndian = false;
+            writer.BaseStream.Position = (long)filePos;
+            for(int i = 0; i < this.baseFieldCount; i++) {
+                //Debug.WriteLine(reader.BaseStream.Position);
+                AssetTypeTemplateField templateBaseField = ppBaseFields[i];
+                templateBaseField.WriteValue(writer, this.baseFields[i], writer.bigEndian);
+                //atvf.Read(atvf.value, templateBaseField, atvf.childrenCount, atvf.pChildren);
+            }
+        }
+
         public static AssetTypeValueField GetDummyAssetTypeField()
         {
             AssetTypeValueField atvf = new AssetTypeValueField();
