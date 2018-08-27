@@ -81,37 +81,37 @@ namespace AssetsTools.NET.Extra
                     return 0f;
             }
         }
-    }
 
-    public class SubMesh
-    {
-        public List<Vector3> verticies = new List<Vector3>();
-        public List<Vector3> normals = new List<Vector3>();
-        public List<Vector3> uvs = new List<Vector3>();
-        public AssetPPtr texture;
-    }
+        public class SubMesh
+        {
+            public List<Vector3> verticies = new List<Vector3>();
+            public List<Vector3> normals = new List<Vector3>();
+            public List<Vector3> uvs = new List<Vector3>();
+            public AssetPPtr texture;
+        }
 
-    public class SubMeshInfo
-    {
-        public uint firstByte;
-        public uint indexCount;
-        public int topology;
-        public uint firstVertex;
-        public uint vertexCount;
-    }
+        public class SubMeshInfo
+        {
+            public uint firstByte;
+            public uint indexCount;
+            public int topology;
+            public uint firstVertex;
+            public uint vertexCount;
+        }
 
-    public struct Vector3
-    {
-        public float x;
-        public float y;
-        public float z;
-    }
+        public struct Vector3
+        {
+            public float x;
+            public float y;
+            public float z;
+        }
 
-    public struct ChannelInfo
-    {
-        public byte stream;
-        public byte offset;
-        public byte format;
-        public byte dimension;
+        public struct ChannelInfo
+        {
+            public byte stream;
+            public byte offset;
+            public byte format;
+            public byte dimension;
+        }
     }
 }

@@ -36,56 +36,97 @@ namespace UABE.NET.Winforms
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = true;
             bw.DoWork += delegate (object s, DoWorkEventArgs ev) {
-                for (int i = 0; i < details.Count; i++)
+                try
                 {
-                    AssetDetails ad = details[i];
-                    if (ad.fileID != 0 && !checkBox1.Checked) continue;
-                    string text = null;
-                    if (ad.typeName == "MonoBehaviour")
+                    for (int i = 0; i < details.Count; i++)
                     {
-                        if (ad.name != "MonoBehaviour")
+                        AssetDetails ad = details[i];
+                        if (ad.fileID != 0 && !checkBox1.Checked) continue;
+                        string text = null;
+                        if (ad.typeName == "MonoBehaviour")
                         {
-                            text = ad.name + " ("+ad.fileID+"/"+ad.pathID+")";
-                        } else
-                        {
-                            AssetTypeInstance behaviourAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
-                            AssetTypeInstance scriptAti = manager.GetExtAsset(behaviourAti.GetBaseField().Get("m_Script")).instance;
-                            string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
-                            text = scriptName + " ("+ad.fileID+"/"+ad.pathID+")";
-                        }
-                        monos.Add(ad.pathID, text);
-                    }
-                    bw.ReportProgress(i);
-                }
-                for (int i = 0; i < details.Count; i++)
-                {
-                    AssetDetails ad = details[i];
-                    if (ad.fileID != 0 && !checkBox1.Checked) continue;
-                    if (ad.typeName == "GameObject")
-                    {
-                        AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
-                        AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
-                        for (uint j = 0; j < components.GetValue().AsArray().size; j++)
-                        {
-                            long id = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();
-                            if (monos.ContainsKey((ulong)id))
+                            if (ad.name != "MonoBehaviour")
                             {
-                                monos[(ulong)id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "("+ad.fileID+"/"+ad.pathID+")";
+                                text = ad.name + " (" + ad.fileID + "/" + ad.pathID + ")";
                             }
+                            else
+                            {
+                                AssetTypeInstance behaviourAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
+                                AssetTypeInstance scriptAti = manager.GetExtAsset(behaviourAti.GetBaseField().Get("m_Script")).instance;
+                                if (scriptAti != null)
+                                {
+                                    string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
+                                    text = scriptName + " (" + ad.fileID + "/" + ad.pathID + ")";
+                                }
+                                else
+                                {
+                                    text = "(unknown)";
+                                }
+                            }
+                            monos.Add(ad.pathID, text);
                         }
                         bw.ReportProgress(i);
                     }
-                }
-                foreach (string str in monos.Values)
+                    for (int i = 0; i < details.Count; i++)
+                    {
+                        AssetDetails ad = details[i];
+                        if (ad.fileID != 0 && !checkBox1.Checked) continue;
+                        if (ad.typeName == "GameObject")
+                        {
+                            AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
+                            AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
+                            for (uint j = 0; j < components.GetValue().AsArray().size; j++)
+                            {
+                                long id = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();
+                                if (monos.ContainsKey((ulong)id))
+                                {
+                                    monos[(ulong)id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "(" + ad.fileID + "/" + ad.pathID + ")";
+                                }
+                            }
+                            bw.ReportProgress(i);
+                        }
+                    }
+                    foreach (string str in monos.Values)
+                    {
+                        bw.ReportProgress(details.Count, str);
+                    }
+                    startedScanning = false;
+                    finishedScanning = true;
+                    bw.ReportProgress(details.Count, "COMPLETELY_FINISHED");
+                } catch (Exception ex)
                 {
-                    bw.ReportProgress(details.Count, str);
                 }
-                startedScanning = false;
-                finishedScanning = true;
             };
             bw.ProgressChanged += delegate (object s, ProgressChangedEventArgs ev) {
                 loadingBar.Value = ev.ProgressPercentage;
-                if (ev.UserState != null) listBox1.Items.Add(ev.UserState);
+                if (ev.UserState is object[])
+                {
+                    object[] obj = (object[])ev.UserState;
+                    if ((string)obj[0] == "ERROR")
+                    {
+                        System.Diagnostics.Debug.WriteLine(((Exception)obj[1]).Message);
+                    }
+                }
+                if (ev.UserState != null)
+                {
+                    if ((string)ev.UserState == "COMPLETELY_FINISHED")
+                    {
+                        List<string> lines = new List<string>();
+                        for (int i = 0; i < listBox1.Items.Count; i++)
+                        {
+                            lines.Add(listBox1.Items[i].ToString());
+                        }
+                        lines.Add("====");
+                        for (int i = 0; i < listBox1.Items.Count; i++)
+                        {
+                            lines.Add(listBox1.Items[i].ToString().Substring(0, listBox1.Items[i].ToString().IndexOf("(")));
+                        }
+                        System.IO.File.WriteAllLines("C:\\Users\\karse\\Desktop\\monobs.txt", lines);
+                    } else
+                    {
+                        listBox1.Items.Add(ev.UserState);
+                    }
+                }
             };
             bw.RunWorkerAsync();
         }

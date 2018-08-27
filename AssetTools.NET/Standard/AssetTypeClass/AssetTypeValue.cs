@@ -55,7 +55,7 @@ namespace AssetsTools.NET
                 switch (type)
                 {
                     case EnumValueTypes.ValueType_Bool:
-                        value.asBool = Convert.ToBoolean(valueContainer);
+                        value.asBool = Convert.ToByte(valueContainer) == 1 ? true : false;
                         break;
                     case EnumValueTypes.ValueType_Int8:
                         value.asInt8 = Convert.ToSByte(valueContainer);
@@ -192,6 +192,12 @@ namespace AssetsTools.NET
                 case EnumValueTypes.ValueType_ByteArray:
                 case EnumValueTypes.ValueType_Array:
                     return 0;
+                case EnumValueTypes.ValueType_UInt8:
+                    return (uint)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (uint)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt64:
+                    return (uint)value.asUInt64;
                 default:
                     return value.asUInt32;
             }

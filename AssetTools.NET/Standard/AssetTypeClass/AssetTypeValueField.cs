@@ -73,6 +73,7 @@
                     return EnumValueTypes.ValueType_Int8;
                 case "uint8":
                 case "char":
+                case "byte":
                     return EnumValueTypes.ValueType_UInt8;
                 case "sint16":
                 case "short":

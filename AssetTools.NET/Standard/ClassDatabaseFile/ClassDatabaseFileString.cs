@@ -25,7 +25,7 @@
         {
             fromStringTable = true;
             str.stringTableOffset = reader.ReadUInt32();
-            if (str.stringTableOffset != 0xFFFFFFFF) //total guess haha, havent messed with inline strings much
+            if (str.stringTableOffset != 0xFFFFFFFF)
             {
                 fromStringTable = true;
             }
@@ -33,9 +33,18 @@
             {
                 //untested, probably wrong
                 fromStringTable = false;
-                str.@string = reader.ReadCountString(); //this may be different
+                str.@string = reader.ReadCountString();
             }
             return reader.Position;
+        }
+        public ulong Write(AssetsFileWriter writer, ulong filePos)
+        {
+            writer.Write(str.stringTableOffset);
+            if (!fromStringTable)
+            {
+                writer.WriteCountString(str.@string);
+            }
+            return writer.Position;
         }
     }
 }
