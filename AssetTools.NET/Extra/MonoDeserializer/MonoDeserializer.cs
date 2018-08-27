@@ -92,7 +92,7 @@ namespace AssetsTools.NET.Extra
                 } else if (fieldType.Name.Equals("String"))
                 {
                     SetString(field);
-                }else if (IsAcceptableUnityType(fieldType))
+                } else if (IsAcceptableUnityType(fieldType))
                 {
                     SetSpecialUnity(field, fieldType);
                 } else if (DerivesFromUEObject(fieldType))
