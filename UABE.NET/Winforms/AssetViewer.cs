@@ -153,7 +153,7 @@ namespace UABE.NET.Winforms
         
         private string GetAssetNameFast(AssetFileInfoEx afi, ClassDatabaseFile cldb, ClassDatabaseType type, AssetsFileReader reader)
         {
-            if (type.fields.Count == 0) return type.name.GetString(cldb);
+            if (type.fields.Count <= 1) return type.name.GetString(cldb);
             if (type.fields[1].fieldName.GetString(cldb) == "m_Name")
             {
                 reader.Position = afi.absoluteFilePos;
