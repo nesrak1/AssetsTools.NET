@@ -129,6 +129,28 @@ namespace UABE.NET.Winforms
         private void AddAssetItem(AssetsFile af, AssetFileInfoEx afi, AssetsFileReader worker, uint fileId)
         {
             ClassDatabaseType type = AssetHelper.FindAssetClassByID(assetsManager.initialClassFile, afi.curFileType);
+            if (type == null)
+            {
+                string tfileID = fileId.ToString();
+                string tpathID = unchecked((long)afi.index).ToString();
+                string tsize = afi.curFileSize.ToString();
+                string tmodified = "";
+                string[] titems = new string[] { "Unknown", "??? Custom ???", tfileID, tpathID, tsize, tmodified };
+                assetDetails.Add(
+                    new AssetDetails(
+                        "Unknown",
+                        "??? Custom ???",
+                        afi.index,
+                        fileId,
+                        afi.curFileType,
+                        afi.absoluteFilePos,
+                        af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex
+                    )
+                );
+                System.Diagnostics.Debug.WriteLine("unknown id " + tpathID + " classid " + afi.curFileType);
+                assetList.Items.Add(new ListViewItem(titems));
+                return;
+            }
             string assetName = GetAssetNameFast(afi, assetsManager.initialClassFile, type, worker);
             string assetType = type.name.GetString(assetsManager.initialClassFile);
             string fileID = fileId.ToString();

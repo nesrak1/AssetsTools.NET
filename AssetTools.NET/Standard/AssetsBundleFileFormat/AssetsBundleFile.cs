@@ -28,7 +28,8 @@ namespace AssetsTools.NET
         {
             this.reader = reader;
             reader.ReadNullTerminated();
-            if (reader.ReadUInt32() == 6)
+            uint version = reader.ReadUInt32();
+            if (version == 6)
             {
                 reader.Position = 0;
                 bundleHeader6 = new AssetsBundleHeader06();
@@ -60,7 +61,7 @@ namespace AssetsTools.NET
                     }
                 }
             }
-            else if (reader.ReadUInt32() == 3)
+            else if (version == 3)
             {
                 new NotImplementedException("Version 3 bundles are not supported yet.");
             }

@@ -10,7 +10,7 @@ namespace AssetsTools.NET
 		        return false;
             if (type == 0x122)
                 return true;
-            if ((int)type > ~0x110) //-monos aren't limited to ~0x110 right?
+            if ((int)type < ~0x110) //-monos aren't limited to ~0x110 right?
 		        return false;
             HashSet<uint> allowed = new HashSet<uint>
             {
@@ -19,13 +19,7 @@ namespace AssetsTools.NET
                 0x81, 0x83, 0x87, 0x89, 0x96, 0xA3, 0xA4, 0xA5, 0xAD, 0xB3, 0xBA,
                 0xC0, 0xC8, 0xCD, 0xCF, 0xD8, 0xD9, 0xDB, 0xED, 0xFA, 0xFB, 0xFC
             };
-            if (allowed.Contains(type))
-            {
-                return true;
-            } else
-            {
-                return false;
-            }
+            return allowed.Contains(type);
         }
     }
 }

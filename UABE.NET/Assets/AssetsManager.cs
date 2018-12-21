@@ -32,11 +32,15 @@ namespace UABE.NET.Assets
             {
                 Dependency assetDependency;
                 string depName = initialFile.dependencies.pDependencies[i].assetPath;
-                FileStream depFile = new FileStream(directory + "\\" + depName.Replace("library/", "Resources\\"), FileMode.Open, FileAccess.Read, FileShare.Read);
-                AssetsFile depAssetsFile = new AssetsFile(new AssetsFileReader(depFile));
-                AssetsFileTable depAssetsFileTable = new AssetsFileTable(depAssetsFile);
-                assetDependency = new Dependency(depName, depFile, depAssetsFile, depAssetsFileTable);
-                dependencies.Add(assetDependency);
+                string path = Path.Combine(directory, depName.Replace("library/", "Resources/"));
+                if (File.Exists(path))
+                {
+                    FileStream depFile = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    AssetsFile depAssetsFile = new AssetsFile(new AssetsFileReader(depFile));
+                    AssetsFileTable depAssetsFileTable = new AssetsFileTable(depAssetsFile);
+                    assetDependency = new Dependency(depName, depFile, depAssetsFile, depAssetsFileTable);
+                    dependencies.Add(assetDependency);
+                }
             }
         }
         public void LoadAssets(string path)
@@ -83,15 +87,21 @@ namespace UABE.NET.Assets
         public AssetExternal GetExtAsset(AssetTypeValueField atvf)
         {
             AssetExternal ext = new AssetExternal();
-            if (atvf.Get("m_FileID").GetValue().AsInt() != 0)
+            uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
+            ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
+            if (fileId == 0 && pathId == 0)
             {
-                Dependency dep = dependencies[atvf.Get("m_FileID").GetValue().AsInt() - 1];
-                ext.info = dep.aft.getAssetInfo((ulong)atvf.Get("m_PathID").GetValue().AsInt64());
-                ext.instance = GetATI(dep.file, ext.info);
+                ext.info = null;
+                ext.instance = null;
             }
-            else
+            else if (atvf.Get("m_FileID").GetValue().AsInt() != 0)
             {
-                ext.info = initialTable.getAssetInfo((ulong)atvf.Get("m_PathID").GetValue().AsInt64());
+                Dependency dep = dependencies[(int)fileId - 1];
+                ext.info = dep.aft.getAssetInfo(pathId);
+                ext.instance = GetATI(dep.file, ext.info);
+            } else
+            {
+                ext.info = initialTable.getAssetInfo(pathId);
                 ext.instance = GetATI(file, ext.info);
             }
             return ext;

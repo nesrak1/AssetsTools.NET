@@ -23,5 +23,16 @@
             flags2 = reader.ReadUInt32();
             return reader.Position;
         }
+        public ulong Write(AssetsFileWriter writer, ulong filePos, int version)
+        {
+            typeName.Write(writer, filePos);
+            fieldName.Write(writer, filePos);
+            writer.Write(depth);
+            writer.Write(isArray);
+            writer.Write(size);
+            writer.Write(this.version);
+            writer.Write(flags2);
+            return writer.Position;
+        }
     }
 }

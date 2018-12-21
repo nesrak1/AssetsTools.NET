@@ -43,7 +43,9 @@ namespace AssetsTools.NET.Extra
         }
         public AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, TypeDefinition type, AssetTypeTemplateField[] attf)
         {
-            if (type.BaseType.Name != "Object" && type.BaseType.Name != "MonoBehaviour")
+            if (type.BaseType.Name != "Object" &&
+                type.BaseType.Name != "MonoBehaviour" &&
+                type.BaseType.Name != "ScriptableObject")
             {
                 TypeDefinition typeDef = type.BaseType.Resolve();
                 attf = RecursiveTypeLoad(typeDef.Module, typeDef, attf);
@@ -66,8 +68,9 @@ namespace AssetsTools.NET.Extra
                 {
                     fieldType = ((GenericInstanceType)fieldDef.FieldType).GenericArguments[0].Resolve();
                 }
-                string arrayFixedName = fieldDef.FieldType.Name;
-                if (fieldDef.FieldType.Name.EndsWith("[]") && !fieldDef.FieldType.Name.EndsWith("[][]")) {
+                string arrayFixedName = fieldType.Name;
+                if ((fieldType.Name.EndsWith("[]") && !fieldType.Name.EndsWith("[][]")) ||
+                     fieldType.Name.EndsWith("`1")) {
                     arrayFixedName = arrayFixedName.Substring(0, arrayFixedName.Length - 2);
                 }
                 field.name = fieldDef.Name;
@@ -86,19 +89,19 @@ namespace AssetsTools.NET.Extra
                 {
                     field.childrenCount = 0;
                     field.children = new AssetTypeTemplateField[] { };
-                } else if (DerivesFromUEObject(fieldType))
-                {
-                    SetPPtr(field);
                 } else if (fieldType.Name.Equals("String"))
                 {
                     SetString(field);
-                } else if (fieldType.IsSerializable)
-                {
-                    SetSerialized(field, fieldType);
                 } else if (IsAcceptableUnityType(fieldType))
                 {
                     SetSpecialUnity(field, fieldType);
-                } 
+                } else if (DerivesFromUEObject(fieldType))
+                {
+                    SetPPtr(field);
+                } else if (fieldType.IsSerializable)
+                {
+                    SetSerialized(field, fieldType);
+                }
                 string baseFieldType = fieldDef.FieldType.Name;
                 if ((baseFieldType.EndsWith("[]") && !baseFieldType.EndsWith("[][]")) //IsArray won't work here for whatever reason
                     || baseFieldType.StartsWith("List"))
@@ -262,7 +265,7 @@ namespace AssetsTools.NET.Extra
             data.type = string.Copy(field.type);
             data.valueType = field.valueType;
             data.isArray = false;
-            data.align = IsAlignable(field.valueType);
+            data.align = false;//IsAlignable(field.valueType);
             data.hasValue = field.hasValue;
             data.childrenCount = field.childrenCount;
             data.children = field.children;

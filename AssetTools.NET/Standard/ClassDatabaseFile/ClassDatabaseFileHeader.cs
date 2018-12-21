@@ -1,4 +1,6 @@
-﻿namespace AssetsTools.NET
+﻿using System.Text;
+
+namespace AssetsTools.NET
 {
     public struct ClassDatabaseFileHeader
     {
@@ -33,6 +35,23 @@
             stringTableLen = reader.ReadUInt32();
             stringTablePos = reader.ReadUInt32();
             return reader.Position;
+        }
+        public ulong Write(AssetsFileWriter writer, ulong filePos)
+        {
+            writer.bigEndian = false;
+            writer.Write(Encoding.ASCII.GetBytes(header));
+            writer.Write(fileVersion);
+            writer.Write(compressionType);
+            writer.Write(compressedSize);
+            writer.Write(uncompressedSize);
+            writer.Write(unityVersionCount);
+            for (int i = 0; i < unityVersionCount; i++)
+            {
+                writer.WriteCountString(pUnityVersions[i]);
+            }
+            writer.Write(stringTableLen);
+            writer.Write(stringTablePos);
+            return writer.Position;
         }
     }
 }

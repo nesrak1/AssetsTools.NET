@@ -29,8 +29,10 @@ namespace UABE.NET.Winforms
             PopulateTree();
         }
 
+        StreamWriter writer;
         private void PopulateTree()
         {
+            writer = new StreamWriter(new FileStream("C:\\Users\\karse\\Desktop\\out.txt", FileMode.Create));
             ClassDatabaseType cldt = AssetHelper.FindAssetClassByID(am.initialClassFile, assetDetails.type);
             AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
             pBaseField.FromClassDatabase(am.initialClassFile, cldt, 0);
@@ -49,10 +51,11 @@ namespace UABE.NET.Winforms
             }
             AssetTypeValueField baseField = mainAti.GetBaseField();
             rawViewTree.Nodes.Add(baseField.GetFieldType() + " " + baseField.GetName());
-            RecursiveTreeLoad(mainAti.GetBaseField(), rawViewTree.Nodes[0]);
+            RecursiveTreeLoad(mainAti.GetBaseField(), rawViewTree.Nodes[0], 0);
+            writer.Close();
         }
 
-        private void RecursiveTreeLoad(AssetTypeValueField atvf, TreeNode node)
+        private void RecursiveTreeLoad(AssetTypeValueField atvf, TreeNode node, int depth)
         {
             if (atvf.childrenCount == 0) return;
             foreach (AssetTypeValueField atvfc in atvf.pChildren) //todo, if over certain amount of children, load later
@@ -75,7 +78,8 @@ namespace UABE.NET.Winforms
                     }
                 }
                 node.Nodes.Add(atvfc.GetFieldType() + " " + atvfc.GetName() + value);
-                RecursiveTreeLoad(atvfc, node.LastNode);
+                writer.WriteLine(new string(' ', depth) + atvfc.GetFieldType() + " " + atvfc.GetName() + value);
+                RecursiveTreeLoad(atvfc, node.LastNode, depth+1);
             }
         }
 
