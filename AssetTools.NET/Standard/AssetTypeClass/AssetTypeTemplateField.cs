@@ -16,7 +16,10 @@ namespace AssetsTools.NET
 
         ///public AssetTypeTemplateField()
         ///public void Clear()
-        ///public bool From0D(Type_0D pU5Type, uint fieldIndex)
+        public bool From0D(Type_0D pU5Type, uint fieldIndex)
+        {
+            return true;
+        }
         public bool FromClassDatabase(ClassDatabaseFile pFile, ClassDatabaseType pType, uint fieldIndex)
         {
             ClassDatabaseTypeField field = pType.fields[(int)fieldIndex];

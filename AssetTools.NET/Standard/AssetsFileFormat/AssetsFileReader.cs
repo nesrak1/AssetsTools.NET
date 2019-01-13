@@ -6,8 +6,6 @@ namespace AssetsTools.NET
     public class AssetsFileReader : BinaryReader
     {
         public bool bigEndian = true;
-        public AssetsFileReader(FileStream fileStream) : base(fileStream) { }
-        public AssetsFileReader(MemoryStream memStream) : base(memStream) { }
         public AssetsFileReader(Stream stream) : base(stream) { }
         public override short ReadInt16()
         {

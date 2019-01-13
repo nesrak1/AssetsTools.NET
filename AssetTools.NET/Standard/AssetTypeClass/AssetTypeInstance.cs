@@ -22,6 +22,8 @@
                 baseFields[i] = atvf;
             }
         }
+        public AssetTypeInstance(AssetTypeTemplateField ppBaseField, AssetsFileReader reader, bool bigEndian, ulong filePos = 0)
+            : this(1, new[] { ppBaseField }, reader, bigEndian, filePos) { }
         ///public bool SetChildList(AssetTypeValueField pValueField, AssetTypeValueField[] pChildrenList, uint childrenCount, bool freeMemory = true);
         ///public bool AddTempMemory(byte[] pMemory);
 

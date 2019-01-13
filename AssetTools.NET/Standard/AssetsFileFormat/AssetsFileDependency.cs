@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AssetsTools.NET
 {
@@ -41,7 +40,7 @@ namespace AssetsTools.NET
             //todo: the switchero was here for testing purposes, should be handled by application for full control
             if (assetPath.StartsWith("library/"))
             {
-                assetPath = "Resources\\" + assetPath.Substring(8);
+                assetPath = "Resources/" + assetPath.Substring(8);
             }
             return reader.Position;
         }
@@ -51,7 +50,7 @@ namespace AssetsTools.NET
             guid.Write(writer.Position, writer);
             writer.Write(type);
             string assetPathTemp = assetPath;
-            if (assetPathTemp.StartsWith("Resources\\"))
+            if (assetPathTemp.StartsWith("Resources\\") || assetPathTemp.StartsWith("Resources/"))
             {
                 assetPathTemp = "library/" + assetPath.Substring(10);
             }

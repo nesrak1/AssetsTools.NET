@@ -35,7 +35,7 @@ namespace AssetsTools.NET
             if (version >= 0x10) unknown16_1 = reader.ReadByte();
             if (version >= 0x11) scriptIndex = reader.ReadUInt16();
             //if ((version < 0x11 && classId < 0) || (version >= 0x11 && scriptIndex != 0xFFFF)) //original is if (classId == 114)
-            if (classId == 114)
+            if ((version < 0x11 && classId < 0) || (version >= 0x11 && scriptIndex != 0xFFFF))
             {
                 unknown1 = reader.ReadUInt32();
                 unknown2 = reader.ReadUInt32();
