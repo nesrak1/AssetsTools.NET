@@ -50,7 +50,7 @@ namespace AssetsTools.NET
         public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
             header.Write(writer.Position, writer);
-            
+
             for (int i = 0; i < pReplacers.Length; i++)
             {
                 AssetsReplacer replacer = pReplacers[i];
@@ -93,6 +93,7 @@ namespace AssetsTools.NET
                 AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
                 if (replacer != null)
                 {
+                    currentReplacers.Remove(replacer);
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
                         int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
@@ -100,13 +101,14 @@ namespace AssetsTools.NET
                         {
                             index = replacer.GetPathID(),
                             offs_curFile = currentOffset,
-                            curFileSize = (uint)classIndex,
-                            curFileTypeOrIndex = (uint)replacer.GetClassID(),
+                            curFileSize = (uint)replacer.GetSize(),
+                            curFileTypeOrIndex = (uint)classIndex,
                             inheritedUnityClass = (ushort)replacer.GetClassID(), //-what is this
                             scriptIndex = replacer.GetMonoScriptID(),
                             unknown1 = 0
                         };
-                    } else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
+                    }
+                    else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
                     {
                         continue;
                     }
@@ -143,14 +145,14 @@ namespace AssetsTools.NET
                 }
                 currentReplacers.Remove(replacer);
             }
-            
+
             writer.Write(assetInfos.Count);
             writer.Align();
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 assetInfos[i].Write(header.format, writer.Position, writer);
             }
-            
+
             preloadTable.Write(writer.Position, writer, header.format);
 
             dependencies.Write(writer.Position, writer, header.format);
@@ -162,9 +164,11 @@ namespace AssetsTools.NET
             {
                 writer.Write((byte)0x00);
             }
-            
-            header.offs_firstFile = (uint)writer.Position;
-            
+
+            writer.Align16();
+
+            uint offs_firstFile = (uint)writer.Position;
+
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
@@ -175,11 +179,13 @@ namespace AssetsTools.NET
                     {
                         replacer.Write(writer.Position, writer);
                         writer.Align8();
-                    } else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
+                    }
+                    else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
                     {
                         continue;
                     }
-                } else
+                }
+                else
                 {
                     AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
                     if (originalInfo != null)
@@ -191,6 +197,8 @@ namespace AssetsTools.NET
                     }
                 }
             }
+
+            header.offs_firstFile = offs_firstFile;
 
             ulong fileSizeMarker = writer.Position;
 

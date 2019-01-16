@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace UABE.NET.Assets
 {
-    public class AssetsManager
+    public class AssetsManagerLegacy
     {
         public Stream file;
         public Stream classFile;
@@ -17,7 +17,7 @@ namespace UABE.NET.Assets
         public ClassDatabaseFile initialClassFile;
         public List<Dependency> dependencies;
         public List<AssetTypeTemplateField> attfs;
-        public AssetsManager()
+        public AssetsManagerLegacy()
         {
             attfs = new List<AssetTypeTemplateField>();
             dependencies = new List<Dependency>();

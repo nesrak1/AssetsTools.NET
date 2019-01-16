@@ -16,8 +16,8 @@ namespace UABE.NET.Winforms
         int searchIndex = 0;
         List<AssetDetails> details;
         AssetsFile file;
-        AssetsManager manager;
-        public MonobehaviourSearch(List<AssetDetails> details, AssetsFile file, AssetsManager manager)
+        AssetsManagerLegacy manager;
+        public MonobehaviourSearch(List<AssetDetails> details, AssetsFile file, AssetsManagerLegacy manager)
         {
             InitializeComponent();
             this.details = details;
@@ -36,9 +36,9 @@ namespace UABE.NET.Winforms
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = true;
             bw.DoWork += delegate (object s, DoWorkEventArgs ev) {
-                try
+                for (int i = 0; i < details.Count; i++)
                 {
-                    for (int i = 0; i < details.Count; i++)
+                    try
                     {
                         AssetDetails ad = details[i];
                         if (ad.fileID != 0 && !checkBox1.Checked) continue;
@@ -66,36 +66,36 @@ namespace UABE.NET.Winforms
                             monos.Add(ad.pathID, text);
                         }
                         bw.ReportProgress(i);
-                    }
-                    for (int i = 0; i < details.Count; i++)
+                    } catch (Exception ex)
                     {
-                        AssetDetails ad = details[i];
-                        if (ad.fileID != 0 && !checkBox1.Checked) continue;
-                        if (ad.typeName == "GameObject")
-                        {
-                            AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
-                            AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
-                            for (uint j = 0; j < components.GetValue().AsArray().size; j++)
-                            {
-                                long id = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();
-                                if (monos.ContainsKey((ulong)id))
-                                {
-                                    monos[(ulong)id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "(" + ad.fileID + "/" + ad.pathID + ")";
-                                }
-                            }
-                            bw.ReportProgress(i);
-                        }
                     }
-                    foreach (string str in monos.Values)
-                    {
-                        bw.ReportProgress(details.Count, str);
-                    }
-                    startedScanning = false;
-                    finishedScanning = true;
-                    bw.ReportProgress(details.Count, "COMPLETELY_FINISHED");
-                } catch (Exception ex)
-                {
                 }
+                for (int i = 0; i < details.Count; i++)
+                {
+                    AssetDetails ad = details[i];
+                    if (ad.fileID != 0 && !checkBox1.Checked) continue;
+                    if (ad.typeName == "GameObject")
+                    {
+                        AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
+                        AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
+                        for (uint j = 0; j < components.GetValue().AsArray().size; j++)
+                        {
+                            long id = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();
+                            if (monos.ContainsKey((ulong)id))
+                            {
+                                monos[(ulong)id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "(" + ad.fileID + "/" + ad.pathID + ")";
+                            }
+                        }
+                        bw.ReportProgress(i);
+                    }
+                }
+                foreach (string str in monos.Values)
+                {
+                    bw.ReportProgress(details.Count, str);
+                }
+                startedScanning = false;
+                finishedScanning = true;
+                bw.ReportProgress(details.Count, "COMPLETELY_FINISHED");
             };
             bw.ProgressChanged += delegate (object s, ProgressChangedEventArgs ev) {
                 loadingBar.Value = ev.ProgressPercentage;
@@ -121,7 +121,6 @@ namespace UABE.NET.Winforms
                         {
                             lines.Add(listBox1.Items[i].ToString().Substring(0, listBox1.Items[i].ToString().IndexOf("(")));
                         }
-                        System.IO.File.WriteAllLines("C:\\Users\\karse\\Desktop\\monobs.txt", lines);
                     } else
                     {
                         listBox1.Items.Add(ev.UserState);

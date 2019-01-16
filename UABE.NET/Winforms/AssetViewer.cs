@@ -17,7 +17,7 @@ namespace UABE.NET.Winforms
         string assetName;
         //AssetsFile af;
         //ClassDatabaseFile cldb;
-        AssetsManager assetsManager;
+        AssetsManagerLegacy assetsManager;
         List<AssetDetails> assetDetails = new List<AssetDetails>();
         //extra
         AssetNameSearch assetNameSearch = null;
@@ -103,7 +103,7 @@ namespace UABE.NET.Winforms
                 assetList.Items.Add(new ListViewItem(items));
             }
             assetList.Items.RemoveAt(0); //remove blank item that's here for some reason*/
-            assetsManager = new AssetsManager();
+            assetsManager = new AssetsManagerLegacy();
             assetsManager.LoadAssets(assetStream, assetRootDir);
             assetsManager.LoadClassFile(Path.Combine(Application.StartupPath, "cldb.dat"));
             AssetsFileReader worker = new AssetsFileReader(assetStream);
@@ -114,7 +114,7 @@ namespace UABE.NET.Winforms
             }
             assetList.Items.RemoveAt(0);
             uint id = 1;
-            foreach (AssetsManager.Dependency dep in assetsManager.dependencies)
+            foreach (AssetsManagerLegacy.Dependency dep in assetsManager.dependencies)
             {
                 worker = new AssetsFileReader(dep.file);
                 worker.bigEndian = false;
@@ -236,7 +236,7 @@ namespace UABE.NET.Winforms
         {
             assetsManager.file.Close();
             assetsManager.classFile.Close();
-            foreach (AssetsManager.Dependency dep in assetsManager.dependencies)
+            foreach (AssetsManagerLegacy.Dependency dep in assetsManager.dependencies)
                 dep.file.Close();
             assetsManager = null;
             //assetStream.Close();

@@ -13,8 +13,8 @@ namespace UABE.NET.Winforms
         bool startedScanning = false;
         List<AssetDetails> details;
         AssetsFile file;
-        AssetsManager manager;
-        public TransformSearch(List<AssetDetails> details, AssetsFile file, AssetsManager manager)
+        AssetsManagerLegacy manager;
+        public TransformSearch(List<AssetDetails> details, AssetsFile file, AssetsManagerLegacy manager)
         {
             InitializeComponent();
             this.details = details;

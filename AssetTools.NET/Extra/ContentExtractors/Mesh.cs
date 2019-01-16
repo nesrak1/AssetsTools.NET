@@ -12,7 +12,7 @@ namespace AssetsTools.NET.Extra
     public class Mesh
     {
         public string name;
-        public List<SubMesh> subMeshes = new List<SubMesh>();
+        private List<SubMesh> subMeshes = new List<SubMesh>();
         public void ReadMesh(AssetTypeInstance ati)
         {
             AssetTypeValueField baseField = ati.GetBaseField();
@@ -74,7 +74,7 @@ namespace AssetsTools.NET.Extra
                     return BitConverter.ToSingle(bytes, 0);
                 case 1:
                     bytes = new byte[] { data[position], data[position+1] };
-                    return Half.Half.HalfToSingle(BitConverter.ToUInt16(bytes, 0));
+                    return 0f;//return Half.Half.HalfToSingle(BitConverter.ToUInt16(bytes, 0));
                 case 2:
                     return data[position] / 255.0f;
                 default:
@@ -82,7 +82,7 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public class SubMesh
+        private class SubMesh
         {
             public List<Vector3> verticies = new List<Vector3>();
             public List<Vector3> normals = new List<Vector3>();
@@ -90,7 +90,7 @@ namespace AssetsTools.NET.Extra
             public AssetPPtr texture;
         }
 
-        public class SubMeshInfo
+        private class SubMeshInfo
         {
             public uint firstByte;
             public uint indexCount;
@@ -99,14 +99,14 @@ namespace AssetsTools.NET.Extra
             public uint vertexCount;
         }
 
-        public struct Vector3
+        private struct Vector3
         {
             public float x;
             public float y;
             public float z;
         }
 
-        public struct ChannelInfo
+        private struct ChannelInfo
         {
             public byte stream;
             public byte offset;
