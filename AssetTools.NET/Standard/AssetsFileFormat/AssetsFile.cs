@@ -90,14 +90,24 @@ namespace AssetsTools.NET
                 AssetFileInfo info = new AssetFileInfo();
                 info.Read(header.format, reader.Position, reader, reader.bigEndian);
                 originalAssetInfos.Add(info);
-                AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
+                AssetFileInfo newInfo = new AssetFileInfo()
+                {
+                    index = info.index,
+                    offs_curFile = currentOffset,
+                    curFileSize = info.curFileSize,
+                    curFileTypeOrIndex = info.curFileTypeOrIndex,
+                    inheritedUnityClass = info.inheritedUnityClass,
+                    scriptIndex = info.scriptIndex,
+                    unknown1 = info.unknown1
+                };
+                AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == newInfo.index);
                 if (replacer != null)
                 {
                     currentReplacers.Remove(replacer);
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
                         int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
-                        info = new AssetFileInfo()
+                        newInfo = new AssetFileInfo()
                         {
                             index = replacer.GetPathID(),
                             offs_curFile = currentOffset,
@@ -113,11 +123,11 @@ namespace AssetsTools.NET
                         continue;
                     }
                 }
-                currentOffset += info.curFileSize;
+                currentOffset += newInfo.curFileSize;
                 uint pad = 8 - (currentOffset % 8);
                 if (pad != 8) currentOffset += pad;
 
-                assetInfos.Add(info);
+                assetInfos.Add(newInfo);
             }
 
             //-write new assets

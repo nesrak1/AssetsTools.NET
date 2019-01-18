@@ -5,6 +5,7 @@
 //   You've been warned!    
 
 using System;
+using System.Collections.Generic;
 
 namespace AssetsTools.NET.Extra
 {
@@ -62,6 +63,19 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return type.name.GetString(cldb);
+        }
+
+        public static List<AssetFileInfoEx> GetAssetsOfType(this AssetsFileTable table, int typeId)
+        {
+            List<AssetFileInfoEx> infos = new List<AssetFileInfoEx>();
+            foreach (AssetFileInfoEx info in table.pAssetFileInfo)
+            {
+                if (info.curFileType == typeId)
+                {
+                    infos.Add(info);
+                }
+            }
+            return infos;
         }
     }
 }
