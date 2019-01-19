@@ -80,6 +80,7 @@
                     return EnumValueTypes.ValueType_Int16;
                 case "uint16":
                 case "unsigned short":
+                case "ushort":
                     return EnumValueTypes.ValueType_UInt16;
                 case "sint32":
                 case "int":
@@ -88,12 +89,14 @@
                     return EnumValueTypes.ValueType_Int32;
                 case "uint32":
                 case "unsigned int":
+                case "uint":
                     return EnumValueTypes.ValueType_UInt32;
                 case "sint64":
                 case "long":
                     return EnumValueTypes.ValueType_Int64;
                 case "uint64":
                 case "unsigned long":
+                case "ulong":
                     return EnumValueTypes.ValueType_UInt64;
                 case "single":
                 case "float":
