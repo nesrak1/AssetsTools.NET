@@ -33,7 +33,34 @@ namespace AssetsTools.NET.Extra
             childrenCount = (uint)children.Length;
             return true;
         }
-        public AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, string typeName, AssetTypeTemplateField[] attf)
+        public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
+        {
+            AssetsFile file = inst.file;
+            AssetTypeTemplateField baseField = new AssetTypeTemplateField();
+            baseField.FromClassDatabase(am.classFile, AssetHelper.FindAssetClassByID(am.classFile, info.curFileType), 0);
+            AssetTypeInstance mainAti = new AssetTypeInstance(baseField, file.reader, false, info.absoluteFilePos);
+            if (file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex != 0xFFFF)
+            {
+                AssetTypeInstance scriptAti = am.GetExtAsset(inst, mainAti.GetBaseField().Get("m_Script")).instance;
+                string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
+                string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
+                string assemblyPath = Path.Combine(managedPath, assemblyName);
+                if (File.Exists(assemblyPath))
+                {
+                    MonoClass mc = new MonoClass();
+                    mc.Read(scriptName, assemblyPath);
+                    AssetTypeTemplateField[] monoTemplateFields = mc.children;
+
+                    AssetTypeTemplateField[] templateField = baseField.children.Concat(monoTemplateFields).ToArray();
+                    baseField.children = templateField;
+                    baseField.childrenCount = (uint)baseField.children.Length;
+
+                    mainAti = new AssetTypeInstance(baseField, file.reader, false, info.absoluteFilePos);
+                }
+            }
+            return mainAti.GetBaseField();
+        }
+        private AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, string typeName, AssetTypeTemplateField[] attf)
         {
             TypeDefinition type = module.GetTypes()
                 .Where(t => t.Name.Equals(typeName))
@@ -42,7 +69,7 @@ namespace AssetsTools.NET.Extra
 
             return RecursiveTypeLoad(module, type, attf);
         }
-        public AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, TypeDefinition type, AssetTypeTemplateField[] attf)
+        private AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, TypeDefinition type, AssetTypeTemplateField[] attf)
         {
             if (type.BaseType.Name != "Object" &&
                 type.BaseType.Name != "MonoBehaviour" &&
@@ -56,7 +83,7 @@ namespace AssetsTools.NET.Extra
             return attf.Concat(newChildren).ToArray(); //-todo, why would you use arrays?
             //children = children.Concat(newChildren).ToArray();
         }
-        public AssetTypeTemplateField[] ReadTypes(TypeDefinition type)
+        private AssetTypeTemplateField[] ReadTypes(TypeDefinition type)
         {
             FieldDefinition[] acceptableFields = GetAcceptableFields(type);
             AssetTypeTemplateField[] localChildren = new AssetTypeTemplateField[acceptableFields.Length];
@@ -115,7 +142,7 @@ namespace AssetsTools.NET.Extra
         }
         //todo- wtf
         //nothing more can be said
-        public FieldDefinition[] GetAcceptableFields(TypeDefinition typeDef)
+        private FieldDefinition[] GetAcceptableFields(TypeDefinition typeDef)
         {
             /*foreach (FieldDefinition def in typeDef.Fields)
             {
@@ -159,7 +186,7 @@ namespace AssetsTools.NET.Extra
                 .Select(f => f)
                 .ToArray();
         }
-        public Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
+        private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
             {"Boolean","bool"},
             {"Int64","long"},
@@ -174,7 +201,7 @@ namespace AssetsTools.NET.Extra
             {"Single","float"},
             {"Int32","int"}
         };
-        public string ConvertBaseToPrimitive(string name)
+        private string ConvertBaseToPrimitive(string name)
         {
             if (baseToPrimitive.ContainsKey(name))
             {
@@ -182,7 +209,7 @@ namespace AssetsTools.NET.Extra
             }
             return name;
         }
-        public bool IsAcceptablePrimitiveType(TypeDefinition typeDef)
+        private bool IsAcceptablePrimitiveType(TypeDefinition typeDef)
         {
             string name = typeDef.Name;
             if (typeDef.IsEnum ||
@@ -201,7 +228,7 @@ namespace AssetsTools.NET.Extra
             return false;
         }
         //Not a complete list! Todo!
-        public bool IsAcceptableUnityType(TypeDefinition typeDef)
+        private bool IsAcceptableUnityType(TypeDefinition typeDef)
         {
             string name = typeDef.Name;
             if (name == "Color" ||
@@ -218,11 +245,11 @@ namespace AssetsTools.NET.Extra
                 name == "AnimationCurve") return true;
             return false;
         }
-        public uint GetAcceptableFieldCount(TypeDefinition typeDef)
+        private uint GetAcceptableFieldCount(TypeDefinition typeDef)
         {
             return (uint)GetAcceptableFields(typeDef).Length;
         }
-        public bool DerivesFromUEObject(TypeDefinition typeDef)
+        private bool DerivesFromUEObject(TypeDefinition typeDef)
         {
             if (typeDef.BaseType.FullName == "UnityEngine.Object" ||
                 typeDef.FullName == "UnityEngine.Object")
@@ -231,7 +258,7 @@ namespace AssetsTools.NET.Extra
                 return DerivesFromUEObject(typeDef.BaseType.Resolve());
             return false;
         }
-        public bool IsAlignable(EnumValueTypes valueType)
+        private bool IsAlignable(EnumValueTypes valueType)
         {
             if (valueType.Equals(EnumValueTypes.ValueType_Bool) ||
                 valueType.Equals(EnumValueTypes.ValueType_Int8) ||
@@ -241,7 +268,7 @@ namespace AssetsTools.NET.Extra
                 return true;
             return false;
         }
-        public bool IsValueType(TypeDefinition typeDef)
+        private bool IsValueType(TypeDefinition typeDef)
         {
             if (typeDef.IsValueType || typeDef.Name.Equals("String"))
                 return true;
@@ -249,7 +276,7 @@ namespace AssetsTools.NET.Extra
                 return true;
             return false;
         }
-        public AssetTypeTemplateField SetArray(AssetTypeTemplateField field, TypeDefinition type)
+        private AssetTypeTemplateField SetArray(AssetTypeTemplateField field, TypeDefinition type)
         {
             AssetTypeTemplateField size = new AssetTypeTemplateField();
             size.name = "size";
@@ -285,7 +312,7 @@ namespace AssetsTools.NET.Extra
 
             return array;
         }
-        public void SetString(AssetTypeTemplateField field)
+        private void SetString(AssetTypeTemplateField field)
         {
             field.childrenCount = 1;
 
@@ -325,7 +352,7 @@ namespace AssetsTools.NET.Extra
                 array
             };
         }
-        public void SetSerialized(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSerialized(AssetTypeTemplateField field, TypeDefinition type)
         {
             AssetTypeTemplateField[] types = new AssetTypeTemplateField[] { };
             types = RecursiveTypeLoad(assembly.MainModule, type, types);
@@ -333,7 +360,7 @@ namespace AssetsTools.NET.Extra
             field.childrenCount = (uint)types.Length;
             field.children = types;
         }
-        public void SetSpecialUnity(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefinition type)
         {
             switch (type.Name)
             {
@@ -359,7 +386,7 @@ namespace AssetsTools.NET.Extra
         }
         //Todo, we may need some new deserializer file like classdatabase
         //Currently, you can generate them from the typetree in bundles generated from the editor
-        public void SetGradient(AssetTypeTemplateField field)
+        private void SetGradient(AssetTypeTemplateField field)
         {
             field.childrenCount = 27;
             AssetTypeTemplateField key0 = CreateTemplateField("key0", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
@@ -393,7 +420,7 @@ namespace AssetsTools.NET.Extra
                 key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_Mode, m_NumColorKeys, m_NumAlphaKeys
             };
         }
-        public AssetTypeTemplateField[] RGBAf()
+        private AssetTypeTemplateField[] RGBAf()
         {
             AssetTypeTemplateField r = CreateTemplateField("r", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField g = CreateTemplateField("g", "float", EnumValueTypes.ValueType_Float);
@@ -401,7 +428,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField a = CreateTemplateField("a", "float", EnumValueTypes.ValueType_Float);
             return new AssetTypeTemplateField[] { r, g, b, a };
         }
-        public void SetAnimationCurve(AssetTypeTemplateField field)
+        private void SetAnimationCurve(AssetTypeTemplateField field)
         {
             field.childrenCount = 4;
             AssetTypeTemplateField time = CreateTemplateField("time", "float", EnumValueTypes.ValueType_Float);
@@ -425,7 +452,7 @@ namespace AssetsTools.NET.Extra
                 m_Curve, m_PreInfinity, m_PostInfinity, m_RotationOrder
             };
         }
-        public void SetBitField(AssetTypeTemplateField field)
+        private void SetBitField(AssetTypeTemplateField field)
         {
             field.childrenCount = 1;
             AssetTypeTemplateField m_Bits = CreateTemplateField("m_Bits", "unsigned int", EnumValueTypes.ValueType_UInt32);
@@ -433,7 +460,7 @@ namespace AssetsTools.NET.Extra
                 m_Bits
             };
         }
-        public void SetAABB(AssetTypeTemplateField field)
+        private void SetAABB(AssetTypeTemplateField field)
         {
             field.childrenCount = 2;
             AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", EnumValueTypes.ValueType_None, 3, VECf());
@@ -442,14 +469,14 @@ namespace AssetsTools.NET.Extra
                 m_Center, m_Extent
             };
         }
-        public AssetTypeTemplateField[] VECf()
+        private AssetTypeTemplateField[] VECf()
         {
             AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField z = CreateTemplateField("z", "float", EnumValueTypes.ValueType_Float);
             return new AssetTypeTemplateField[] { x, y, z };
         }
-        public void SetRectf(AssetTypeTemplateField field)
+        private void SetRectf(AssetTypeTemplateField field)
         {
             field.childrenCount = 4;
             AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
@@ -460,7 +487,7 @@ namespace AssetsTools.NET.Extra
                 x, y, width, height
             };
         }
-        public void SetPPtr(AssetTypeTemplateField field)
+        private void SetPPtr(AssetTypeTemplateField field)
         {
             field.type = $"PPtr<{field.type}>";
             field.childrenCount = 2;
@@ -490,19 +517,19 @@ namespace AssetsTools.NET.Extra
             };
         }
 
-        public AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType)
         {
             return CreateTemplateField(name, type, valueType, false, false, 0, null);
         }
-        public AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align)
         {
             return CreateTemplateField(name, type, valueType, isArray, align, 0, null);
         }
-        public AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, uint childrenCount, AssetTypeTemplateField[] children)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, uint childrenCount, AssetTypeTemplateField[] children)
         {
             return CreateTemplateField(name, type, valueType, false, false, childrenCount, children);
         }
-        public AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align, uint childrenCount, AssetTypeTemplateField[] children)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align, uint childrenCount, AssetTypeTemplateField[] children)
         {
             AssetTypeTemplateField field = new AssetTypeTemplateField();
             field.name = name;

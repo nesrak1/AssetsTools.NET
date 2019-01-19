@@ -158,14 +158,15 @@ namespace AssetsTools.NET.Extra
             return new AssetTypeInstance(pBaseField, file.reader, false, info.absoluteFilePos);
         }
 
-        public void LoadClassPackage(Stream stream)
+        public ClassDatabaseFile LoadClassPackage(Stream stream)
         {
             classFile = new ClassDatabaseFile();
             classFile.Read(new AssetsFileReader(stream));
+            return classFile;
         }
-        public void LoadClassPackage(string path)
+        public ClassDatabaseFile LoadClassPackage(string path)
         {
-            LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         public void LoadClassDatabase()
