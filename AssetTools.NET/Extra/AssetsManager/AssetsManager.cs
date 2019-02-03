@@ -95,6 +95,7 @@ namespace AssetsTools.NET.Extra
             }
         }
 
+        //todo, set stream options
         private void LoadDeps(AssetsFileInstance ofFile, string path)
         {
             for (int i = 0; i < ofFile.dependencies.Count; i++)
@@ -156,6 +157,24 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
             pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, info.curFileType), 0);
             return new AssetTypeInstance(pBaseField, file.reader, false, info.absoluteFilePos);
+        }
+
+        public AssetTypeValueField GetMonoBaseFieldCached(AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
+        {
+            AssetsFile file = inst.file;
+            ushort scriptIndex = file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
+            if (scriptIndex != 0xFFFF && inst.templateFieldCache.ContainsKey(scriptIndex))
+            {
+                AssetTypeTemplateField baseTemplateField = inst.templateFieldCache[scriptIndex];
+                AssetTypeInstance baseAti = new AssetTypeInstance(baseTemplateField, file.reader, false, info.absoluteFilePos);
+                return baseAti.GetBaseField();
+            }
+            else
+            {
+                AssetTypeValueField baseValueField = MonoClass.GetMonoBaseField(this, inst, info, managedPath);
+                inst.templateFieldCache[scriptIndex] = baseValueField.templateField;
+                return baseValueField;
+            }
         }
 
         public ClassDatabaseFile LoadClassPackage(Stream stream)

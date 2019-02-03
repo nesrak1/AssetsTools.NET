@@ -14,7 +14,9 @@ namespace AssetsTools.NET.Extra
         public AssetsFile file;
         public AssetsFileTable table;
         public List<AssetsFileInstance> dependencies = new List<AssetsFileInstance>();
-        
+        //for monobehaviours
+        public Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
+
         public AssetsFileInstance(Stream stream, string filePath, string root)
         {
             this.stream = stream;
