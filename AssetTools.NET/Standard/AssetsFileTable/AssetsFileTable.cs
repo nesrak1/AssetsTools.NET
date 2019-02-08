@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace AssetsTools.NET
 {
@@ -11,8 +12,10 @@ namespace AssetsTools.NET
         public AssetFileInfoEx[] pAssetFileInfo;
         public uint assetFileInfoCount;
 
-        //Reading names requires a high random access, set readNames to false if you don't need them
-        public AssetsFileTable(AssetsFile pFile, bool readNames = true)
+        //assets tools uses a binary search tree, but we'll just use a dictionary instead
+        private Dictionary<ulong, int> pLookupBase;
+        
+        public AssetsFileTable(AssetsFile pFile)
         {
             this.pFile = pFile;
             reader = pFile.reader;
@@ -26,9 +29,8 @@ namespace AssetsTools.NET
                 AssetFileInfoEx assetFileInfoSet = new AssetFileInfoEx();
                 assetFileInfoSet.Read(pFile.header.format, reader.Position, reader, pFile.header.endianness == 1 ? true : false);
                 assetFileInfoSet.absoluteFilePos = pFile.header.offs_firstFile + assetFileInfoSet.offs_curFile;
-                assetFileInfoSet.curFileType = (uint)pFile.typeTree.pTypes_Unity5[assetFileInfoSet.curFileTypeOrIndex].classId; //todo: fix this variable (it can be from a different variable (index))
+                assetFileInfoSet.curFileType = (uint)pFile.typeTree.pTypes_Unity5[assetFileInfoSet.curFileTypeOrIndex].classId;
                 pAssetFileInfo[i] = assetFileInfoSet;
-                //-Check 0x111FB for readNames stuff
             }
         }
 
@@ -36,14 +38,36 @@ namespace AssetsTools.NET
         ///public AssetFileInfoEx getAssetInfo(string name, uint type);
         public AssetFileInfoEx getAssetInfo(ulong pathId)
         {
-            foreach (AssetFileInfoEx info in pAssetFileInfo)
+            if (pLookupBase != null)
             {
-                if (info.index == pathId)
+                if (pLookupBase.ContainsKey(pathId))
                 {
-                    return info;
+                    return pAssetFileInfo[pLookupBase[pathId]];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < pAssetFileInfo.Length; i++)
+                {
+                    AssetFileInfoEx info = pAssetFileInfo[i];
+                    if (info.index == pathId)
+                    {
+                        return info;
+                    }
                 }
             }
             return null;
+        }
+
+        public bool GenerateQuickLookupTree()
+        {
+            pLookupBase = new Dictionary<ulong, int>();
+            for (int i = 0; i < pAssetFileInfo.Length; i++)
+            {
+                AssetFileInfoEx info = pAssetFileInfo[i];
+                pLookupBase[info.index] = i;
+            }
+            return true;
         }
 
         ///public AssetsFileReader getReader();

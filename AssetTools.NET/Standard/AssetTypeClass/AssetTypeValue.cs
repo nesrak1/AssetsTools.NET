@@ -9,27 +9,100 @@ namespace AssetsTools.NET
 
         public struct ValueTypes
         {
-            public AssetTypeArray asArray;
-            public AssetTypeByteArray asByteArray;
-
-            public bool asBool;
-
-            public sbyte asInt8;
-            public byte asUInt8;
-
-            public short asInt16;
-            public ushort asUInt16;
-
-            public int asInt32;
-            public uint asUInt32;
-
-            public long asInt64;
-            public ulong asUInt64;
-
-            public float asFloat;
-            public double asDouble;
-
-            public string asString;
+            //I thought this was a terrible idea at first...
+            //but a basic benchmark showed 15% less memory with no cpu change
+            private object value;
+            public AssetTypeArray asArray
+            {
+                get { return (AssetTypeArray)value; }
+                set { this.value = value; }
+            }
+            public AssetTypeByteArray asByteArray
+            {
+                get { return (AssetTypeByteArray)value; }
+                set { this.value = value; }
+            }
+            public bool asBool
+            {
+                get { return (bool)value; }
+                set { this.value = value; }
+            }
+            public sbyte asInt8
+            {
+                get { return (sbyte)value; }
+                set { this.value = value; }
+            }
+            public byte asUInt8
+            {
+                get { return (byte)value; }
+                set { this.value = value; }
+            }
+            public short asInt16
+            {
+                get { return (short)value; }
+                set { this.value = value; }
+            }
+            public ushort asUInt16
+            {
+                get { return (ushort)value; }
+                set { this.value = value; }
+            }
+            public int asInt32
+            {
+                get { return (int)value; }
+                set { this.value = value; }
+            }
+            public uint asUInt32
+            {
+                get { return (uint)value; }
+                set { this.value = value; }
+            }
+            public long asInt64
+            {
+                get { return (long)value; }
+                set { this.value = value; }
+            }
+            public ulong asUInt64
+            {
+                get { return (ulong)value; }
+                set { this.value = value; }
+            }
+            public float asFloat
+            {
+                get { return (float)value; }
+                set { this.value = value; }
+            }
+            public double asDouble
+            {
+                get { return (double)value; }
+                set { this.value = value; }
+            }
+            public string asString
+            {
+                get { return (string)value; }
+                set { this.value = value; }
+            }
+            //public AssetTypeArray asArray;
+            //public AssetTypeByteArray asByteArray;
+            //
+            //public bool asBool;
+            //
+            //public sbyte asInt8;
+            //public byte asUInt8;
+            //
+            //public short asInt16;
+            //public ushort asUInt16;
+            //
+            //public int asInt32;
+            //public uint asUInt32;
+            //
+            //public long asInt64;
+            //public ulong asUInt64;
+            //
+            //public float asFloat;
+            //public double asDouble;
+            //
+            //public string asString;
         }
         public ValueTypes value = new ValueTypes();
 
@@ -154,6 +227,23 @@ namespace AssetsTools.NET
                 case EnumValueTypes.ValueType_ByteArray:
                 case EnumValueTypes.ValueType_Array:
                     return false;
+                //new casts
+                case EnumValueTypes.ValueType_Int8:
+                    return value.asInt8 == 1;
+                case EnumValueTypes.ValueType_Int16:
+                    return value.asInt16 == 1;
+                case EnumValueTypes.ValueType_Int32:
+                    return value.asInt32 == 1;
+                case EnumValueTypes.ValueType_Int64:
+                    return value.asInt64 == 1;
+                case EnumValueTypes.ValueType_UInt8:
+                    return value.asUInt8 == 1;
+                case EnumValueTypes.ValueType_UInt16:
+                    return value.asUInt16 == 1;
+                case EnumValueTypes.ValueType_UInt32:
+                    return value.asUInt32 == 1;
+                case EnumValueTypes.ValueType_UInt64:
+                    return value.asUInt64 == 1;
                 default:
                     return value.asBool;
             }
@@ -176,6 +266,15 @@ namespace AssetsTools.NET
                     return (int)value.asInt16;
                 case EnumValueTypes.ValueType_Int64:
                     return (int)value.asInt64;
+                //new casts
+                case EnumValueTypes.ValueType_UInt8:
+                    return (int)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (int)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt32:
+                    return (int)value.asUInt32;
+                case EnumValueTypes.ValueType_UInt64:
+                    return (int)value.asUInt64;
                 default:
                     return value.asInt32;
             }
@@ -197,6 +296,15 @@ namespace AssetsTools.NET
                 case EnumValueTypes.ValueType_UInt16:
                     return (uint)value.asUInt16;
                 case EnumValueTypes.ValueType_UInt64:
+                    return (uint)value.asUInt64;
+                //new casts
+                case EnumValueTypes.ValueType_Int8:
+                    return (uint)value.asUInt8;
+                case EnumValueTypes.ValueType_Int16:
+                    return (uint)value.asUInt16;
+                case EnumValueTypes.ValueType_Int32:
+                    return (uint)value.asUInt32;
+                case EnumValueTypes.ValueType_Int64:
                     return (uint)value.asUInt64;
                 default:
                     return value.asUInt32;
@@ -220,6 +328,15 @@ namespace AssetsTools.NET
                     return (long)value.asInt16;
                 case EnumValueTypes.ValueType_Int32:
                     return (long)value.asInt32;
+                //new casts
+                case EnumValueTypes.ValueType_UInt8:
+                    return (long)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (long)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt32:
+                    return (long)value.asUInt32;
+                case EnumValueTypes.ValueType_UInt64:
+                    return (long)value.asUInt64;
                 default:
                     return value.asInt64;
             }
@@ -229,13 +346,28 @@ namespace AssetsTools.NET
             switch (type)
             {
                 case EnumValueTypes.ValueType_Float:
-                    return (uint)value.asFloat;
+                    return (ulong)value.asFloat;
                 case EnumValueTypes.ValueType_Double:
                     return (ulong)value.asDouble;
                 case EnumValueTypes.ValueType_String:
                 case EnumValueTypes.ValueType_ByteArray:
                 case EnumValueTypes.ValueType_Array:
                     return 0;
+                case EnumValueTypes.ValueType_UInt8:
+                    return (ulong)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (ulong)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt32:
+                    return (ulong)value.asUInt32;
+                //new casts
+                case EnumValueTypes.ValueType_Int8:
+                    return (ulong)value.asUInt8;
+                case EnumValueTypes.ValueType_Int16:
+                    return (ulong)value.asUInt16;
+                case EnumValueTypes.ValueType_Int32:
+                    return (ulong)value.asUInt32;
+                case EnumValueTypes.ValueType_Int64:
+                    return (ulong)value.asUInt64;
                 default:
                     return value.asUInt64;
             }
@@ -258,6 +390,13 @@ namespace AssetsTools.NET
                     return (float)value.asInt16;
                 case EnumValueTypes.ValueType_Int32:
                     return (float)value.asInt32;
+                //new casts
+                case EnumValueTypes.ValueType_UInt8:
+                    return (float)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (float)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt32:
+                    return (float)value.asUInt32;
                 default:
                     return (float)value.asUInt64;
             }
@@ -280,6 +419,13 @@ namespace AssetsTools.NET
                     return (double)value.asInt16;
                 case EnumValueTypes.ValueType_Int32:
                     return (double)value.asInt32;
+                //new casts
+                case EnumValueTypes.ValueType_UInt8:
+                    return (double)value.asUInt8;
+                case EnumValueTypes.ValueType_UInt16:
+                    return (double)value.asUInt16;
+                case EnumValueTypes.ValueType_UInt32:
+                    return (double)value.asUInt32;
                 default:
                     return (double)value.asUInt64;
             }
