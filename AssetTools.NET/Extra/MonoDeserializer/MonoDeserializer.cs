@@ -17,13 +17,13 @@ namespace AssetsTools.NET.Extra
 {
     public class MonoClass
     {
-        static public uint format;
+        public uint format;
         public uint childrenCount;
         public AssetTypeTemplateField[] children;
         private AssemblyDefinition assembly;
         public bool Read(string typeName, string assemblyLocation, uint format)
         {
-            MonoClass.format = format;
+            this.format = format;
             DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(Path.GetDirectoryName(assemblyLocation));
             ReaderParameters readerParameters = new ReaderParameters();
@@ -50,7 +50,7 @@ namespace AssetsTools.NET.Extra
                 if (File.Exists(assemblyPath))
                 {
                     MonoClass mc = new MonoClass();
-                    mc.Read(scriptName, assemblyPath, MonoClass.format);
+                    mc.Read(scriptName, assemblyPath, inst.file.header.format);
                     AssetTypeTemplateField[] monoTemplateFields = mc.children;
 
                     AssetTypeTemplateField[] templateField = baseField.children.Concat(monoTemplateFields).ToArray();
@@ -506,7 +506,7 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeTemplateField pathID = new AssetTypeTemplateField();
             pathID.name = "m_PathID";
-            if (MonoClass.format < 0x10)
+            if (format < 0x10)
             {
                 pathID.type = "int";
                 pathID.valueType = EnumValueTypes.ValueType_Int32;
