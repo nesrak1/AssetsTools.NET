@@ -42,13 +42,13 @@ namespace UABE.NET.Winforms
             nameField.Text = details.name;
             pathField.Text = details.pathID.ToString();
             fileField.Text = details.fileID.ToString();
-            if (details.monoType == 0xFFFF)
+            if (details.type != 0x72)
             {
                 typeField.Text = $"0x{details.type.ToString("X8")} ({details.typeName})";
             } else
             {
                 //$ just for consistency, if you disagree please tell me
-                typeField.Text = $"0x{(0xFFFFFFFF-details.monoType).ToString("X8")}";
+                typeField.Text = $"0x{(0xFFFF-details.monoType).ToString("X8")}";
             }
         }
 
@@ -128,7 +128,27 @@ namespace UABE.NET.Winforms
 
         private void AddAssetItem(AssetsFile af, AssetFileInfoEx afi, AssetsFileReader worker, uint fileId)
         {
-            ClassDatabaseType type = AssetHelper.FindAssetClassByID(assetsManager.initialClassFile, afi.curFileType);
+            uint classId;
+            ushort monoId;
+            if (af.header.format <= 0x10)
+            {
+                classId = afi.inheritedUnityClass;
+                if (classId == 0x72)
+                {
+                    monoId = (ushort)(0xFFFFFFFF -afi.curFileTypeOrIndex);
+                }
+                else
+                {
+                    monoId = 0xFFFF;
+                }
+
+            }
+            else
+            {
+                classId = (uint)af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].classId;
+                monoId = af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex;
+            }
+            ClassDatabaseType type = AssetHelper.FindAssetClassByID(assetsManager.initialClassFile, classId);
             if (type == null)
             {
                 string tfileID = fileId.ToString();
@@ -142,16 +162,24 @@ namespace UABE.NET.Winforms
                         "??? Custom ???",
                         afi.index,
                         fileId,
-                        afi.curFileType,
+                        classId,
                         afi.absoluteFilePos,
-                        af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex
+                        monoId
                     )
                 );
                 System.Diagnostics.Debug.WriteLine("unknown id " + tpathID + " classid " + afi.curFileType);
                 assetList.Items.Add(new ListViewItem(titems));
                 return;
             }
-            string assetName = GetAssetNameFast(afi, assetsManager.initialClassFile, type, worker);
+            string assetName;
+            if (classId == 0x72)
+            {
+                assetName = "";
+            } else
+            {
+                assetName = GetAssetNameFast(afi, assetsManager.initialClassFile, type, worker);
+            }
+             
             string assetType = type.name.GetString(assetsManager.initialClassFile);
             string fileID = fileId.ToString();
             string pathID = unchecked((long)afi.index).ToString();
@@ -159,15 +187,16 @@ namespace UABE.NET.Winforms
             string modified = "";
             if (assetName.Trim() == "") assetName = assetType; //todo, seems redundant now, check on this later
             string[] items = new string[] { assetName, assetType, fileID, pathID, size, modified };
+            
             assetDetails.Add(
                 new AssetDetails(
                     assetName,
                     assetType,
                     afi.index,
                     fileId,
-                    afi.curFileType,
+                    classId,
                     afi.absoluteFilePos,
-                    af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex
+                    monoId
                 )
             );
             assetList.Items.Add(new ListViewItem(items));

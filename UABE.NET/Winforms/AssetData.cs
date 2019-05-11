@@ -34,7 +34,7 @@ namespace UABE.NET.Winforms
             AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
             pBaseField.FromClassDatabase(am.initialClassFile, cldt, 0);
             mainAti = new AssetTypeInstance(1, new[] { pBaseField }, af.reader, false, assetDetails.position);
-            if (assetDetails.monoType != 0xFFFF)
+            if (assetDetails.type == 0x72)
             {
                 AssetTypeTemplateField[] desMonos = TryDeserializeMono(mainAti);
                 if (desMonos != null)
@@ -87,7 +87,7 @@ namespace UABE.NET.Winforms
             if (File.Exists(assemblyPath))
             {
                 MonoClass mc = new MonoClass();
-                mc.Read(scriptName, assemblyPath);
+                mc.Read(scriptName, assemblyPath, af.header.format);
                 return mc.children;
             }
             else
