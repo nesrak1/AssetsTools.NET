@@ -21,11 +21,19 @@ namespace AssetsTools.NET
             header = reader.ReadStringLength(4);
             if (header != "cldb") return reader.Position;
             fileVersion = reader.ReadByte();
-            if (fileVersion != 3) return reader.Position;
-            compressionType = reader.ReadByte();
-            if (compressionType != 0) return reader.Position;
-            compressedSize = reader.ReadUInt32();
-            uncompressedSize = reader.ReadUInt32();
+            switch (fileVersion)
+            {
+                case 1:
+                    break;
+                case 3:
+                    compressionType = reader.ReadByte();
+                    if (compressionType != 0) return reader.Position;
+                    compressedSize = reader.ReadUInt32();
+                    uncompressedSize = reader.ReadUInt32();
+                    break;
+                default:
+                    return reader.Position;
+            }
             unityVersionCount = reader.ReadByte();
             pUnityVersions = new string[unityVersionCount];
             for (int i = 0; i < unityVersionCount; i++)
@@ -41,9 +49,19 @@ namespace AssetsTools.NET
             writer.bigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(header));
             writer.Write(fileVersion);
-            writer.Write(compressionType);
-            writer.Write(compressedSize);
-            writer.Write(uncompressedSize);
+            switch(fileVersion)
+            {
+                case 1:
+                    break;
+                case 3:
+                    writer.Write(compressionType);
+                    if (compressionType != 0) return writer.Position;
+                    writer.Write(compressedSize);
+                    writer.Write(uncompressedSize);
+                    break;
+                default:
+                    return writer.Position;
+            }
             writer.Write(unityVersionCount);
             for (int i = 0; i < unityVersionCount; i++)
             {

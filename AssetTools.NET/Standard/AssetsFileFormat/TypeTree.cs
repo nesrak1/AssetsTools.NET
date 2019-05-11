@@ -26,7 +26,10 @@
                 type0d.Read(hasTypeTree, reader.Position, reader, version, version, bigEndian);
                 pTypes_Unity5[i] = type0d;
             }
-            if (version < 0x0E) dwUnknown = reader.ReadUInt32();
+            if (version < 0x0E)
+            {
+                dwUnknown = reader.ReadUInt24();
+            }
             _fmt = version; //-todo: figure out what the heck this is for. if ver = -1 on write does it set it to default or something?
             return reader.Position;
         }//Minimum AssetsFile format : 6
@@ -40,7 +43,10 @@
             {
                 pTypes_Unity5[i].Write(hasTypeTree, writer.Position, writer, version);
             }
-            if (version < 0x0E) writer.Write(dwUnknown);
+            if (version < 0x0E)
+            {
+                writer.WriteUInt24(dwUnknown);
+            }
             return writer.Position;
         }
 

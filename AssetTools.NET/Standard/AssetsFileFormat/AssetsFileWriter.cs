@@ -62,6 +62,22 @@ namespace AssetsTools.NET
         {
             base.Write(Encoding.ASCII.GetBytes(val));
         }
+        public void WriteUInt24(uint val)
+        {
+            unchecked
+            {
+                if(bigEndian) base.Write(System.BitConverter.GetBytes(ReverseInt(val)), 1, 3);
+                else base.Write(System.BitConverter.GetBytes(val), 0, 3);
+            }
+        }
+        public void WriteInt24(int val)
+        {
+            unchecked
+            {
+                if (bigEndian) base.Write(System.BitConverter.GetBytes((int)ReverseInt((uint)val)), 1, 3);
+                else base.Write(System.BitConverter.GetBytes(val), 0, 3);
+            }
+        }
         public ushort ReverseShort(ushort value)
         {
             return (ushort)(((value & 0xFF00) >> 8) | (value & 0x00FF) << 8);

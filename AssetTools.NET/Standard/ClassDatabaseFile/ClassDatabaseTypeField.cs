@@ -19,8 +19,16 @@
             depth = reader.ReadByte();
             isArray = reader.ReadByte();
             size = reader.ReadUInt32();
-            version = reader.ReadUInt16();
-            flags2 = reader.ReadUInt32();
+            switch (version)
+            {
+                case 1:
+                    flags2 = reader.ReadUInt32();
+                    break;
+                case 3:
+                    this.version = reader.ReadUInt16();
+                    flags2 = reader.ReadUInt32();
+                    break;
+            }
             return reader.Position;
         }
         public ulong Write(AssetsFileWriter writer, ulong filePos, int version)
@@ -30,8 +38,16 @@
             writer.Write(depth);
             writer.Write(isArray);
             writer.Write(size);
-            writer.Write(this.version);
-            writer.Write(flags2);
+            switch (version)
+            {
+                case 1:
+                    writer.Write(flags2);
+                    break;
+                case 3:
+                    writer.Write(this.version);
+                    writer.Write(flags2);
+                    break;
+            }
             return writer.Position;
         }
     }

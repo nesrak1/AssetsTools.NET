@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace AssetsTools.NET
@@ -21,6 +22,22 @@ namespace AssetsTools.NET
             {
                 return bigEndian ? ReverseShort(base.ReadUInt16()) : base.ReadUInt16();
                 //return bigEndian ? BitConverter.ToUInt16(ReadBytes(2).Reverse().ToArray(), 0) : base.ReadUInt16();
+            }
+        }
+        public int ReadInt24()
+        {
+            unchecked
+            {
+                return bigEndian ? (int)ReverseInt((uint)System.BitConverter.ToInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
+                    System.BitConverter.ToInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0);
+            }
+        }
+        public uint ReadUInt24()
+        {
+            unchecked
+            {
+                return bigEndian ? ReverseInt(System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
+                    System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0);
             }
         }
         public override int ReadInt32()

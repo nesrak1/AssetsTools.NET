@@ -29,7 +29,14 @@ namespace AssetsTools.NET
                 AssetFileInfoEx assetFileInfoSet = new AssetFileInfoEx();
                 assetFileInfoSet.Read(pFile.header.format, reader.Position, reader, pFile.header.endianness == 1 ? true : false);
                 assetFileInfoSet.absoluteFilePos = pFile.header.offs_firstFile + assetFileInfoSet.offs_curFile;
-                assetFileInfoSet.curFileType = (uint)pFile.typeTree.pTypes_Unity5[assetFileInfoSet.curFileTypeOrIndex].classId;
+                if(pFile.header.format < 0x10)
+                {
+                    assetFileInfoSet.curFileType = (uint)assetFileInfoSet.curFileTypeOrIndex;
+                } else
+                {
+                    assetFileInfoSet.curFileType = (uint)pFile.typeTree.pTypes_Unity5[assetFileInfoSet.curFileTypeOrIndex].classId;
+                }
+                
                 pAssetFileInfo[i] = assetFileInfoSet;
             }
         }

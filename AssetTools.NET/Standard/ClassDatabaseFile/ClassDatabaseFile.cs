@@ -16,7 +16,9 @@ namespace AssetsTools.NET
         {
             header = new ClassDatabaseFileHeader();
             header.Read(reader, 0);
-            if (header.header != "cldb" || header.fileVersion != 3 || header.compressionType != 0)
+            if (header.header != "cldb" ||
+                !(header.fileVersion == 3 || header.fileVersion == 1) ||
+                header.compressionType != 0)
             {
                 valid = false;
                 return valid;
