@@ -74,7 +74,7 @@ namespace AssetsTools.NET.Extra
                     nameStringOffset = fieldNamePos,
                     size = field.size,
                     typeStringOffset = typeNamePos,
-                    version = 1
+                    version = field.version
                 });
             }
 

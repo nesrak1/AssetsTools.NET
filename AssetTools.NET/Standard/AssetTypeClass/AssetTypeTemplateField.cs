@@ -130,6 +130,7 @@ namespace AssetsTools.NET
                                 break;
                             case EnumValueTypes.ValueType_UInt16:
                                 valueField.value.Set(reader.ReadUInt16());
+                                if (valueField.templateField.align) reader.Align();
                                 break;
                             case EnumValueTypes.ValueType_Int32:
                                 valueField.value.Set(reader.ReadInt32());

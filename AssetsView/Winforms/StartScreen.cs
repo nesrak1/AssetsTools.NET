@@ -139,6 +139,8 @@ namespace AssetsView.Winforms
                     //rootDir.Create(paths);
                     rootDir.Create(assets);
                     ChangeDirectory("");
+                    helper.UpdateDependencies();
+                    CheckResourcesInfo();
                     return;
                 }
             }
@@ -151,6 +153,8 @@ namespace AssetsView.Winforms
             foreach (AssetFileInfoEx info in mainFile.table.pAssetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
+                if (type == null)
+                    continue;
                 string typeName = type.name.GetString(helper.classFile);
                 if (typeName != "GameObject" && isLevel)
                     continue;
@@ -270,9 +274,17 @@ namespace AssetsView.Winforms
                     ClassDatabaseType classType = AssetHelper.FindAssetClassByName(classFile, typeName);
                     if (currentFile.name == "globalgamemanagers")
                     {
-                        string rsrcPath = Path.Combine(Path.GetDirectoryName(currentFile.path), "resources.assets");
-                        correctAti = helper.LoadAssetsFile(rsrcPath, false);
-                        UpdateDependencies();
+                        int rsrcIndex = helper.files.FindIndex(f => f.name == "resources.assets");
+                        if (rsrcIndex != -1)
+                        {
+                            correctAti = helper.files[rsrcIndex];
+                        }
+                        else
+                        {
+                            string rsrcPath = Path.Combine(Path.GetDirectoryName(currentFile.path), "resources.assets");
+                            correctAti = helper.LoadAssetsFile(rsrcPath, false);
+                            UpdateDependencies();
+                        }
                         if (typeName == "")
                             return;
                     }

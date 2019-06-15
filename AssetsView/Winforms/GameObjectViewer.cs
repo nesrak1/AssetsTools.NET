@@ -191,7 +191,7 @@ namespace AssetsView.Winforms
 
         private void SetSelectedStateIfSelected(AssetFileInfoEx info, PGProperty prop)
         {
-            Console.WriteLine($"{info.index} == {selectedComponentIndex}");
+            //Console.WriteLine($"{info.index} == {selectedComponentIndex}");
             if (info.index == selectedComponentIndex)
             {
                 prop.description = "SELECTEDCOMPONENT";
