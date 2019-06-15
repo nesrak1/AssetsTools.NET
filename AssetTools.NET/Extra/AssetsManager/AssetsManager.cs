@@ -10,8 +10,10 @@ namespace AssetsTools.NET.Extra
     public class AssetsManager
     {
         public bool updateAfterLoad = true;
+        public bool useTemplateFieldCache = false;
         public ClassDatabaseFile classFile;
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
+        private Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
 
         public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "")
         {
@@ -157,8 +159,36 @@ namespace AssetsTools.NET.Extra
             //do we still need pooling?
             //(it accumulates memory over time and we don't
             // really need to read the same ati twice)
-            AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
-            pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, info.curFileType), 0);
+
+            //unity is wack
+            uint fixedId = info.curFileType;
+            if (fixedId == 0xf1) //AudioMixerController
+                fixedId = 0xf0;  //AudioMixer
+            else if (fixedId == 0xf3) //AudioMixerGroupController
+                fixedId = 0x111;      //AudioMixerGroup
+            else if (fixedId == 0xf5) //AudioMixerSnapshotController
+                fixedId = 0x110;      //AudioMixerSnapshot
+
+            AssetTypeTemplateField pBaseField = null;
+            if (useTemplateFieldCache)
+            {
+                if (templateFieldCache.ContainsKey(fixedId))
+                {
+                    pBaseField = templateFieldCache[fixedId];
+                }
+                else
+                {
+                    pBaseField = new AssetTypeTemplateField();
+                    pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                    templateFieldCache[fixedId] = pBaseField;
+                }
+            }
+            else
+            {
+                pBaseField = new AssetTypeTemplateField();
+                pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+            }
+
             return new AssetTypeInstance(pBaseField, file.reader, false, info.absoluteFilePos);
         }
 
