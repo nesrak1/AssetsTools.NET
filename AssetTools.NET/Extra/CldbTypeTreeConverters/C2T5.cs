@@ -30,41 +30,61 @@ namespace AssetsTools.NET.Extra
                 unknown8 = 0
             };
             string stringTable = "";
+            Dictionary<string, uint> strTableList = new Dictionary<string, uint>();
+            Dictionary<string, uint> defTableList = new Dictionary<string, uint>();
+
+            uint strTablePos = 0;
+            uint defTablePos = 0;
+
+            string[] defaultTable = Type_0D.strTable.Split('\0');
+            foreach (string entry in defaultTable)
+            {
+                if (entry != "")
+                {
+                    defTableList.Add(entry, defTablePos);
+                    defTablePos += (uint)entry.Length + 1;
+                }
+            }
+
             List<TypeField_0D> field0ds = new List<TypeField_0D>();
             for (int i = 0; i < type.fields.Count; i++)
             {
                 ClassDatabaseTypeField field = type.fields[i];
-                string fieldName = field.fieldName.GetString(classes) + '\0';
-                string typeName = field.typeName.GetString(classes) + '\0';
+                string fieldName = field.fieldName.GetString(classes);
+                string typeName = field.typeName.GetString(classes);
                 uint fieldNamePos = 0xFFFFFFFF;
                 uint typeNamePos = 0xFFFFFFFF;
 
-                if (stringTable.Contains(fieldName))
+                if (strTableList.ContainsKey(fieldName))
                 {
-                    fieldNamePos = (uint)stringTable.IndexOf(fieldName);
-                } else if (Type_0D.strTable.Contains(fieldName))
-                {
-                    fieldNamePos = (uint)Type_0D.strTable.IndexOf(fieldName) + 0x80000000;
-                } else
-                {
-                    fieldNamePos = (uint)stringTable.Length;
-                    stringTable += fieldName;
+                    fieldNamePos = strTableList[fieldName];
                 }
-
-                if (stringTable.Contains(typeName))
+                else if (defTableList.ContainsKey(fieldName))
                 {
-                    typeNamePos = (uint)stringTable.IndexOf(typeName);
-                }
-                else if (Type_0D.strTable.Contains(typeName))
-                {
-                    typeNamePos = (uint)Type_0D.strTable.IndexOf(typeName) + 0x80000000;
+                    fieldNamePos = defTableList[fieldName] + 0x80000000;
                 }
                 else
                 {
-                    typeNamePos = (uint)stringTable.Length;
-                    stringTable += typeName;
+                    fieldNamePos = strTablePos;
+                    strTableList.Add(fieldName, strTablePos);
+                    strTablePos += (uint)fieldName.Length + 1;
                 }
-                
+
+                if (strTableList.ContainsKey(typeName))
+                {
+                    typeNamePos = strTableList[typeName];
+                }
+                else if (defTableList.ContainsKey(typeName))
+                {
+                    typeNamePos = defTableList[typeName] + 0x80000000;
+                }
+                else
+                {
+                    typeNamePos = strTablePos;
+                    strTableList.Add(typeName, strTablePos);
+                    strTablePos += (uint)typeName.Length + 1;
+                }
+
                 field0ds.Add(new TypeField_0D()
                 {
                     depth = field.depth,
@@ -76,6 +96,12 @@ namespace AssetsTools.NET.Extra
                     typeStringOffset = typeNamePos,
                     version = field.version
                 });
+            }
+
+            List<KeyValuePair<string, uint>> sortedStrTableList = strTableList.OrderBy(n => n.Value).ToList();
+            foreach (KeyValuePair<string, uint> entry in sortedStrTableList)
+            {
+                stringTable += entry.Key + '\0';
             }
 
             type0d.pStringTable = stringTable;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -49,6 +50,8 @@ namespace AssetsView.Winforms
             {
                 string baseName = baseField["m_Name"].GetValue().AsString();
                 TreeNode node = goTree.Nodes.Add(baseName);
+                if (!baseField["m_IsActive"].GetValue().AsBool())
+                    node.ForeColor = Color.DarkRed;
                 node.Tag = baseField;
                 RecursiveChildSearch(node, baseField);
                 GetSelectedNodeData();
@@ -100,6 +103,7 @@ namespace AssetsView.Winforms
             }
         }
 
+        bool loadedWithErrors = false;
         private PGProperty LoadGameObjectData(AssetTypeValueField field)
         {
             PGProperty root = new PGProperty("root");
@@ -108,8 +112,29 @@ namespace AssetsView.Winforms
             for (int i = 0; i < componentSize; i++)
             {
                 AssetTypeValueField componentPtr = components[(uint)i].Get("component");
-                AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
-                LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
+                if (ModifierKeys == Keys.Shift)
+                {
+                    AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                    if (ext.instance != null)
+                        LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
+                }
+                else
+                {
+                    try
+                    {
+                        AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                        if (ext.instance != null)
+                            LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
+                    }
+                    catch
+                    {
+                        if (loadedWithErrors == false)
+                        {
+                            loadedWithErrors = true;
+                            MessageBox.Show("a component failed to load. (tell nes or hold shift to throw)");
+                        }
+                    }
+                }
             }
             return root;
         }
@@ -215,6 +240,8 @@ namespace AssetsView.Winforms
                 AssetTypeInstance newAti = gameObjExt.instance;
                 AssetTypeValueField newBaseField = newAti.GetBaseField();
                 TreeNode newNode = node.Nodes.Add(newBaseField.Get("m_Name").GetValue().AsString());
+                if (!newBaseField.Get("m_IsActive").GetValue().AsBool())
+                    newNode.ForeColor = Color.DarkRed;
                 newNode.Tag = newBaseField;
                 if (gameObjExt.info.index == selectedIndex)
                 {
@@ -233,6 +260,38 @@ namespace AssetsView.Winforms
         private void goTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
             GetSelectedNodeData();
+        }
+
+        private void FollowBtn_Click(object sender, EventArgs e)
+        {
+            valueGrid.Focus();
+            GridItem item = valueGrid.SelectedGridItem;
+            if (item.Label == "m_FileID" || item.Label == "m_PathID")
+            {
+                int fileId = -1;
+                long pathId = -1;
+                foreach (GridItem gi in item.Parent.EnumerateAllItems())
+                {
+                    if (gi.Label == "m_FileID")
+                        fileId = int.Parse((string)gi.Value);
+                    if (gi.Label == "m_PathID")
+                        pathId = long.Parse((string)gi.Value);
+                }
+                if (fileId == 0 && pathId == 0)
+                {
+                    MessageBox.Show("cannot open null reference");
+                    return;
+                }
+                else if (fileId == -1 || pathId == -1)
+                {
+                    MessageBox.Show("could not find other id, is this really a pptr?");
+                    return;
+                }
+                AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, (uint)fileId, (ulong)pathId);
+
+                GameObjectViewer view = new GameObjectViewer(helper, ext.file, ext.instance.GetBaseField(), ext.info);
+                view.Show();
+            }
         }
     }
 }

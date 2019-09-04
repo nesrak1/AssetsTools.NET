@@ -74,7 +74,8 @@ namespace AssetsView.Winforms
                     currentFile = inst;
                     if (fileName == "resources.assets")
                     {
-                        LoadResources(inst);
+                        //LoadResources(inst);
+                        LoadGeneric(inst, false);
                     }
                     else if (fileName == "globalgamemanagers")
                     {
@@ -100,6 +101,16 @@ namespace AssetsView.Winforms
                     }
                 }
             }
+        }
+
+        private void clearFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            assetTree.Nodes.Clear();
+            helper.files.ForEach(d => { if (d != null) { d.file.readerPar.Close(); d.table.pAssetFileInfo = null; } });
+            helper.files.Clear();
+            rootDir = null;
+            currentFile = null;
+            assetList.Rows.Clear();
         }
 
         private void LoadResources(AssetsFileInstance mainFile)
@@ -227,7 +238,7 @@ namespace AssetsView.Winforms
                 {
                     DataGridViewRow row = new DataGridViewRow();
                     row.Height = 32;
-                    row.CreateCells(assetList, imageList.Images[(int)AssetIcon.Folder], obj.name, "Folder", "", "");
+                    row.CreateCells(assetList, imageList.Images[(int)AssetIcon.Folder], obj.name, "Folder", "", 0);
                     rows.Add(row);
                 }
             }
@@ -236,7 +247,7 @@ namespace AssetsView.Winforms
                 if (obj is FSAsset assetObj)
                 {
                     AssetDetails dets = assetObj.details;
-                    object[] details = new object[] { imageList.Images[(int)dets.icon], assetObj.name, dets.type, dets.pointer.pathID, dets.size.ToString() };
+                    object[] details = new object[] { imageList.Images[(int)dets.icon], assetObj.name, dets.type, dets.pointer.pathID, dets.size };
 
                     DataGridViewRow row = new DataGridViewRow();
                     row.Height = 32;
@@ -311,7 +322,7 @@ namespace AssetsView.Winforms
 
                         AssetTypeValueField transformPtr = baseField["m_Component"]["Array"][0]["component"];
                         AssetTypeValueField transform = helper.GetExtAsset(correctAti, transformPtr).instance.GetBaseField();
-                        baseField = GetRootTransform(transform);
+                        baseField = GetRootTransform(helper, currentFile, transform);
                         AssetTypeValueField gameObjectPtr = baseField["m_GameObject"];
                         AssetTypeValueField gameObject = helper.GetExtAsset(correctAti, gameObjectPtr).instance.GetBaseField();
                         GameObjectViewer view = new GameObjectViewer(helper, correctAti, gameObject, info.index, (ulong)selRow.Cells[3].Value);
@@ -327,13 +338,13 @@ namespace AssetsView.Winforms
             }
         }
 
-        private AssetTypeValueField GetRootTransform(AssetTypeValueField transform)
+        public static AssetTypeValueField GetRootTransform(AssetsManager helper, AssetsFileInstance currentFile, AssetTypeValueField transform)
         {
             AssetTypeValueField fatherPtr = transform["m_Father"];
             if (fatherPtr["m_PathID"].GetValue().AsInt64() != 0)
             {
                 AssetTypeValueField father = helper.GetExtAsset(currentFile, fatherPtr).instance.GetBaseField();
-                return GetRootTransform(father);
+                return GetRootTransform(helper, currentFile, father);
             }
             else
             {
@@ -386,6 +397,51 @@ namespace AssetsView.Winforms
             return AssetIcon.Unknown;
         }
 
+        string lastSearchedAsset = "";
+        int lastSearchedIndex = -1;
+        private void SearchAsset()
+        {
+            string text = pathBox.Text;
+            int startIndex = 0;
+            if (text == lastSearchedAsset)
+            {
+                startIndex = lastSearchedIndex;
+            }
+            else
+            {
+                lastSearchedAsset = "";
+                lastSearchedIndex = -1;
+            }
+            int cellIdx = 1;
+            if (text.StartsWith("$id="))
+            {
+                text = text.Substring(4);
+                cellIdx = 3;
+            }
+            text = text.ToLower();
+            assetList.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            foreach (DataGridViewRow row in assetList.Rows)
+            {
+                if (row.Index < startIndex)
+                    continue;
+                assetList.ClearSelection();
+                string matchText = row.Cells[cellIdx].Value.ToString().ToLower();
+                if (Regex.IsMatch(matchText, WildCardToRegular(text)))
+                {
+                    row.Selected = true;
+                    assetList.FirstDisplayedScrollingRowIndex = row.Index;
+                    lastSearchedAsset = text;
+                    lastSearchedIndex = row.Index + 1;
+                    break;
+                }
+            }
+        }
+
+        private string WildCardToRegular(string value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
+        }
+
         private void updateListInformationToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (currentFile == null)
@@ -411,6 +467,20 @@ namespace AssetsView.Winforms
         private void assetTree_DoubleClick(object sender, EventArgs e)
         {
 
+        }
+
+        private void GoDirectory_Click(object sender, EventArgs e)
+        {
+            SearchAsset();
+        }
+
+        private void PathBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 13)
+            {
+                SearchAsset();
+                e.Handled = true;
+            }
         }
     }
 }

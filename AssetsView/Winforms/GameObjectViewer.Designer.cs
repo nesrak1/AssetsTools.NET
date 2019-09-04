@@ -31,6 +31,7 @@
             this.goTree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.valueGrid = new System.Windows.Forms.PropertyGrid();
+            this.followBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -44,7 +45,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.goTree.Location = new System.Drawing.Point(3, 3);
             this.goTree.Name = "goTree";
-            this.goTree.Size = new System.Drawing.Size(689, 444);
+            this.goTree.Size = new System.Drawing.Size(444, 444);
             this.goTree.TabIndex = 0;
             this.goTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.goTree_AfterSelect);
             // 
@@ -53,6 +54,7 @@
             this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             // 
@@ -62,9 +64,10 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.followBtn);
             this.splitContainer1.Panel2.Controls.Add(this.valueGrid);
-            this.splitContainer1.Size = new System.Drawing.Size(1016, 450);
-            this.splitContainer1.SplitterDistance = 695;
+            this.splitContainer1.Size = new System.Drawing.Size(827, 450);
+            this.splitContainer1.SplitterDistance = 450;
             this.splitContainer1.TabIndex = 1;
             // 
             // valueGrid
@@ -76,15 +79,27 @@
             this.valueGrid.Location = new System.Drawing.Point(3, 3);
             this.valueGrid.Name = "valueGrid";
             this.valueGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.valueGrid.Size = new System.Drawing.Size(311, 444);
+            this.valueGrid.Size = new System.Drawing.Size(367, 418);
             this.valueGrid.TabIndex = 2;
             this.valueGrid.ToolbarVisible = false;
+            // 
+            // followBtn
+            // 
+            this.followBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.followBtn.Location = new System.Drawing.Point(3, 424);
+            this.followBtn.Name = "followBtn";
+            this.followBtn.Size = new System.Drawing.Size(367, 23);
+            this.followBtn.TabIndex = 3;
+            this.followBtn.Text = "Follow Reference";
+            this.followBtn.UseVisualStyleBackColor = true;
+            this.followBtn.Click += new System.EventHandler(this.FollowBtn_Click);
             // 
             // GameObjectViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1016, 450);
+            this.ClientSize = new System.Drawing.Size(827, 450);
             this.Controls.Add(this.splitContainer1);
             this.Name = "GameObjectViewer";
             this.Text = "AssetsView .NET - GameObject Viewer";
@@ -102,5 +117,6 @@
         private System.Windows.Forms.TreeView goTree;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.PropertyGrid valueGrid;
+        private System.Windows.Forms.Button followBtn;
     }
 }

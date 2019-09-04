@@ -121,18 +121,16 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, uint fileId, ulong pathId, bool onlyGetInfo = false)
         {
             AssetExternal ext = new AssetExternal();
-            uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
-            ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
             if (fileId == 0 && pathId == 0)
             {
                 ext.info = null;
                 ext.instance = null;
                 ext.file = null;
             }
-            else if (atvf.Get("m_FileID").GetValue().AsInt() != 0)
+            else if (fileId != 0)
             {
                 AssetsFileInstance dep = relativeTo.dependencies[(int)fileId - 1];
                 ext.info = dep.table.getAssetInfo(pathId);
@@ -152,6 +150,13 @@ namespace AssetsTools.NET.Extra
                 ext.file = relativeTo;
             }
             return ext;
+        }
+
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false)
+        {
+            uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
+            ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
+            return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo);
         }
 
         public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info)

@@ -13,9 +13,17 @@ namespace AssetsTools.NET.Extra
     {
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, uint id)
         {
+            uint fixedId = id;
+            if (fixedId == 0xf1) //AudioMixerController
+                fixedId = 0xf0;  //AudioMixer
+            else if (fixedId == 0xf3) //AudioMixerGroupController
+                fixedId = 0x111;      //AudioMixerGroup
+            else if (fixedId == 0xf5) //AudioMixerSnapshotController
+                fixedId = 0x110;      //AudioMixerSnapshot
+
             foreach (ClassDatabaseType type in cldb.classes)
             {
-                if (type.classId == id)
+                if (type.classId == fixedId)
                     return type;
             }
             return null;

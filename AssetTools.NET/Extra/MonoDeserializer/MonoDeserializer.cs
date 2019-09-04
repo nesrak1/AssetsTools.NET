@@ -142,51 +142,37 @@ namespace AssetsTools.NET.Extra
             }
             return localChildren;
         }
-        //todo- wtf
-        //nothing more can be said
         private FieldDefinition[] GetAcceptableFields(TypeDefinition typeDef)
         {
-            /*foreach (FieldDefinition def in typeDef.Fields)
+            List<FieldDefinition> validFields = new List<FieldDefinition>();
+            foreach (FieldDefinition f in typeDef.Fields)
             {
-                if (def.Name == "m_ObjectArgument")
+                if (f.Attributes.HasFlag(FieldAttributes.Public) ||
+                    f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))) //field is public or has exception attribute
                 {
-                    if ((def.Attributes.HasFlag(FieldAttributes.Public) ||
-                        def.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))))
+                    if (!f.Attributes.HasFlag(FieldAttributes.Static) &&
+                        !f.Attributes.HasFlag(FieldAttributes.NotSerialized) &&
+                        !f.IsInitOnly &&
+                        !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
-                        Debug.WriteLine("has publiblicity");
-                    }
-                    if ((def.FieldType.Resolve().IsValueType ||
-                        def.FieldType.Resolve().IsSerializable ||
-                        DerivesFromUEObject(def.FieldType.Resolve()) ||
-                        IsAcceptableUnityType(def.FieldType.Resolve())))
-                    {
-                        Debug.WriteLine("serializable type");
-                    }
-                    Debug.WriteLine(def.FieldType.Resolve().FullName);
-                    if (!def.Attributes.HasFlag(FieldAttributes.Static) &&
-                    !def.Attributes.HasFlag(FieldAttributes.NotSerialized) &&
-                    !def.IsInitOnly &&
-                    !def.HasConstant)
-                    {
-                        Debug.WriteLine("misc");
+                        TypeReference ft = f.FieldType;
+                        if (f.FieldType.IsArray)
+                        {
+                            ft = ft.GetElementType();
+                        }
+                        TypeDefinition ftd = ft.Resolve();
+                        if (ftd.IsPrimitive ||
+                            ftd.IsEnum ||
+                            ftd.IsSerializable ||
+                            DerivesFromUEObject(ftd) ||
+                            IsAcceptableUnityType(ftd)) //field has a serializable type
+                        {
+                            validFields.Add(f);
+                        }
                     }
                 }
-            }*/
-            return typeDef.Fields
-                .Where(f =>
-                    (f.Attributes.HasFlag(FieldAttributes.Public) ||
-                        f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))) && //will not check for serialized field on things that cannot be serialized so watch out
-                    (f.FieldType.Resolve().IsValueType ||
-                        f.FieldType.Resolve().IsSerializable ||
-                        DerivesFromUEObject(f.FieldType.Resolve()) ||
-                        IsAcceptableUnityType(f.FieldType.Resolve())) &&
-                    !f.Attributes.HasFlag(FieldAttributes.Static) &&
-                    !f.Attributes.HasFlag(FieldAttributes.NotSerialized) &&
-                    !f.IsInitOnly &&
-                    !f.HasConstant) //&&
-                    //!f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("HideInInspector")))
-                .Select(f => f)
-                .ToArray();
+            }
+            return validFields.ToArray();
         }
         private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
@@ -201,7 +187,8 @@ namespace AssetsTools.NET.Extra
             {"SByte","sbyte"},
             {"Double","double"},
             {"Single","float"},
-            {"Int32","int"}
+            {"Int32","int"},
+            {"String","string"}
         };
         private string ConvertBaseToPrimitive(string name)
         {
@@ -381,6 +368,9 @@ namespace AssetsTools.NET.Extra
                 case "Rect":
                     SetRectf(field);
                     break;
+                case "Color32":
+                    SetGradientRGBAb(field);
+                    break;
                 default:
                     SetSerialized(field, type);
                     break;
@@ -437,10 +427,25 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField value = CreateTemplateField("value", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField inSlope = CreateTemplateField("inSlope", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField outSlope = CreateTemplateField("outSlope", "float", EnumValueTypes.ValueType_Float);
+            //new in 2019
+            AssetTypeTemplateField weightedMode = CreateTemplateField("weightedMode", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField inWeight = CreateTemplateField("inWeight", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField outWeight = CreateTemplateField("outWeight", "float", EnumValueTypes.ValueType_Float);
+            /////////////
             AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField data = CreateTemplateField("data", "Keyframe", EnumValueTypes.ValueType_None, 4, new AssetTypeTemplateField[] {
-                time, value, inSlope, outSlope
-            });
+            AssetTypeTemplateField data;
+            if (format >= 0x13)
+            {
+                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.ValueType_None, 7, new AssetTypeTemplateField[] {
+                    time, value, inSlope, outSlope, weightedMode, inWeight, outWeight
+                });
+            }
+            else
+            {
+                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.ValueType_None, 4, new AssetTypeTemplateField[] {
+                    time, value, inSlope, outSlope
+                });
+            }
             AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.ValueType_Array, true, false, 2, new AssetTypeTemplateField[] {
                 size, data
             });
@@ -487,6 +492,14 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField height = CreateTemplateField("height", "float", EnumValueTypes.ValueType_Float);
             field.children = new AssetTypeTemplateField[] {
                 x, y, width, height
+            };
+        }
+        private void SetGradientRGBAb(AssetTypeTemplateField field)
+        {
+            field.childrenCount = 1;
+            AssetTypeTemplateField rgba = CreateTemplateField("rgba", "unsigned int", EnumValueTypes.ValueType_UInt32);
+            field.children = new AssetTypeTemplateField[] {
+                rgba
             };
         }
         private void SetPPtr(AssetTypeTemplateField field)

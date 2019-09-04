@@ -106,7 +106,11 @@ namespace AssetsTools.NET
                     currentReplacers.Remove(replacer);
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
-                        int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                        int classIndex;
+                        if (replacer.GetMonoScriptID() == 0xFFFF)
+                            classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                        else
+                            classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
                         newInfo = new AssetFileInfo()
                         {
                             index = replacer.GetPathID(),
@@ -136,7 +140,11 @@ namespace AssetsTools.NET
                 AssetsReplacer replacer = currentReplacers.First();
                 if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                 {
-                    int classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                    int classIndex;
+                    if (replacer.GetMonoScriptID() == 0xFFFF)
+                        classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                    else
+                        classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
                     AssetFileInfo info = new AssetFileInfo()
                     {
                         index = replacer.GetPathID(),

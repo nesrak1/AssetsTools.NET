@@ -96,21 +96,23 @@
             // addFileToolStripMenuItem
             // 
             this.addFileToolStripMenuItem.Name = "addFileToolStripMenuItem";
-            this.addFileToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.addFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addFileToolStripMenuItem.Text = "Add File";
             this.addFileToolStripMenuItem.Click += new System.EventHandler(this.addFileToolStripMenuItem_Click);
             // 
             // addDirectoryToolStripMenuItem
             // 
+            this.addDirectoryToolStripMenuItem.Enabled = false;
             this.addDirectoryToolStripMenuItem.Name = "addDirectoryToolStripMenuItem";
-            this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addDirectoryToolStripMenuItem.Text = "Add Directory";
             // 
             // clearFilesToolStripMenuItem
             // 
             this.clearFilesToolStripMenuItem.Name = "clearFilesToolStripMenuItem";
-            this.clearFilesToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.clearFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.clearFilesToolStripMenuItem.Text = "Clear files";
+            this.clearFilesToolStripMenuItem.Click += new System.EventHandler(this.clearFilesToolStripMenuItem_Click);
             // 
             // dependenciesToolStripMenuItem
             // 
@@ -176,7 +178,7 @@
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(410, 358);
+            this.assetList.Size = new System.Drawing.Size(412, 358);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             // 
@@ -223,13 +225,14 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(373, 2);
+            this.goDirectory.Location = new System.Drawing.Point(375, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
             this.goDirectory.Size = new System.Drawing.Size(36, 22);
             this.goDirectory.TabIndex = 3;
             this.goDirectory.Text = "Go";
             this.goDirectory.UseVisualStyleBackColor = true;
+            this.goDirectory.Click += new System.EventHandler(this.GoDirectory_Click);
             // 
             // pathBox
             // 
@@ -240,8 +243,9 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(328, 25);
+            this.pathBox.Size = new System.Drawing.Size(330, 25);
             this.pathBox.TabIndex = 2;
+            this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
             // upDirectory
             // 
