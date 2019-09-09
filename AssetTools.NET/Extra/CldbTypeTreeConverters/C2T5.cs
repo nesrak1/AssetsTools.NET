@@ -90,7 +90,7 @@ namespace AssetsTools.NET.Extra
                     depth = field.depth,
                     flags = field.flags2,
                     index = (uint)i,
-                    isArray = field.isArray == 1 ? true : false,
+                    isArray = field.isArray,
                     nameStringOffset = fieldNamePos,
                     size = field.size,
                     typeStringOffset = typeNamePos,

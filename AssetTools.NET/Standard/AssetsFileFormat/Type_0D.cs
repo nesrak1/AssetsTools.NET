@@ -55,7 +55,7 @@ namespace AssetsTools.NET
                 for (int i = 0; i < typeFieldsExCount; i++)
                 {
                     TypeField_0D typefield0d = new TypeField_0D();
-                    typefield0d.Read(reader.Position, reader, bigEndian);
+                    typefield0d.Read(reader.Position, reader, version, bigEndian);
                     pTypeFieldsEx[i] = typefield0d;
                 }
                 pStringTable = Encoding.UTF8.GetString(reader.ReadBytes((int)stringTableLen));
@@ -85,7 +85,7 @@ namespace AssetsTools.NET
                 writer.Write(pStringTable.Length);
                 for (int i = 0; i < typeFieldsExCount; i++)
                 {
-                    pTypeFieldsEx[i].Write(writer.Position, writer);
+                    pTypeFieldsEx[i].Write(writer.Position, writer, version);
                 }
                 writer.Write(pStringTable);
             }

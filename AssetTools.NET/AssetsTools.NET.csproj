@@ -49,17 +49,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Rocks.dll</HintPath>
+    <Reference Include="Mono.Cecil, Version=0.10.0.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\GithubReposLocal\hkworldedit22019\Library\PackageCache\nuget.mono-cecil@0.1.5-preview\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -76,9 +68,6 @@
     <Compile Include="Extra\AssetToBundle\AssetToBundle.cs" />
     <Compile Include="Extra\AssetWriters.cs" />
     <Compile Include="Extra\CldbTypeTreeConverters\C2T5.cs" />
-    <Compile Include="Extra\ContentExtractors\Libraries\FBXBIN.cs" />
-    <Compile Include="Extra\ContentExtractors\Libraries\Half.cs" />
-    <Compile Include="Extra\ContentExtractors\Mesh.cs" />
     <Compile Include="Extra\Decompressors\LZ4\Lz4DecoderStream.cs" />
     <Compile Include="Extra\Decompressors\LZMA\Common\CommandLineParser.cs" />
     <Compile Include="Extra\Decompressors\LZMA\Common\CRC.cs" />
