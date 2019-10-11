@@ -12,6 +12,7 @@ namespace AssetsTools.NET
 
         public PreloadList preloadTable;
         public AssetsFileDependencyList dependencies;
+        public string unknownString;
 
         public uint AssetTablePos;
         public uint AssetCount;
@@ -175,7 +176,10 @@ namespace AssetsTools.NET
 
             dependencies.Write(writer.Position, writer, header.format);
 
-            uint metadataSize = (uint)writer.Position - 0x13;
+            writer.Write((byte)2);
+            writer.Write((byte)0);
+
+            uint metadataSize = (uint)writer.Position - 0x14;
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             while (writer.Position < 0x1000/*header.offs_firstFile*/)
@@ -196,7 +200,8 @@ namespace AssetsTools.NET
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
                         replacer.Write(writer.Position, writer);
-                        writer.Align8();
+                        if (i != assetInfos.Count - 1)
+                            writer.Align8();
                     }
                     else if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_Remove)
                     {
@@ -211,7 +216,8 @@ namespace AssetsTools.NET
                         reader.Position = header.offs_firstFile + originalInfo.offs_curFile;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
                         writer.Write(assetData);
-                        writer.Align8();
+                        if (i != assetInfos.Count - 1)
+                            writer.Align8();
                     }
                 }
             }

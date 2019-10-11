@@ -34,10 +34,14 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addDirectoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.dependenciesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.updateListInformationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.updateDependenciesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewCurrentAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewSelectedAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.assetList = new System.Windows.Forms.DataGridView();
             this.IconCol = new System.Windows.Forms.DataGridViewImageColumn();
@@ -49,6 +53,7 @@
             this.pathBox = new System.Windows.Forms.TextBox();
             this.upDirectory = new System.Windows.Forms.Button();
             this.imageList = new System.Windows.Forms.ImageList(this.components);
+            this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -68,14 +73,14 @@
             this.assetTree.Name = "assetTree";
             this.assetTree.Size = new System.Drawing.Size(288, 387);
             this.assetTree.TabIndex = 0;
-            this.assetTree.DoubleClick += new System.EventHandler(this.assetTree_DoubleClick);
             // 
             // menuStrip1
             // 
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.dependenciesToolStripMenuItem});
+            this.infoToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 1, 0, 1);
@@ -87,8 +92,9 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addFileToolStripMenuItem,
-            this.addDirectoryToolStripMenuItem,
-            this.clearFilesToolStripMenuItem});
+            this.clearFilesToolStripMenuItem,
+            this.toolStripSeparator1,
+            this.updateDependenciesToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 22);
             this.fileToolStripMenuItem.Text = "File";
@@ -96,38 +102,65 @@
             // addFileToolStripMenuItem
             // 
             this.addFileToolStripMenuItem.Name = "addFileToolStripMenuItem";
-            this.addFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addFileToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             this.addFileToolStripMenuItem.Text = "Add File";
             this.addFileToolStripMenuItem.Click += new System.EventHandler(this.addFileToolStripMenuItem_Click);
-            // 
-            // addDirectoryToolStripMenuItem
-            // 
-            this.addDirectoryToolStripMenuItem.Enabled = false;
-            this.addDirectoryToolStripMenuItem.Name = "addDirectoryToolStripMenuItem";
-            this.addDirectoryToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.addDirectoryToolStripMenuItem.Text = "Add Directory";
             // 
             // clearFilesToolStripMenuItem
             // 
             this.clearFilesToolStripMenuItem.Name = "clearFilesToolStripMenuItem";
-            this.clearFilesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.clearFilesToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
             this.clearFilesToolStripMenuItem.Text = "Clear files";
             this.clearFilesToolStripMenuItem.Click += new System.EventHandler(this.clearFilesToolStripMenuItem_Click);
             // 
-            // dependenciesToolStripMenuItem
+            // toolStripSeparator1
             // 
-            this.dependenciesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.updateListInformationToolStripMenuItem});
-            this.dependenciesToolStripMenuItem.Name = "dependenciesToolStripMenuItem";
-            this.dependenciesToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
-            this.dependenciesToolStripMenuItem.Text = "Dependencies";
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(185, 6);
             // 
-            // updateListInformationToolStripMenuItem
+            // updateDependenciesToolStripMenuItem
             // 
-            this.updateListInformationToolStripMenuItem.Name = "updateListInformationToolStripMenuItem";
-            this.updateListInformationToolStripMenuItem.Size = new System.Drawing.Size(196, 22);
-            this.updateListInformationToolStripMenuItem.Text = "Update list information";
-            this.updateListInformationToolStripMenuItem.Click += new System.EventHandler(this.updateListInformationToolStripMenuItem_Click);
+            this.updateDependenciesToolStripMenuItem.Name = "updateDependenciesToolStripMenuItem";
+            this.updateDependenciesToolStripMenuItem.Size = new System.Drawing.Size(188, 22);
+            this.updateDependenciesToolStripMenuItem.Text = "Update dependencies";
+            this.updateDependenciesToolStripMenuItem.Click += new System.EventHandler(this.updateDependenciesToolStripMenuItem_Click);
+            // 
+            // infoToolStripMenuItem
+            // 
+            this.infoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewCurrentAssetInfoToolStripMenuItem,
+            this.viewSelectedAssetInfoToolStripMenuItem});
+            this.infoToolStripMenuItem.Name = "infoToolStripMenuItem";
+            this.infoToolStripMenuItem.Size = new System.Drawing.Size(40, 22);
+            this.infoToolStripMenuItem.Text = "Info";
+            // 
+            // viewCurrentAssetInfoToolStripMenuItem
+            // 
+            this.viewCurrentAssetInfoToolStripMenuItem.Name = "viewCurrentAssetInfoToolStripMenuItem";
+            this.viewCurrentAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.viewCurrentAssetInfoToolStripMenuItem.Text = "View Current Asset Info";
+            this.viewCurrentAssetInfoToolStripMenuItem.Click += new System.EventHandler(this.ViewCurrentAssetInfoToolStripMenuItem_Click);
+            // 
+            // viewSelectedAssetInfoToolStripMenuItem
+            // 
+            this.viewSelectedAssetInfoToolStripMenuItem.Name = "viewSelectedAssetInfoToolStripMenuItem";
+            this.viewSelectedAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
+            this.viewSelectedAssetInfoToolStripMenuItem.Text = "View Selected Asset Info";
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 22);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItem_Click);
             // 
             // splitContainer1
             // 
@@ -178,7 +211,7 @@
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(412, 358);
+            this.assetList.Size = new System.Drawing.Size(409, 358);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             // 
@@ -225,7 +258,7 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(375, 2);
+            this.goDirectory.Location = new System.Drawing.Point(378, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
             this.goDirectory.Size = new System.Drawing.Size(36, 22);
@@ -243,7 +276,7 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(330, 25);
+            this.pathBox.Size = new System.Drawing.Size(333, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
@@ -271,6 +304,17 @@
             this.imageList.Images.SetKeyName(6, "image_32.png");
             this.imageList.Images.SetKeyName(7, "cube_32.png");
             this.imageList.Images.SetKeyName(8, "material_32.png");
+            // 
+            // dataGridViewImageColumn1
+            // 
+            this.dataGridViewImageColumn1.Frozen = true;
+            this.dataGridViewImageColumn1.HeaderText = "";
+            this.dataGridViewImageColumn1.Image = global::AssetsView.Properties.Resources.blankicon;
+            this.dataGridViewImageColumn1.MinimumWidth = 30;
+            this.dataGridViewImageColumn1.Name = "dataGridViewImageColumn1";
+            this.dataGridViewImageColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.dataGridViewImageColumn1.Width = 30;
             // 
             // StartScreen
             // 
@@ -301,23 +345,28 @@
 
         private System.Windows.Forms.TreeView assetTree;
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private System.Windows.Forms.ToolStripMenuItem addDirectoryToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem addFileToolStripMenuItem;
         private System.Windows.Forms.ImageList imageList;
         private System.Windows.Forms.Button upDirectory;
         private System.Windows.Forms.Button goDirectory;
         private System.Windows.Forms.TextBox pathBox;
-        private System.Windows.Forms.ToolStripMenuItem dependenciesToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem updateListInformationToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem clearFilesToolStripMenuItem;
         private System.Windows.Forms.DataGridView assetList;
         private System.Windows.Forms.DataGridViewImageColumn IconCol;
         private System.Windows.Forms.DataGridViewTextBoxColumn NameCol;
         private System.Windows.Forms.DataGridViewTextBoxColumn TypeCol;
         private System.Windows.Forms.DataGridViewTextBoxColumn IDCol;
         private System.Windows.Forms.DataGridViewTextBoxColumn SizeCol;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem addFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearFilesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem infoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem viewCurrentAssetInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem viewSelectedAssetInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem updateDependenciesToolStripMenuItem;
+        private System.Windows.Forms.DataGridViewImageColumn dataGridViewImageColumn1;
     }
 }
 

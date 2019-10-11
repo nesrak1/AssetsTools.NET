@@ -1,4 +1,6 @@
-﻿namespace AssetsTools.NET
+﻿using System.Text;
+
+namespace AssetsTools.NET
 {
     public struct TypeField_0D
     {
@@ -48,7 +50,41 @@
             Registry    = 0b0100,
             ArrayOfRefs = 0b1000
         }
-        ///public string GetTypeString(string stringTable, ulong stringTableLen);
-        ///public string GetNameString(string stringTable, ulong stringTableLen);
+        public string GetTypeString(string stringTable)
+        {
+            StringBuilder str = new StringBuilder();
+            uint newTypeStringOffset = typeStringOffset;
+            if (newTypeStringOffset > 0x80000000)
+            {
+                newTypeStringOffset -= 0x80000000;
+                stringTable = Type_0D.strTable;
+            }
+            int pos = (int)newTypeStringOffset;
+            char c;
+            while ((c = stringTable[pos]) != 0x00)
+            {
+                str.Append(c);
+                pos++;
+            }
+            return str.ToString();
+        }
+        public string GetNameString(string stringTable)
+        {
+            StringBuilder str = new StringBuilder();
+            uint newNameStringOffset = nameStringOffset;
+            if (newNameStringOffset > 0x80000000)
+            {
+                newNameStringOffset -= 0x80000000;
+                stringTable = Type_0D.strTable;
+            }
+            int pos = (int)newNameStringOffset;
+            char c;
+            while ((c = stringTable[pos]) != 0x00)
+            {
+                str.Append(c);
+                pos++;
+            }
+            return str.ToString();
+        }
     }
 }

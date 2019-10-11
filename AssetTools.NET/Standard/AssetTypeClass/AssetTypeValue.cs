@@ -113,6 +113,8 @@ namespace AssetsTools.NET
         public AssetTypeValue(EnumValueTypes type, object valueContainer)
         {
             this.type = type;
+            if (valueContainer != null)
+                Set(valueContainer);
         }
         public EnumValueTypes GetValueType()
         {

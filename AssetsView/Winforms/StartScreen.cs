@@ -24,7 +24,6 @@ namespace AssetsView.Winforms
         private AssetsFileInstance currentFile;
         private FSDirectory rootDir;
         private FSDirectory currentDir;
-        private List<SceneDetails> sceneDetails;
         private bool rsrcDataAdded;
 
         public StartScreen()
@@ -32,18 +31,11 @@ namespace AssetsView.Winforms
             InitializeComponent();
 
             assetList.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            //assetList.MultiSelect = false;
             assetList.RowPrePaint += new DataGridViewRowPrePaintEventHandler(prePaint);
-            assetList.Rows.Add(imageList.Images[1], "Open an asset with File > Add File", "", "");
+            assetList.Rows.Add(imageList.Images[1], "Open an asset with", "", "");
+            assetList.Rows.Add(imageList.Images[1], "File > Add File", "", "");
 
             rsrcDataAdded = false;
-            //assetList.FullRowSelect = true;
-            //PInvoke.SetWindowTheme(assetList.Handle, "explorer", null);
-            //PInvoke.SetWindowTheme(assetTree.Handle, "explorer", null);
-            //PInvoke.SetWindowTheme(assetList.Handle, "explorer", null);
-            //PInvoke.SendMessage(assetList.Handle, 0x127, 0x10001, 0);
-            //PInvoke.SendMessage(assetList.Handle, 0x1026, IntPtr.Zero, unchecked((IntPtr)(int)0xFFFFFF));
-            //PInvoke.SendMessage(listView1.Handle, 0x1035, 0, 0x740060);
 
             helper = new AssetsManager();
             helper.updateAfterLoad = false;
@@ -59,7 +51,6 @@ namespace AssetsView.Winforms
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.DefaultExt = "";
-            //ofd.Filter = "Unity content (*.unity3d;*.bundle;*.assets;globalgamemanagers;unity_builtin_extra;unity default resources)|*.unity3d;*.bundle;*.assets;globalgamemanagers;unity_builtin_extra;unity default resources|Bundle file (*.unity3d;*.bundle)|*.unity3d;*.bundle|Assets file (*.assets)|*.assets|Level file (level*)|level*|All types (*.*)|*.*";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 OpenAssetsDialog openFile = new OpenAssetsDialog(ofd.FileName);
@@ -72,33 +63,7 @@ namespace AssetsView.Winforms
                     UpdateFileList();
                     string fileName = Path.GetFileName(ofd.FileName);
                     currentFile = inst;
-                    if (fileName == "resources.assets")
-                    {
-                        //LoadResources(inst);
-                        LoadGeneric(inst, false);
-                    }
-                    else if (fileName == "globalgamemanagers")
-                    {
-                        LoadGGM(inst);
-                    }
-                    else if (fileName.StartsWith("level"))
-                    //else if (Regex.Matches(fileName, @"/^level\d+$/g").Count > 0)
-                    {
-                        LoadGeneric(inst, true);
-                    }
-                    else if (fileName.StartsWith("sharedassets"))
-                    //else if (Regex.Matches(fileName, @"/^sharedassets\d+.assets$/g").Count > 0)
-                    {
-                        LoadGeneric(inst, false);
-                    }
-                    else if (fileName == "unity default resources")
-                    {
-                        LoadGeneric(inst, false);
-                    }
-                    else
-                    {
-                        LoadGeneric(inst, false);
-                    }
+                    LoadGeneric(inst, false);
                 }
             }
         }
@@ -106,21 +71,16 @@ namespace AssetsView.Winforms
         private void clearFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             assetTree.Nodes.Clear();
-            helper.files.ForEach(d => { if (d != null) { d.file.readerPar.Close(); d.table.pAssetFileInfo = null; } });
+            helper.files.ForEach(d => {
+                if (d != null)
+                {
+                    d.file.readerPar.Close(); d.table.pAssetFileInfo = null;
+                }
+            });
             helper.files.Clear();
             rootDir = null;
             currentFile = null;
             assetList.Rows.Clear();
-        }
-
-        private void LoadResources(AssetsFileInstance mainFile)
-        {
-            //todo
-            string ggmPath = Path.Combine(Path.GetDirectoryName(currentFile.path), "globalgamemanagers");
-            AssetsFileInstance ggmInst = helper.LoadAssetsFile(ggmPath, false);
-            currentFile = ggmInst;
-            LoadGGM(ggmInst);
-            UpdateDependencies();
         }
 
         private void LoadGGM(AssetsFileInstance mainFile)
@@ -159,7 +119,6 @@ namespace AssetsView.Winforms
 
         private void LoadGeneric(AssetsFileInstance mainFile, bool isLevel)
         {
-            //Dictionary<string, AssetDetails> paths = new Dictionary<string, AssetDetails>();
             List<AssetDetails> assets = new List<AssetDetails>();
             foreach (AssetFileInfoEx info in mainFile.table.pAssetFileInfo)
             {
@@ -174,21 +133,9 @@ namespace AssetsView.Winforms
                 {
                     name = "[Unnamed]";
                 }
-                //int count = 0;
-                //string newName = name;
-                //while (paths.Keys.Contains(newName)/* && count < 20*/)
-                //{
-                //    count++;
-                //    newName = $"{name} ({count})";
-                //}
-                //if (count < 20)
-                //{
-                //paths[newName] = new AssetDetails(new AssetPPtr(0, info.index), name, typeName, (int)info.curFileSize);
                 assets.Add(new AssetDetails(new AssetPPtr(0, info.index), GetIconForName(typeName), name, typeName, (int)info.curFileSize));
-                //}
             }
             rootDir = new FSDirectory();
-            //rootDir.Create(paths);
             rootDir.Create(assets);
             ChangeDirectory("");
         }
@@ -442,7 +389,7 @@ namespace AssetsView.Winforms
             return "^" + Regex.Escape(value).Replace("\\*", ".*") + "$";
         }
 
-        private void updateListInformationToolStripMenuItem_Click(object sender, EventArgs e)
+        private void updateDependenciesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (currentFile == null)
             {
@@ -452,7 +399,7 @@ namespace AssetsView.Winforms
             if (!AssetUtils.AllDependenciesLoaded(helper, currentFile))
             {
                 DialogResult res = MessageBox.Show(
-                    "You haven't loaded all dependencies for this file. Load now?",
+                    "Load all referenced dependencies? This may take a while.",
                     "Assets View",
                     MessageBoxButtons.YesNo);
                 if (res == DialogResult.No)
@@ -462,11 +409,12 @@ namespace AssetsView.Winforms
                 helper.LoadAssetsFile(currentFile.stream, currentFile.path, true);
                 UpdateDependencies();
             }
-        }
-
-        private void assetTree_DoubleClick(object sender, EventArgs e)
-        {
-
+            else
+            {
+                MessageBox.Show(
+                    "All dependencies already loaded.",
+                    "Assets View");
+            }
         }
 
         private void GoDirectory_Click(object sender, EventArgs e)
@@ -481,6 +429,21 @@ namespace AssetsView.Winforms
                 SearchAsset();
                 e.Handled = true;
             }
+        }
+
+        private void AboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new AboutScreen().ShowDialog();
+        }
+
+        private void ViewCurrentAssetInfoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentFile == null)
+            {
+                MessageBox.Show("No current file selected!", "Assets View");
+                return;
+            }
+            new AssetInfoViewer(currentFile.file, helper.classFile).Show();
         }
     }
 }

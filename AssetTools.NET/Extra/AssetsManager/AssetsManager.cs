@@ -121,7 +121,7 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, uint fileId, ulong pathId, bool onlyGetInfo = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, uint fileId, ulong pathId, bool onlyGetInfo = false, bool fromTypeTree = false)
         {
             AssetExternal ext = new AssetExternal();
             if (fileId == 0 && pathId == 0)
@@ -135,7 +135,7 @@ namespace AssetsTools.NET.Extra
                 AssetsFileInstance dep = relativeTo.dependencies[(int)fileId - 1];
                 ext.info = dep.table.getAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(dep.file, ext.info);
+                    ext.instance = GetATI(dep.file, ext.info, fromTypeTree);
                 else
                     ext.instance = null;
                 ext.file = dep;
@@ -144,7 +144,7 @@ namespace AssetsTools.NET.Extra
             {
                 ext.info = relativeTo.table.getAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(relativeTo.file, ext.info);
+                    ext.instance = GetATI(relativeTo.file, ext.info, fromTypeTree);
                 else
                     ext.instance = null;
                 ext.file = relativeTo;
@@ -152,19 +152,20 @@ namespace AssetsTools.NET.Extra
             return ext;
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false, bool fromTypeTree = false)
         {
             uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
             ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
-            return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo);
+            return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, fromTypeTree);
         }
 
-        public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info)
+        public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool fromTypeTree = false)
         {
             //do we still need pooling?
             //(it accumulates memory over time and we don't
             // really need to read the same ati twice)
 
+            ushort scriptIndex = file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
             //unity is wack
             uint fixedId = info.curFileType;
             if (fixedId == 0xf1) //AudioMixerController
@@ -184,14 +185,21 @@ namespace AssetsTools.NET.Extra
                 else
                 {
                     pBaseField = new AssetTypeTemplateField();
-                    pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                    if (fromTypeTree)
+                        pBaseField.From0D(file.typeTree.pTypes_Unity5.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
+                    else
+                        pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+
                     templateFieldCache[fixedId] = pBaseField;
                 }
             }
             else
             {
                 pBaseField = new AssetTypeTemplateField();
-                pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                if (fromTypeTree)
+                    pBaseField.From0D(file.typeTree.pTypes_Unity5.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
+                else
+                    pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
             }
 
             return new AssetTypeInstance(pBaseField, file.reader, false, info.absoluteFilePos);

@@ -26,13 +26,13 @@ namespace AssetsTools.NET
                 return writer.Position;
             }
         }
+        public string bufferedPath; //for buffered (type=1)
         public GUID128 guid;
         public int type;
         public string assetPath; //path to the .assets file
-        public byte[] bufferedPath; //for buffered (type=1)
         public ulong Read(ulong absFilePos, AssetsFileReader reader, bool bigEndian)
         {
-            bufferedPath = new byte[] { reader.ReadByte() }; //-Dunno why it's here but it is
+            bufferedPath = reader.ReadNullTerminated();
             guid = new GUID128();
             guid.Read(reader.Position, reader);
             type = reader.ReadInt32();
@@ -46,7 +46,7 @@ namespace AssetsTools.NET
         }
         public ulong Write(ulong absFilePos, AssetsFileWriter writer)
         {
-            writer.Write(bufferedPath);
+            writer.WriteNullTerminated(bufferedPath);
             guid.Write(writer.Position, writer);
             writer.Write(type);
             string assetPathTemp = assetPath;

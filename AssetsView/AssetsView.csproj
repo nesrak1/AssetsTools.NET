@@ -87,6 +87,18 @@
     </Compile>
     <Compile Include="Util\PGProperty.cs" />
     <Compile Include="Util\PropertyGridExtensions.cs" />
+    <Compile Include="Winforms\AboutScreen.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\AboutScreen.Designer.cs">
+      <DependentUpon>AboutScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Winforms\AssetInfoViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\AssetInfoViewer.Designer.cs">
+      <DependentUpon>AssetInfoViewer.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\GameObjectViewer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -108,6 +120,12 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\PInvoke.cs" />
+    <EmbeddedResource Include="Winforms\AboutScreen.resx">
+      <DependentUpon>AboutScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\AssetInfoViewer.resx">
+      <DependentUpon>AssetInfoViewer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Winforms\GameObjectViewer.resx">
       <DependentUpon>GameObjectViewer.cs</DependentUpon>
     </EmbeddedResource>

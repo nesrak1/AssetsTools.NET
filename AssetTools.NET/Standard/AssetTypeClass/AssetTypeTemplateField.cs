@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace AssetsTools.NET
@@ -18,6 +19,37 @@ namespace AssetsTools.NET
         ///public void Clear()
         public bool From0D(Type_0D pU5Type, uint fieldIndex)
         {
+            TypeField_0D field = pU5Type.pTypeFieldsEx[fieldIndex];
+            name = field.GetNameString(pU5Type.pStringTable);
+            type = field.GetTypeString(pU5Type.pStringTable);
+            valueType = AssetTypeValueField.GetValueTypeByTypeName(type);
+            isArray = field.isArray == 1 ? true : false;
+            align = (field.flags & 0x4000) != 0x00 ? true : false;
+            hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
+
+            List<int> childrenIndexes = new List<int>();
+            int thisDepth = pU5Type.pTypeFieldsEx[(int)fieldIndex].depth;
+            for (int i = (int)fieldIndex + 1; i < pU5Type.typeFieldsExCount; i++)
+            {
+                if (pU5Type.pTypeFieldsEx[i].depth == thisDepth + 1)
+                {
+                    childrenCount++;
+                    childrenIndexes.Add(i);
+                }
+                if (pU5Type.pTypeFieldsEx[i].depth <= thisDepth) break;
+            }
+            children = new AssetTypeTemplateField[childrenCount];
+            int child = 0;
+            for (int i = (int)fieldIndex + 1; i < pU5Type.typeFieldsExCount; i++)
+            {
+                if (pU5Type.pTypeFieldsEx[i].depth == thisDepth + 1)
+                {
+                    children[child] = new AssetTypeTemplateField();
+                    children[child].From0D(pU5Type, (uint)childrenIndexes[child]);
+                    child++;
+                }
+                if (pU5Type.pTypeFieldsEx[i].depth <= thisDepth) break;
+            }
             return true;
         }
         public bool FromClassDatabase(ClassDatabaseFile pFile, ClassDatabaseType pType, uint fieldIndex)
@@ -85,23 +117,22 @@ namespace AssetsTools.NET
                         if (valueField.templateField.align) reader.Align();
                         AssetTypeArray ata = new AssetTypeArray();
                         ata.size = valueField.childrenCount;
-                        valueField.value = new AssetTypeValue(EnumValueTypes.ValueType_Array, 0);
-                        valueField.value.Set(ata);
+                        valueField.value = new AssetTypeValue(EnumValueTypes.ValueType_Array, ata);
                     }
                     else
                     {
-                        Debug.WriteLine("Invalid array value type! Found an unexpected " + sizeType.ToString() + " type instead!");
+                        throw new Exception("Invalid array value type! Found an unexpected " + sizeType.ToString() + " type instead!");
                     }
                 }
                 else
                 {
-                    Debug.WriteLine("Invalid array!");
+                    throw new Exception("Invalid array!");
                 }
             }
             else
             {
                 EnumValueTypes type = valueField.templateField.valueType;
-                if (type != 0) valueField.value = new AssetTypeValue(type, 0);
+                if (type != 0) valueField.value = new AssetTypeValue(type, null);
                 if (type == EnumValueTypes.ValueType_String)
                 {
                     valueField.value.Set(reader.ReadCountStringInt32());
