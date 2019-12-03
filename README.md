@@ -27,7 +27,7 @@ var instance = am.LoadAssetsFile(assetsPath, true); //true will load dependencie
 You can load the class database with:
 
 ```cs
-var classFile = am.LoadClassPackage(classPath);
+var classFile = am.LoadClassDatabase(classPath);
 ```
 
 With the instance, you get access to the AssetsFile and AssetsFileTable instances. The AssetsFile class contains metadata about the file (typetree, dependencies) and the table contains asset listings.
@@ -68,7 +68,9 @@ There's much more the library has to offer and it follows closely with the origi
 Note: I don't use UABE.NET all that much anymore other than the MonoBehaviour searcher so I probably won't be keeping up with it after these things are fixed.
 
 # Extracting Database
-In UABE, go to `Options > Edit Type Package`. Open classdata.tpk in the same folder as UABE. Find the Unity version you need and click "Export". Then close the window and go to `Options > Edit Type Database`. Open the file you exported, uncheck `Compress the file (LZMA)`, click OK, then OK again.
+In the original UABE, go to `Options > Edit Type Package`. Open classdata.tpk in the same folder as UABE. Find the Unity version you need and click "Export". Then close the window and go to `Options > Edit Type Database`. Open the file you exported, uncheck `Compress the file (LZMA)`, click OK, then OK again.
+
+In AssetsView, the whole classdata.tpk file needs to be decompressed. In the `Edit Type Package` menu, uncheck `Compress the file (LZMA)` and click OK. Then copy the file to the same folder as AssetsView.
 
 # Comments
 Older comments that I wrote were written with `//-` while UABE's original comments were written in `//`. Commented out functions that still need to be implemented were written with `///Original AssetsTools function name`. Most comments I write now (mostly in methods) will now just be `//`.
