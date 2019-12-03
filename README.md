@@ -1,6 +1,10 @@
 # AssetsTools.NET
 A c# rewrite of the c++ AssetsTools [https://github.com/DerPopo/UABE/](https://github.com/DerPopo/UABE/)
 
+It also includes AssetsView, a wip viewer for Assets files as a replacement for UABE.
+
+For more information, see [AssetsView](#assetsview).
+
 # Update
 
 AssetsTools.NET has a lot of problems, from "c++ porting" issues to bad decisions in the library. Over time, the library will change and probably break a bit of code but hopefully it will be worth it and make developing with the library better.
@@ -71,6 +75,13 @@ Note: I don't use UABE.NET all that much anymore other than the MonoBehaviour se
 In the original UABE, go to `Options > Edit Type Package`. Open classdata.tpk in the same folder as UABE. Find the Unity version you need and click "Export". Then close the window and go to `Options > Edit Type Database`. Open the file you exported, uncheck `Compress the file (LZMA)`, click OK, then OK again.
 
 In AssetsView, the whole classdata.tpk file needs to be decompressed. In the `Edit Type Package` menu, uncheck `Compress the file (LZMA)` and click OK. Then copy the file to the same folder as AssetsView.
+
+# AssetsView
+
+A new viewer for assets files. You can find it in the releases section.
+
+![Asset List](https://user-images.githubusercontent.com/12544505/70081625-84949e00-15ce-11ea-81c7-2398de6a788f.png)
+![Gameobject Viewer](https://user-images.githubusercontent.com/12544505/70081627-852d3480-15ce-11ea-898c-5ea2e5edb79b.png)
 
 # Comments
 Older comments that I wrote were written with `//-` while UABE's original comments were written in `//`. Commented out functions that still need to be implemented were written with `///Original AssetsTools function name`. Most comments I write now (mostly in methods) will now just be `//`.
