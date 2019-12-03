@@ -1,6 +1,12 @@
 # AssetsTools.NET
 A c# rewrite of the c++ AssetsTools [https://github.com/DerPopo/UABE/](https://github.com/DerPopo/UABE/)
 
+# Update
+
+AssetsTools.NET has a lot of problems, from "c++ porting" issues to bad decisions in the library. Over time, the library will change and probably break a bit of code but hopefully it will be worth it and make developing with the library better.
+
+Some things that will change are unsigned types to signed types, easier writing and modification of values, no more length fields, etc. Some of these will cause this library to be somewhat incompatible with the original library, but should mostly stay the same.
+
 # What it does
 The library allows reading assets files from Unity games for tools and mods.
 
@@ -59,24 +65,7 @@ Make sure to load dependencies in `am.LoadAssetsFile()` or manually load the ass
 
 There's much more the library has to offer and it follows closely with the original library. If you have a question about it, feel free to create an issue and ask it. You can also check the original [UABE github repo](https://github.com/DerPopo/UABE/) for questions already asked by others.
 
-# Features that still need to be added
-
-## AssetsTools.NET
-- [ ] API function for decompressing assets
-- [ ] Loading tpk files
-- [ ] Loading compressed databases
-- [ ] Older asset writing support (I don't need it, but if you do, make an issue or pull request)
-
-## UABE.NET
-- [ ] Rework using new AssetManager (opening assets in assets)
-- [ ] Actual working search support
-- [ ] Faster loading speeds
-- [ ] Bundle creation
-- [ ] Asset saving
-
-(I don't use UABE.NET all that much anymore other than the MonoBehaviour searcher so I probably won't be keeping up with it after these things are fixed.)
-
-Feel free to help add any of the following, hopefully I can get to it all at some point.
+Note: I don't use UABE.NET all that much anymore other than the MonoBehaviour searcher so I probably won't be keeping up with it after these things are fixed.
 
 # Extracting Database
 In UABE, go to `Options > Edit Type Package`. Open classdata.tpk in the same folder as UABE. Find the Unity version you need and click "Export". Then close the window and go to `Options > Edit Type Database`. Open the file you exported, uncheck `Compress the file (LZMA)`, click OK, then OK again.
