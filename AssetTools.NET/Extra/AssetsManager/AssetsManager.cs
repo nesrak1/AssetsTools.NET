@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET.Extra
 {
@@ -11,6 +12,7 @@ namespace AssetsTools.NET.Extra
     {
         public bool updateAfterLoad = true;
         public bool useTemplateFieldCache = false;
+        public ClassDatabasePackage classDatabase;
         public ClassDatabaseFile classFile;
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
         private Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
@@ -223,20 +225,67 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public ClassDatabaseFile LoadClassPackage(Stream stream)
+        public ClassDatabaseFile LoadClassDatabase(Stream stream)
         {
             classFile = new ClassDatabaseFile();
             classFile.Read(new AssetsFileReader(stream));
             return classFile;
         }
-        public ClassDatabaseFile LoadClassPackage(string path)
+        public ClassDatabaseFile LoadClassDatabase(string path)
         {
-            return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return LoadClassDatabase(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+        }
+        public ClassDatabaseFile LoadClassDatabaseFromPackage(string version, bool specific = false)
+        {
+            if (classDatabase == null)
+                throw new Exception("No class package loaded!");
+
+            if (specific)
+            {
+                if (!version.StartsWith("U"))
+                    version = "U" + version;
+                int index = classDatabase.header.files.FindIndex(f => f.name == version);
+                if (index == -1)
+                    return null;
+
+                classFile = classDatabase.files[index];
+                return classFile;
+            }
+            else
+            {
+                if (version.StartsWith("U"))
+                    version = version.Substring(1);
+                for (int i = 0; i < classDatabase.files.Length; i++)
+                {
+                    ClassDatabaseFile file = classDatabase.files[i];
+                    for (int j = 0; j < file.header.pUnityVersions.Length; j++)
+                    {
+                        string unityVersion = file.header.pUnityVersions[j];
+                        if (WildcardMatches(version, unityVersion))
+                        {
+                            classFile = file;
+                            return classFile;
+                        }
+                    }
+                }
+                return null;
+            }
+
+        }
+        private bool WildcardMatches(string test, string pattern)
+        {
+            return Regex.IsMatch(test, "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$");
         }
 
-        public void LoadClassDatabase()
+        public ClassDatabasePackage LoadClassPackage(Stream stream)
         {
-            throw new NotImplementedException("Please extract pacakges from databases in UABE before loading");
+            classDatabase = new ClassDatabasePackage();
+            classDatabase.Read(new AssetsFileReader(stream));
+            return classDatabase;
+        }
+        public ClassDatabasePackage LoadClassPackage(string path)
+        {
+            return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         public struct AssetExternal

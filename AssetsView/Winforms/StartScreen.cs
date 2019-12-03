@@ -39,7 +39,8 @@ namespace AssetsView.Winforms
 
             helper = new AssetsManager();
             helper.updateAfterLoad = false;
-            helper.LoadClassPackage(new FileStream("cldb.dat", FileMode.Open, FileAccess.Read, FileShare.Read));
+            helper.LoadClassPackage("classdata.tpk");
+            //helper.LoadClassDatabase(new FileStream("cldb.dat", FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         private void prePaint(object sender, DataGridViewRowPrePaintEventArgs e)
@@ -60,10 +61,14 @@ namespace AssetsView.Winforms
                     AssetsFileInstance inst = helper.LoadAssetsFile(ofd.FileName, (openFile.selection == 0) ? false : true);
                     inst.table.GenerateQuickLookupTree();
                     helper.UpdateDependencies();
+                    helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
                     UpdateFileList();
-                    string fileName = Path.GetFileName(ofd.FileName);
                     currentFile = inst;
                     LoadGeneric(inst, false);
+
+                    string[] vers = helper.classFile.header.pUnityVersions;
+                    string corVer = vers.FirstOrDefault(v => !v.Contains("*"));
+                    Text = "AssetsView .NET - ver " + inst.file.typeTree.unityVersion + " / db " + corVer;
                 }
             }
         }

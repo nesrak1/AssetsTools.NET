@@ -139,6 +139,8 @@
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFile.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFileHeader.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFileString.cs" />
+    <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackage.cs" />
+    <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackageHeader.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseType.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseTypeField.cs" />
     <Compile Include="Standard\defines.cs" />
