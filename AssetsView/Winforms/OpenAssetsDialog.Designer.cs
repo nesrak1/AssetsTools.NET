@@ -39,9 +39,10 @@
             // status
             // 
             this.status.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.status.Location = new System.Drawing.Point(12, 9);
+            this.status.Location = new System.Drawing.Point(8, 6);
+            this.status.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.status.Name = "status";
-            this.status.Size = new System.Drawing.Size(762, 40);
+            this.status.Size = new System.Drawing.Size(508, 26);
             this.status.TabIndex = 0;
             this.status.Text = "Opening assets file...";
             this.status.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -53,11 +54,12 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.fileAndDependencies, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.justThisFile, 0, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(17, 52);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(11, 34);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(757, 70);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(505, 45);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // fileAndDependencies
@@ -66,9 +68,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.fileAndDependencies.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fileAndDependencies.Location = new System.Drawing.Point(381, 3);
+            this.fileAndDependencies.Location = new System.Drawing.Point(254, 2);
+            this.fileAndDependencies.Margin = new System.Windows.Forms.Padding(2);
             this.fileAndDependencies.Name = "fileAndDependencies";
-            this.fileAndDependencies.Size = new System.Drawing.Size(373, 64);
+            this.fileAndDependencies.Size = new System.Drawing.Size(249, 41);
             this.fileAndDependencies.TabIndex = 1;
             this.fileAndDependencies.Text = "Open this file and dependencies";
             this.fileAndDependencies.UseVisualStyleBackColor = true;
@@ -80,9 +83,10 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.justThisFile.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.justThisFile.Location = new System.Drawing.Point(3, 3);
+            this.justThisFile.Location = new System.Drawing.Point(2, 2);
+            this.justThisFile.Margin = new System.Windows.Forms.Padding(2);
             this.justThisFile.Name = "justThisFile";
-            this.justThisFile.Size = new System.Drawing.Size(372, 64);
+            this.justThisFile.Size = new System.Drawing.Size(248, 41);
             this.justThisFile.TabIndex = 0;
             this.justThisFile.Text = "Open just this file";
             this.justThisFile.UseVisualStyleBackColor = true;
@@ -90,13 +94,14 @@
             // 
             // OpenAssetsDialog
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(786, 142);
+            this.ClientSize = new System.Drawing.Size(524, 92);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.status);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
             this.Name = "OpenAssetsDialog";
             this.Text = "Opening assets file...";

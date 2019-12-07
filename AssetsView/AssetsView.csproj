@@ -55,6 +55,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>av.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -99,11 +102,23 @@
     <Compile Include="Winforms\AssetInfoViewer.Designer.cs">
       <DependentUpon>AssetInfoViewer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Winforms\AssetsFileInfoViewer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\AssetsFileInfoViewer.Designer.cs">
+      <DependentUpon>AssetsFileInfoViewer.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\GameObjectViewer.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Winforms\GameObjectViewer.Designer.cs">
       <DependentUpon>GameObjectViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Winforms\LoadingBar.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\LoadingBar.Designer.cs">
+      <DependentUpon>LoadingBar.cs</DependentUpon>
     </Compile>
     <Compile Include="Winforms\OpenAssetsDialog.cs">
       <SubType>Form</SubType>
@@ -126,8 +141,14 @@
     <EmbeddedResource Include="Winforms\AssetInfoViewer.resx">
       <DependentUpon>AssetInfoViewer.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\AssetsFileInfoViewer.resx">
+      <DependentUpon>AssetsFileInfoViewer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Winforms\GameObjectViewer.resx">
       <DependentUpon>GameObjectViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\LoadingBar.resx">
+      <DependentUpon>LoadingBar.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\OpenAssetsDialog.resx">
       <DependentUpon>OpenAssetsDialog.cs</DependentUpon>
@@ -164,6 +185,9 @@
       <Project>{e09d5ac2-1a2e-4ec1-94ad-3f5e22f17658}</Project>
       <Name>AssetsTools.NET</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="av.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

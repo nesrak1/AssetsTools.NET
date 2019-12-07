@@ -183,31 +183,66 @@ namespace AssetsView.Winforms
         {
             assetList.Rows.Clear();
             pathBox.Text = currentDir.path;
-            List<DataGridViewRow> rows = new List<DataGridViewRow>();
-            foreach (FSObject obj in currentDir.children)
-            {
-                if (obj is FSDirectory)
-                {
-                    DataGridViewRow row = new DataGridViewRow();
-                    row.Height = 32;
-                    row.CreateCells(assetList, imageList.Images[(int)AssetIcon.Folder], obj.name, "Folder", "", 0);
-                    rows.Add(row);
-                }
-            }
-            foreach (FSObject obj in currentDir.children)
-            {
-                if (obj is FSAsset assetObj)
-                {
-                    AssetDetails dets = assetObj.details;
-                    object[] details = new object[] { imageList.Images[(int)dets.icon], assetObj.name, dets.type, dets.pointer.pathID, dets.size };
+            assetList.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 
-                    DataGridViewRow row = new DataGridViewRow();
-                    row.Height = 32;
-                    row.CreateCells(assetList, details);
-                    rows.Add(row);
-                }
+            Image[] images = new Image[imageList.Images.Count];
+            for (int i = 0; i < imageList.Images.Count; i++)
+            {
+                images[i] = imageList.Images[i];
             }
-            assetList.Rows.AddRange(rows.ToArray());
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            LoadingBar lb = new LoadingBar();
+            if (currentDir.children.Count > 1000)
+            {
+                lb.Show(this);
+            }
+
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.WorkerReportsProgress = true;
+            lb.pb.Maximum = currentDir.children.Count * 2;
+            bw.DoWork += delegate
+            {
+                int prog = 0;
+                foreach (FSObject obj in currentDir.children)
+                {
+                    if (obj is FSDirectory)
+                    {
+                        DataGridViewRow row = new DataGridViewRow();
+                        row.Height = 32;
+                        row.CreateCells(assetList, images[(int)AssetIcon.Folder], obj.name, "Folder", "", 0);
+                        rows.Add(row);
+                    }
+                    prog++;
+                    if (prog % 50 == 0)
+                        bw.ReportProgress(prog);
+                }
+                foreach (FSObject obj in currentDir.children)
+                {
+                    if (obj is FSAsset assetObj)
+                    {
+                        AssetDetails dets = assetObj.details;
+                        DataGridViewRow row = new DataGridViewRow();
+                        row.Height = 32;
+                        row.CreateCells(assetList, images[(int)dets.icon], assetObj.name, dets.type, dets.pointer.pathID, dets.size);
+                        rows.Add(row);
+                    }
+                    prog++;
+                    if (prog % 50 == 0)
+                        bw.ReportProgress(prog);
+                }
+            };
+            bw.ProgressChanged += delegate (object s, ProgressChangedEventArgs ev)
+            {
+                lb.pb.Value = ev.ProgressPercentage;
+            };
+            bw.RunWorkerCompleted += delegate
+            {
+                assetList.Rows.AddRange(rows.ToArray());
+                lb.Close();
+                assetList.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.EnableResizing;
+            };
+            bw.RunWorkerAsync();
         }
         
         private void upDirectory_Click(object sender, EventArgs e)
@@ -219,8 +254,60 @@ namespace AssetsView.Winforms
             }
         }
 
+        private void AssetList_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            DataGridView dgv = sender as DataGridView;
+            if (e.ColumnIndex != -1 && e.RowIndex != -1 && e.Button == MouseButtons.Right)
+            {
+                DataGridViewCell c = dgv[e.ColumnIndex, e.RowIndex];
+                dgv.ClearSelection();
+                dgv.CurrentCell = c;
+                c.Selected = true;
+                Point p = dgv.PointToClient(Cursor.Position);
+                contextMenuStrip.Show(dgv, p);
+            }
+        }
+
+        private void PropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentFile == null)
+                return;
+            if (assetList.SelectedCells.Count > 0)
+            {
+                var selRow = assetList.SelectedRows[0];
+                string assetName = (string)selRow.Cells[1].Value;
+                string typeName = (string)selRow.Cells[2].Value;
+                if (typeName == "Folder")
+                {
+                    AssetInfoViewer viewer = new AssetInfoViewer(
+                        assetName,
+                        string.Empty //todo
+                    );
+                    viewer.ShowDialog();
+                }
+                else
+                {
+                    AssetFileInfoEx info = currentFile.table.getAssetInfo((ulong)selRow.Cells[3].Value);
+                    ushort monoId = currentFile.file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
+                    AssetInfoViewer viewer = new AssetInfoViewer(
+                        info.curFileType,
+                        info.absoluteFilePos,
+                        info.curFileSize,
+                        info.index,
+                        monoId,
+                        assetName,
+                        typeName,
+                        string.Empty //todo
+                    );
+                    viewer.ShowDialog();
+                }
+            }
+        }
+
         private void assetList_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (currentFile == null)
+                return;
             if (assetList.SelectedCells.Count > 0)
             {
                 var selRow = assetList.SelectedRows[0];
@@ -235,7 +322,7 @@ namespace AssetsView.Winforms
                     ClassDatabaseFile classFile = helper.classFile;
                     AssetsFileInstance correctAti = currentFile;
                     ClassDatabaseType classType = AssetHelper.FindAssetClassByName(classFile, typeName);
-                    if (currentFile.name == "globalgamemanagers")
+                    /*if (currentFile.name == "globalgamemanagers")
                     {
                         int rsrcIndex = helper.files.FindIndex(f => f.name == "resources.assets");
                         if (rsrcIndex != -1)
@@ -250,7 +337,7 @@ namespace AssetsView.Winforms
                         }
                         if (typeName == "")
                             return;
-                    }
+                    }*/
                     AssetFileInfoEx info = correctAti.table.getAssetInfo((ulong)selRow.Cells[3].Value);
                     bool hasGameobjectField = classType.fields.Any(f => f.fieldName.GetString(classFile) == "m_GameObject");
                     bool parentPointerNull = false;
@@ -337,7 +424,7 @@ namespace AssetsView.Winforms
         {
             helper.UpdateDependencies();
             UpdateFileList();
-            CheckResourcesInfo();
+            //CheckResourcesInfo();
         }
 
         private AssetIcon GetIconForName(string type)
@@ -382,11 +469,12 @@ namespace AssetsView.Winforms
                 {
                     row.Selected = true;
                     assetList.FirstDisplayedScrollingRowIndex = row.Index;
-                    lastSearchedAsset = text;
+                    lastSearchedAsset = pathBox.Text;
                     lastSearchedIndex = row.Index + 1;
-                    break;
+                    return;
                 }
             }
+            lastSearchedIndex = -1;
         }
 
         private string WildCardToRegular(string value)
@@ -448,7 +536,17 @@ namespace AssetsView.Winforms
                 MessageBox.Show("No current file selected!", "Assets View");
                 return;
             }
-            new AssetInfoViewer(currentFile.file, helper.classFile).Show();
+            new AssetsFileInfoViewer(currentFile.file, helper.classFile).Show();
+        }
+
+        private void AssetTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            AssetsFileInstance inst = helper.files[e.Node.Index];
+            inst.table.GenerateQuickLookupTree();
+            helper.UpdateDependencies();
+            UpdateFileList();
+            currentFile = inst;
+            LoadGeneric(inst, false);
         }
     }
 }

@@ -28,10 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GameObjectViewer));
             this.goTree = new System.Windows.Forms.TreeView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.valueGrid = new System.Windows.Forms.PropertyGrid();
             this.followBtn = new System.Windows.Forms.Button();
+            this.valueGrid = new System.Windows.Forms.PropertyGrid();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -70,6 +71,18 @@
             this.splitContainer1.SplitterDistance = 450;
             this.splitContainer1.TabIndex = 1;
             // 
+            // followBtn
+            // 
+            this.followBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.followBtn.Location = new System.Drawing.Point(3, 424);
+            this.followBtn.Name = "followBtn";
+            this.followBtn.Size = new System.Drawing.Size(367, 23);
+            this.followBtn.TabIndex = 3;
+            this.followBtn.Text = "Follow Reference";
+            this.followBtn.UseVisualStyleBackColor = true;
+            this.followBtn.Click += new System.EventHandler(this.FollowBtn_Click);
+            // 
             // valueGrid
             // 
             this.valueGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -83,26 +96,15 @@
             this.valueGrid.TabIndex = 2;
             this.valueGrid.ToolbarVisible = false;
             // 
-            // followBtn
-            // 
-            this.followBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.followBtn.Location = new System.Drawing.Point(3, 424);
-            this.followBtn.Name = "followBtn";
-            this.followBtn.Size = new System.Drawing.Size(367, 23);
-            this.followBtn.TabIndex = 3;
-            this.followBtn.Text = "Follow Reference";
-            this.followBtn.UseVisualStyleBackColor = true;
-            this.followBtn.Click += new System.EventHandler(this.FollowBtn_Click);
-            // 
             // GameObjectViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(827, 450);
             this.Controls.Add(this.splitContainer1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "GameObjectViewer";
-            this.Text = "AssetsView .NET - GameObject Viewer";
+            this.Text = "GameObject Viewer";
             this.Load += new System.EventHandler(this.GameObjectViewer_Load);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);

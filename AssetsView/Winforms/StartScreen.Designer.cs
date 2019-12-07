@@ -44,7 +44,6 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.assetList = new System.Windows.Forms.DataGridView();
-            this.IconCol = new System.Windows.Forms.DataGridViewImageColumn();
             this.NameCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.TypeCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IDCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -53,13 +52,17 @@
             this.pathBox = new System.Windows.Forms.TextBox();
             this.upDirectory = new System.Windows.Forms.Button();
             this.imageList = new System.Windows.Forms.ImageList(this.components);
+            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
+            this.IconCol = new System.Windows.Forms.DataGridViewImageColumn();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.assetList)).BeginInit();
+            this.contextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // assetTree
@@ -73,6 +76,7 @@
             this.assetTree.Name = "assetTree";
             this.assetTree.Size = new System.Drawing.Size(288, 387);
             this.assetTree.TabIndex = 0;
+            this.assetTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.AssetTree_NodeMouseDoubleClick);
             // 
             // menuStrip1
             // 
@@ -86,7 +90,7 @@
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(4, 1, 0, 1);
             this.menuStrip1.Size = new System.Drawing.Size(700, 24);
             this.menuStrip1.TabIndex = 1;
-            this.menuStrip1.Text = "menuStrip1";
+            this.menuStrip1.Text = "menuStrip";
             // 
             // fileToolStripMenuItem
             // 
@@ -137,15 +141,15 @@
             // viewCurrentAssetInfoToolStripMenuItem
             // 
             this.viewCurrentAssetInfoToolStripMenuItem.Name = "viewCurrentAssetInfoToolStripMenuItem";
-            this.viewCurrentAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
-            this.viewCurrentAssetInfoToolStripMenuItem.Text = "View Current Asset Info";
+            this.viewCurrentAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.viewCurrentAssetInfoToolStripMenuItem.Text = "View Current Assets File Info";
             this.viewCurrentAssetInfoToolStripMenuItem.Click += new System.EventHandler(this.ViewCurrentAssetInfoToolStripMenuItem_Click);
             // 
             // viewSelectedAssetInfoToolStripMenuItem
             // 
             this.viewSelectedAssetInfoToolStripMenuItem.Name = "viewSelectedAssetInfoToolStripMenuItem";
-            this.viewSelectedAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(201, 22);
-            this.viewSelectedAssetInfoToolStripMenuItem.Text = "View Selected Asset Info";
+            this.viewSelectedAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.viewSelectedAssetInfoToolStripMenuItem.Text = "View Selected Assets File Info";
             // 
             // helpToolStripMenuItem
             // 
@@ -214,17 +218,7 @@
             this.assetList.Size = new System.Drawing.Size(409, 358);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
-            // 
-            // IconCol
-            // 
-            this.IconCol.Frozen = true;
-            this.IconCol.HeaderText = "";
-            this.IconCol.Image = global::AssetsView.Properties.Resources.blankicon;
-            this.IconCol.MinimumWidth = 30;
-            this.IconCol.Name = "IconCol";
-            this.IconCol.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.IconCol.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.IconCol.Width = 30;
+            this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
             // 
             // NameCol
             // 
@@ -258,10 +252,10 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(378, 2);
+            this.goDirectory.Location = new System.Drawing.Point(373, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
-            this.goDirectory.Size = new System.Drawing.Size(36, 22);
+            this.goDirectory.Size = new System.Drawing.Size(36, 25);
             this.goDirectory.TabIndex = 3;
             this.goDirectory.Text = "Go";
             this.goDirectory.UseVisualStyleBackColor = true;
@@ -276,7 +270,7 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(333, 25);
+            this.pathBox.Size = new System.Drawing.Size(327, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
@@ -285,7 +279,7 @@
             this.upDirectory.Location = new System.Drawing.Point(2, 2);
             this.upDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.upDirectory.Name = "upDirectory";
-            this.upDirectory.Size = new System.Drawing.Size(36, 22);
+            this.upDirectory.Size = new System.Drawing.Size(36, 25);
             this.upDirectory.TabIndex = 1;
             this.upDirectory.Text = "Up";
             this.upDirectory.UseVisualStyleBackColor = true;
@@ -305,6 +299,20 @@
             this.imageList.Images.SetKeyName(7, "cube_32.png");
             this.imageList.Images.SetKeyName(8, "material_32.png");
             // 
+            // contextMenuStrip
+            // 
+            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.propertiesToolStripMenuItem});
+            this.contextMenuStrip.Name = "contextMenuStrip";
+            this.contextMenuStrip.Size = new System.Drawing.Size(128, 26);
+            // 
+            // propertiesToolStripMenuItem
+            // 
+            this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
+            this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+            this.propertiesToolStripMenuItem.Text = "Properties";
+            this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.PropertiesToolStripMenuItem_Click);
+            // 
             // dataGridViewImageColumn1
             // 
             this.dataGridViewImageColumn1.Frozen = true;
@@ -315,6 +323,17 @@
             this.dataGridViewImageColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.dataGridViewImageColumn1.Width = 30;
+            // 
+            // IconCol
+            // 
+            this.IconCol.Frozen = true;
+            this.IconCol.HeaderText = "";
+            this.IconCol.Image = global::AssetsView.Properties.Resources.blankicon;
+            this.IconCol.MinimumWidth = 30;
+            this.IconCol.Name = "IconCol";
+            this.IconCol.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.IconCol.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            this.IconCol.Width = 30;
             // 
             // StartScreen
             // 
@@ -336,6 +355,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.assetList)).EndInit();
+            this.contextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -367,6 +387,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem updateDependenciesToolStripMenuItem;
         private System.Windows.Forms.DataGridViewImageColumn dataGridViewImageColumn1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
     }
 }
 

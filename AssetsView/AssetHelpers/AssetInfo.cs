@@ -13,7 +13,7 @@ namespace AssetsView.AssetHelpers
         public static string GetAssetNameFast(AssetFileInfoEx afi, ClassDatabaseFile cldb, ClassDatabaseType type, AssetsFileInstance inst)
         {
             AssetsFileReader reader = inst.file.reader;
-            if (type.fields.Count == 0)
+            if (type.fields.Count < 2)
             {
                 return type.name.GetString(cldb);
             }
