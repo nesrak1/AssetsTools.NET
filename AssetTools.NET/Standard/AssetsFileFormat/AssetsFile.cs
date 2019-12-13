@@ -176,10 +176,14 @@ namespace AssetsTools.NET
 
             dependencies.Write(writer.Position, writer, header.format);
 
-            writer.Write((byte)2);
+            //todo - uabe put this here but 2 breaks loading in unity builds, find out what this does
+            writer.Write((byte)0); 
             writer.Write((byte)0);
 
             uint metadataSize = (uint)writer.Position - 0x14;
+
+            uint metaSizePad = 4 - (metadataSize % 4);
+            if (metaSizePad != 4) metadataSize += metaSizePad;
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             while (writer.Position < 0x1000/*header.offs_firstFile*/)
