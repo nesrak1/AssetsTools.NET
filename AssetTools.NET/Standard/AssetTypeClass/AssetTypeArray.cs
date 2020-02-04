@@ -2,7 +2,7 @@
 {
     public struct AssetTypeArray
     {
-        public uint size;
+        public int size;
         //AssetTypeValueField *dataField;
     }
 }

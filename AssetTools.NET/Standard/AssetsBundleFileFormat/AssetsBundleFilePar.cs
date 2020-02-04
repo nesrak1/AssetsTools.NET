@@ -4,10 +4,10 @@ namespace AssetsTools.NET
 {
     public struct AssetsBundleFilePar
     {
-        public AssetsBundleFile pFile;
+        public AssetBundleFile file;
 
-        public AssetsBundleEntry pEntry3;
-        public AssetsBundleDirectoryInfo06 pEntry6;
+        public AssetsBundleEntry entryUnity3;
+        public AssetBundleDirectoryInfo06 entryUnity6;
 
         public uint listIndex;
         public AssetsFileReader origFileReader;

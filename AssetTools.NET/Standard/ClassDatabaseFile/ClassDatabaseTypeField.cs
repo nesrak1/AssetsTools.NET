@@ -6,19 +6,19 @@
         public ClassDatabaseFileString fieldName;
         public byte depth;
         public byte isArray;
-        public uint size;
+        public int size;
         public ushort version;
         public uint flags2;
 
-        public ulong Read(AssetsFileReader reader, ulong filePos, int version)
+        public void Read(AssetsFileReader reader, int version)
         {
             typeName = new ClassDatabaseFileString();
-            typeName.Read(reader, reader.Position);
+            typeName.Read(reader);
             fieldName = new ClassDatabaseFileString();
-            fieldName.Read(reader, reader.Position);
+            fieldName.Read(reader);
             depth = reader.ReadByte();
             isArray = reader.ReadByte();
-            size = reader.ReadUInt32();
+            size = reader.ReadInt32();
             switch (version)
             {
                 case 1:
@@ -29,12 +29,11 @@
                     flags2 = reader.ReadUInt32();
                     break;
             }
-            return reader.Position;
         }
-        public ulong Write(AssetsFileWriter writer, ulong filePos, int version)
+        public void Write(AssetsFileWriter writer, int version)
         {
-            typeName.Write(writer, filePos);
-            fieldName.Write(writer, filePos);
+            typeName.Write(writer);
+            fieldName.Write(writer);
             writer.Write(depth);
             writer.Write(isArray);
             writer.Write(size);
@@ -48,7 +47,6 @@
                     writer.Write(flags2);
                     break;
             }
-            return writer.Position;
         }
     }
 }

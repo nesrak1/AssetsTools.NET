@@ -17,28 +17,26 @@ namespace AssetsTools.NET
                 return 0;
             } else
             {
-                return AssetFileInfo.GetSize(version) * sizeFiles + 4;
+                return (uint)AssetFileInfo.GetSize(version) * sizeFiles + 4;
             }
         }
-        public ulong Read(uint version, ulong pos, AssetsFileReader reader, bool bigEndian)
+        public void Read(uint version, AssetsFileReader reader)
         {
             sizeFiles = reader.ReadUInt32();
             fileInfs = new AssetFileInfo[sizeFiles];
             for (int i = 0; i < sizeFiles; i++)
             {
                 fileInfs[i] = new AssetFileInfo();
-                fileInfs[i].Read(version, pos, reader, bigEndian);
+                fileInfs[i].Read(version, reader);
             }
-            return reader.Position;
         }
-        public ulong Write(uint version, ulong pos, AssetsFileWriter writer)
+        public void Write(uint version, AssetsFileWriter writer)
         {
             writer.Write(sizeFiles);
             for (int i = 0; i < sizeFiles; i++)
             {
-                fileInfs[i].Write(version, pos, writer);
+                fileInfs[i].Write(version, writer);
             }
-            return writer.Position;
         }
     }
 }

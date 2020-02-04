@@ -13,7 +13,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? (short)ReverseShort((ushort)base.ReadInt16()) : base.ReadInt16();
-                //return bigEndian ? BitConverter.ToInt16(ReadBytes(2).Reverse().ToArray(), 0) : base.ReadInt16();
             }
         }
         public override ushort ReadUInt16()
@@ -21,7 +20,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? ReverseShort(base.ReadUInt16()) : base.ReadUInt16();
-                //return bigEndian ? BitConverter.ToUInt16(ReadBytes(2).Reverse().ToArray(), 0) : base.ReadUInt16();
             }
         }
         public int ReadInt24()
@@ -45,7 +43,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? (int)ReverseInt((uint)base.ReadInt32()) : base.ReadInt32();
-                //return bigEndian ? BitConverter.ToInt32(ReadBytes(4).Reverse().ToArray(), 0) : base.ReadInt32();
             }
         }
         public override uint ReadUInt32()
@@ -53,7 +50,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? ReverseInt(base.ReadUInt32()) : base.ReadUInt32();
-                //return bigEndian ? BitConverter.ToUInt32(ReadBytes(4).Reverse().ToArray(), 0) : base.ReadUInt32();
             }
         }
         public override long ReadInt64()
@@ -61,7 +57,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? (long)ReverseLong((ulong)base.ReadInt64()) : base.ReadInt64();
-                //return bigEndian ? BitConverter.ToInt64(ReadBytes(8).Reverse().ToArray(), 0) : base.ReadInt64();
             }
         }
         public override ulong ReadUInt64()
@@ -69,7 +64,6 @@ namespace AssetsTools.NET
             unchecked
             {
                 return bigEndian ? ReverseLong(base.ReadUInt64()) : base.ReadUInt64();
-                //return bigEndian ? BitConverter.ToUInt64(ReadBytes(8).Reverse().ToArray(), 0) : base.ReadUInt64();
             }
         }
         public ushort ReverseShort(ushort value)
@@ -134,13 +128,13 @@ namespace AssetsTools.NET
         }
         public string ReadCountStringInt32()
         {
-            int length = (int)ReadUInt32();
+            int length = ReadInt32();
             return ReadStringLength(length);
         }
-        public ulong Position
+        public long Position
         {
-            get { return (ulong)BaseStream.Position; }
-            set { BaseStream.Position = (long)value; }
+            get { return BaseStream.Position; }
+            set { BaseStream.Position = value; }
         }
     }
 }

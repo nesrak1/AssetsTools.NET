@@ -31,7 +31,7 @@ namespace UABE.NET.Assets
             for (int i = 0; i < initialFile.dependencies.dependencyCount; i++)
             {
                 Dependency assetDependency;
-                string depName = initialFile.dependencies.pDependencies[i].assetPath;
+                string depName = initialFile.dependencies.dependencies[i].assetPath;
                 string path = Path.Combine(directory, depName.Replace("library/", "Resources/"));
                 if (File.Exists(path))
                 {
@@ -73,22 +73,22 @@ namespace UABE.NET.Assets
             AssetTypeInstance ati;
             if (foundInList)
             {
-                ati = new AssetTypeInstance(1, new[] { attfs[index] }, new AssetsFileReader(file), false, info.absoluteFilePos);
+                ati = new AssetTypeInstance(new[] { attfs[index] }, new AssetsFileReader(file), info.absoluteFilePos);
             }
             else
             {
-                AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
-                pBaseField.FromClassDatabase(initialClassFile, AssetHelper.FindAssetClassByID(initialClassFile, info.curFileType), 0);
-                attfs.Add(pBaseField);
-                ati = new AssetTypeInstance(1, new[] { attfs.Last() }, new AssetsFileReader(file), false, info.absoluteFilePos);
+                AssetTypeTemplateField baseField = new AssetTypeTemplateField();
+                baseField.FromClassDatabase(initialClassFile, AssetHelper.FindAssetClassByID(initialClassFile, info.curFileType), 0);
+                attfs.Add(baseField);
+                ati = new AssetTypeInstance(new[] { attfs.Last() }, new AssetsFileReader(file), info.absoluteFilePos);
             }
             return ati;
         }
         public AssetExternal GetExtAsset(AssetTypeValueField atvf)
         {
             AssetExternal ext = new AssetExternal();
-            uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
-            ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
+            int fileId = atvf.Get("m_FileID").GetValue().AsInt();
+            long pathId = atvf.Get("m_PathID").GetValue().AsInt64();
             if (fileId == 0 && pathId == 0)
             {
                 ext.info = null;
@@ -97,33 +97,33 @@ namespace UABE.NET.Assets
             else if (atvf.Get("m_FileID").GetValue().AsInt() != 0)
             {
                 Dependency dep = dependencies[(int)fileId - 1];
-                ext.info = dep.aft.getAssetInfo(pathId);
+                ext.info = dep.aft.GetAssetInfo(pathId);
                 ext.instance = GetATI(dep.file, ext.info);
             } else
             {
-                ext.info = initialTable.getAssetInfo(pathId);
+                ext.info = initialTable.GetAssetInfo(pathId);
                 ext.instance = GetATI(file, ext.info);
             }
             return ext;
         }
-        public Stream GetStream(uint fileId)
+        public Stream GetStream(int fileId)
         {
             if (fileId == 0)
             {
                 return file;
             } else
             {
-                return dependencies[(int)fileId - 1].file;
+                return dependencies[fileId - 1].file;
             }
         }
-        public AssetFileInfoEx GetInfo(uint fileId, ulong pathId)
+        public AssetFileInfoEx GetInfo(int fileId, long pathId)
         {
             if (fileId == 0)
             {
-                return initialTable.getAssetInfo(pathId);
+                return initialTable.GetAssetInfo(pathId);
             } else
             {
-                return dependencies[(int)fileId - 1].aft.getAssetInfo(pathId);
+                return dependencies[fileId - 1].aft.GetAssetInfo(pathId);
             }
         }
         public struct Dependency

@@ -31,19 +31,19 @@ namespace UABE.NET.Winforms
         private void PopulateTree()
         {
             ClassDatabaseType cldt = AssetHelper.FindAssetClassByID(am.initialClassFile, assetDetails.type);
-            AssetTypeTemplateField pBaseField = new AssetTypeTemplateField();
-            pBaseField.FromClassDatabase(am.initialClassFile, cldt, 0);
-            mainAti = new AssetTypeInstance(1, new[] { pBaseField }, af.reader, false, assetDetails.position);
+            AssetTypeTemplateField baseFieldTemp = new AssetTypeTemplateField();
+            baseFieldTemp.FromClassDatabase(am.initialClassFile, cldt, 0);
+            mainAti = new AssetTypeInstance(new[] { baseFieldTemp }, af.reader, assetDetails.position);
             if (assetDetails.type == 0x72)
             {
                 AssetTypeTemplateField[] desMonos = TryDeserializeMono(mainAti);
                 if (desMonos != null)
                 {
-                    AssetTypeTemplateField[] templateField = pBaseField.children.Concat(desMonos).ToArray();
-                    pBaseField.children = templateField;
-                    pBaseField.childrenCount = (uint)pBaseField.children.Length;
+                    AssetTypeTemplateField[] templateField = baseFieldTemp.children.Concat(desMonos).ToArray();
+                    baseFieldTemp.children = templateField;
+                    baseFieldTemp.childrenCount = baseFieldTemp.children.Length;
 
-                    mainAti = new AssetTypeInstance(1, new[] { pBaseField }, af.reader, false, assetDetails.position);
+                    mainAti = new AssetTypeInstance(new[] { baseFieldTemp }, af.reader, assetDetails.position);
                 }
             }
             AssetTypeValueField baseField = mainAti.GetBaseField();
@@ -54,7 +54,7 @@ namespace UABE.NET.Winforms
         private void RecursiveTreeLoad(AssetTypeValueField atvf, TreeNode node, int depth)
         {
             if (atvf.childrenCount == 0) return;
-            foreach (AssetTypeValueField atvfc in atvf.pChildren) //todo, if over certain amount of children, load later
+            foreach (AssetTypeValueField atvfc in atvf.children) //todo, if over certain amount of children, load later
             {
                 if (atvfc == null) return; //derp check, usually doesn't break anything
                 string value = "";
@@ -86,9 +86,9 @@ namespace UABE.NET.Winforms
             string assemblyPath = Path.Combine(rootDir, "Managed", assemblyName);
             if (File.Exists(assemblyPath))
             {
-                MonoClass mc = new MonoClass();
+                MonoDeserializer mc = new MonoDeserializer();
                 mc.Read(scriptName, assemblyPath, af.header.format);
-                return mc.children;
+                return mc.children.ToArray();
             }
             else
             {

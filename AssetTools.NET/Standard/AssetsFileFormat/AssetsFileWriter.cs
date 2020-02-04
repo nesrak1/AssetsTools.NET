@@ -66,16 +66,16 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if(bigEndian) base.Write(System.BitConverter.GetBytes(ReverseInt(val)), 1, 3);
-                else base.Write(System.BitConverter.GetBytes(val), 0, 3);
+                if (bigEndian) base.Write(BitConverter.GetBytes(ReverseInt(val)), 1, 3);
+                else base.Write(BitConverter.GetBytes(val), 0, 3);
             }
         }
         public void WriteInt24(int val)
         {
             unchecked
             {
-                if (bigEndian) base.Write(System.BitConverter.GetBytes((int)ReverseInt((uint)val)), 1, 3);
-                else base.Write(System.BitConverter.GetBytes(val), 0, 3);
+                if (bigEndian) base.Write(BitConverter.GetBytes((int)ReverseInt((uint)val)), 1, 3);
+                else base.Write(BitConverter.GetBytes(val), 0, 3);
             }
         }
         public ushort ReverseShort(ushort value)
@@ -122,10 +122,10 @@ namespace AssetsTools.NET
             Write(text.Length);
             Write(text);
         }
-        public ulong Position
+        public long Position
         {
-            get { return (ulong)BaseStream.Position; }
-            set { BaseStream.Position = (long)value; }
+            get { return BaseStream.Position; }
+            set { BaseStream.Position = value; }
         }
     }
 }

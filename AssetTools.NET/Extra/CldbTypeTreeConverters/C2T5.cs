@@ -20,14 +20,14 @@ namespace AssetsTools.NET.Extra
                 typeFieldsExCount = (uint)type.fields.Count,
                 scriptIndex = 0xFFFF,
                 unknown16_1 = 0,
-                unknown1 = 0,
-                unknown2 = 0,
-                unknown3 = 0,
-                unknown4 = 0,
-                unknown5 = 0,
-                unknown6 = 0,
-                unknown7 = 0,
-                unknown8 = 0
+                scriptHash1 = 0,
+                scriptHash2 = 0,
+                scriptHash3 = 0,
+                scriptHash4 = 0,
+                typeHash1 = 0,
+                typeHash2 = 0,
+                typeHash3 = 0,
+                typeHash4 = 0
             };
             string stringTable = "";
             Dictionary<string, uint> strTableList = new Dictionary<string, uint>();
@@ -104,9 +104,9 @@ namespace AssetsTools.NET.Extra
                 stringTable += entry.Key + '\0';
             }
 
-            type0d.pStringTable = stringTable;
+            type0d.stringTable = stringTable;
             type0d.stringTableLen = (uint)stringTable.Length;
-            type0d.pTypeFieldsEx = field0ds.ToArray();
+            type0d.typeFieldsEx = field0ds.ToArray();
             return type0d;
         }
     }

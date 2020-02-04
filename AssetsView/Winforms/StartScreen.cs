@@ -39,8 +39,12 @@ namespace AssetsView.Winforms
 
             helper = new AssetsManager();
             helper.updateAfterLoad = false;
+            if (!File.Exists("classdata.tpk"))
+            {
+                MessageBox.Show("classdata.tpk could not be found. Make sure it exists and restart.", "Assets View");
+                Application.Exit();
+            }
             helper.LoadClassPackage("classdata.tpk");
-            //helper.LoadClassDatabase(new FileStream("cldb.dat", FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         private void prePaint(object sender, DataGridViewRowPrePaintEventArgs e)
@@ -54,23 +58,97 @@ namespace AssetsView.Winforms
             ofd.DefaultExt = "";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                OpenAssetsDialog openFile = new OpenAssetsDialog(ofd.FileName);
-                openFile.ShowDialog();
-                if (openFile.selection > -1)
+                string possibleBundleHeader;
+                int possibleFormat;
+                string emptyVersion;
+                using (FileStream fs = File.OpenRead(ofd.FileName))
+                using (AssetsFileReader reader = new AssetsFileReader(fs))
                 {
-                    AssetsFileInstance inst = helper.LoadAssetsFile(ofd.FileName, (openFile.selection == 0) ? false : true);
-                    inst.table.GenerateQuickLookupTree();
-                    helper.UpdateDependencies();
-                    helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-                    UpdateFileList();
-                    currentFile = inst;
-                    LoadGeneric(inst, false);
+                    if (fs.Length < 0x20)
+                    {
+                        MessageBox.Show("File too small. Are you sure this is a unity file?", "Assets View");
+                        return;
+                    }
+                    possibleBundleHeader = reader.ReadStringLength(7);
+                    reader.Position = 0x08;
+                    possibleFormat = reader.ReadInt32();
+                    reader.Position = 0x14;
 
-                    string[] vers = helper.classFile.header.pUnityVersions;
-                    string corVer = vers.FirstOrDefault(v => !v.Contains("*"));
-                    Text = "AssetsView .NET - ver " + inst.file.typeTree.unityVersion + " / db " + corVer;
+                    string possibleVersion = "";
+                    char curChar;
+                    while ((curChar = (char)reader.ReadByte()) != 0x00 && possibleVersion.Length < 100)
+                    {
+                        possibleVersion += curChar;
+                    }
+                    emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
+                }
+                if (possibleBundleHeader == "UnityFS")
+                {
+                    LoadBundleFile(ofd.FileName);
+                }
+                else if (possibleFormat < 0xFF && emptyVersion == "")
+                {
+                    LoadAssetsFile(ofd.FileName);
+                }
+                else
+                {
+                    MessageBox.Show("Couldn't detect file type. Are you sure this is a unity file?", "Assets View");
                 }
             }
+        }
+
+        private void LoadBundleFile(string path)
+        {
+            OpenBundleDialog openFile = new OpenBundleDialog(helper, path);
+            openFile.ShowDialog();
+            if (openFile.selection > -1)
+            {
+                AssetBundleFile bundleFile = openFile.file;
+                List<byte[]> files = BundleHelper.LoadAllAssetsDataFromBundle(bundleFile);
+                if (files.Count > 0)
+                {
+                    if (files.Count > 1)
+                    {
+                        for (int i = 1; i < files.Count; i++)
+                        {
+                            MemoryStream stream = new MemoryStream(files[i]);
+                            string name = bundleFile.bundleInf6.dirInf[i].name;
+                            helper.LoadAssetsFile(stream, name, openFile.selection == 1);
+                        }
+                    }
+                    MemoryStream mainStream = new MemoryStream(files[0]);
+                    string mainName = bundleFile.bundleInf6.dirInf[0].name;
+                    LoadMainAssetsFile(helper.LoadAssetsFile(mainStream, mainName, openFile.selection == 1));
+                }
+                else
+                {
+                    MessageBox.Show("No valid assets files found in the bundle.", "Assets View");
+                }
+            }
+        }
+
+        private void LoadAssetsFile(string path)
+        {
+            OpenAssetsDialog openFile = new OpenAssetsDialog(path);
+            openFile.ShowDialog();
+            if (openFile.selection > -1)
+            {
+                LoadMainAssetsFile(helper.LoadAssetsFile(path, openFile.selection == 1));
+            }
+        }
+
+        private void LoadMainAssetsFile(AssetsFileInstance inst)
+        {
+            inst.table.GenerateQuickLookupTree();
+            helper.UpdateDependencies();
+            helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+            UpdateFileList();
+            currentFile = inst;
+            LoadGeneric(inst, false);
+
+            string[] vers = helper.classFile.header.unityVersions;
+            string corVer = vers.FirstOrDefault(v => !v.Contains("*"));
+            Text = "AssetsView .NET - ver " + inst.file.typeTree.unityVersion + " / db " + corVer;
         }
 
         private void clearFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -79,7 +157,7 @@ namespace AssetsView.Winforms
             helper.files.ForEach(d => {
                 if (d != null)
                 {
-                    d.file.readerPar.Close(); d.table.pAssetFileInfo = null;
+                    d.file.readerPar.Close(); d.table.assetFileInfo = null;
                 }
             });
             helper.files.Clear();
@@ -91,7 +169,7 @@ namespace AssetsView.Winforms
         private void LoadGGM(AssetsFileInstance mainFile)
         {
             //swap this with resources so we can actually see ggm assets
-            foreach (AssetFileInfoEx info in mainFile.table.pAssetFileInfo)
+            foreach (AssetFileInfoEx info in mainFile.table.assetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
                 if (type.name.GetString(helper.classFile) == "ResourceManager")
@@ -99,15 +177,14 @@ namespace AssetsView.Winforms
                     AssetTypeInstance inst = helper.GetATI(mainFile.file, info);
                     AssetTypeValueField baseField = inst.GetBaseField();
                     AssetTypeValueField m_Container = baseField.Get("m_Container").Get("Array");
-                    //Dictionary<string, AssetDetails> paths = new Dictionary<string, AssetDetails>();
                     List<AssetDetails> assets = new List<AssetDetails>();
-                    for (uint i = 0; i < m_Container.GetValue().AsArray().size; i++)
+                    for (int i = 0; i < m_Container.GetValue().AsArray().size; i++)
                     {
                         AssetTypeValueField item = m_Container[i];
                         string path = item.Get("first").GetValue().AsString();
                         AssetTypeValueField pointerField = item.Get("second");
-                        uint fileID = (uint)pointerField.Get("m_FileID").GetValue().AsInt();
-                        ulong pathID = (ulong)pointerField.Get("m_PathID").GetValue().AsInt64();
+                        int fileID = pointerField.Get("m_FileID").GetValue().AsInt();
+                        long pathID = pointerField.Get("m_PathID").GetValue().AsInt64();
                         //paths[path] = new AssetDetails(new AssetPPtr(fileID, pathID));
                         assets.Add(new AssetDetails(new AssetPPtr(fileID, pathID), AssetIcon.Unknown, path));
                     }
@@ -125,7 +202,7 @@ namespace AssetsView.Winforms
         private void LoadGeneric(AssetsFileInstance mainFile, bool isLevel)
         {
             List<AssetDetails> assets = new List<AssetDetails>();
-            foreach (AssetFileInfoEx info in mainFile.table.pAssetFileInfo)
+            foreach (AssetFileInfoEx info in mainFile.table.assetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
                 if (type == null)
@@ -287,8 +364,8 @@ namespace AssetsView.Winforms
                 }
                 else
                 {
-                    AssetFileInfoEx info = currentFile.table.getAssetInfo((ulong)selRow.Cells[3].Value);
-                    ushort monoId = currentFile.file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
+                    AssetFileInfoEx info = currentFile.table.GetAssetInfo((long)selRow.Cells[3].Value);
+                    ushort monoId = currentFile.file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.curFileType,
                         info.absoluteFilePos,
@@ -338,7 +415,7 @@ namespace AssetsView.Winforms
                         if (typeName == "")
                             return;
                     }*/
-                    AssetFileInfoEx info = correctAti.table.getAssetInfo((ulong)selRow.Cells[3].Value);
+                    AssetFileInfoEx info = correctAti.table.GetAssetInfo((long)selRow.Cells[3].Value);
                     bool hasGameobjectField = classType.fields.Any(f => f.fieldName.GetString(classFile) == "m_GameObject");
                     bool parentPointerNull = false;
                     if (typeName != "GameObject" && hasGameobjectField)
@@ -364,7 +441,7 @@ namespace AssetsView.Winforms
                         baseField = GetRootTransform(helper, currentFile, transform);
                         AssetTypeValueField gameObjectPtr = baseField["m_GameObject"];
                         AssetTypeValueField gameObject = helper.GetExtAsset(correctAti, gameObjectPtr).instance.GetBaseField();
-                        GameObjectViewer view = new GameObjectViewer(helper, correctAti, gameObject, info.index, (ulong)selRow.Cells[3].Value);
+                        GameObjectViewer view = new GameObjectViewer(helper, correctAti, gameObject, info.index, (long)selRow.Cells[3].Value);
                         view.Show();
                     }
                     else
@@ -395,7 +472,7 @@ namespace AssetsView.Winforms
         {
             foreach (FSAsset asset in dir.children.OfType<FSAsset>())
             {
-                AssetFileInfoEx info = afi.table.getAssetInfo(asset.details.pointer.pathID);
+                AssetFileInfoEx info = afi.table.GetAssetInfo(asset.details.pointer.pathID);
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
                 string typeName = type.name.GetString(helper.classFile);
 
@@ -492,7 +569,7 @@ namespace AssetsView.Winforms
             if (!AssetUtils.AllDependenciesLoaded(helper, currentFile))
             {
                 DialogResult res = MessageBox.Show(
-                    "Load all referenced dependencies? This may take a while.",
+                    "Load all referenced dependencies?",
                     "Assets View",
                     MessageBoxButtons.YesNo);
                 if (res == DialogResult.No)

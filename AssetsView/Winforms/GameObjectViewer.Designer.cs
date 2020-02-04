@@ -44,9 +44,9 @@
             this.goTree.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.goTree.Location = new System.Drawing.Point(3, 3);
+            this.goTree.Location = new System.Drawing.Point(0, 0);
             this.goTree.Name = "goTree";
-            this.goTree.Size = new System.Drawing.Size(444, 444);
+            this.goTree.Size = new System.Drawing.Size(259, 438);
             this.goTree.TabIndex = 0;
             this.goTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.goTree_AfterSelect);
             // 
@@ -67,17 +67,17 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.followBtn);
             this.splitContainer1.Panel2.Controls.Add(this.valueGrid);
-            this.splitContainer1.Size = new System.Drawing.Size(827, 450);
-            this.splitContainer1.SplitterDistance = 450;
+            this.splitContainer1.Size = new System.Drawing.Size(719, 438);
+            this.splitContainer1.SplitterDistance = 259;
             this.splitContainer1.TabIndex = 1;
             // 
             // followBtn
             // 
             this.followBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.followBtn.Location = new System.Drawing.Point(3, 424);
+            this.followBtn.Location = new System.Drawing.Point(3, 412);
             this.followBtn.Name = "followBtn";
-            this.followBtn.Size = new System.Drawing.Size(367, 23);
+            this.followBtn.Size = new System.Drawing.Size(448, 23);
             this.followBtn.TabIndex = 3;
             this.followBtn.Text = "Follow Reference";
             this.followBtn.UseVisualStyleBackColor = true;
@@ -92,7 +92,7 @@
             this.valueGrid.Location = new System.Drawing.Point(3, 3);
             this.valueGrid.Name = "valueGrid";
             this.valueGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.valueGrid.Size = new System.Drawing.Size(367, 418);
+            this.valueGrid.Size = new System.Drawing.Size(448, 406);
             this.valueGrid.TabIndex = 2;
             this.valueGrid.ToolbarVisible = false;
             // 
@@ -100,7 +100,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(827, 450);
+            this.ClientSize = new System.Drawing.Size(719, 438);
             this.Controls.Add(this.splitContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "GameObjectViewer";

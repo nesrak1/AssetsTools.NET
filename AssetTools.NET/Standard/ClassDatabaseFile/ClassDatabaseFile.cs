@@ -15,7 +15,7 @@ namespace AssetsTools.NET
         public bool Read(AssetsFileReader reader)
         {
             header = new ClassDatabaseFileHeader();
-            header.Read(reader, 0);
+            header.Read(reader);
             if (header.header != "cldb" ||
                 !(header.fileVersion == 3 || header.fileVersion == 1) ||
                 header.compressionType != 0)
@@ -24,7 +24,7 @@ namespace AssetsTools.NET
                 return valid;
             }
             classes = new List<ClassDatabaseType>();
-            ulong classTablePos = reader.Position;
+            long classTablePos = reader.Position;
             reader.BaseStream.Position = header.stringTablePos;
             stringTable = reader.ReadBytes((int)header.stringTableLen);
             reader.Position = classTablePos;
@@ -32,30 +32,30 @@ namespace AssetsTools.NET
             for (int i = 0; i < size; i++)
             {
                 ClassDatabaseType cdt = new ClassDatabaseType();
-                cdt.Read(reader, reader.Position, header.fileVersion);
+                cdt.Read(reader, header.fileVersion);
                 classes.Add(cdt);
             }
             valid = true;
             return valid;
         }
 
-        public ulong Write(AssetsFileWriter writer, ulong filePos, int optimizeStringTable, uint compress, bool writeStringTable = true)
+        public ulong Write(AssetsFileWriter writer, int optimizeStringTable, uint compress, bool writeStringTable = true)
         {
-            header.Write(writer, writer.Position);
+            header.Write(writer);
             writer.Write(classes.Count);
             for (int i = 0; i < classes.Count; i++)
             {
-                classes[i].Write(writer, filePos, header.fileVersion);
+                classes[i].Write(writer, header.fileVersion);
             }
-            ulong stringTablePos = writer.Position;
+            long stringTablePos = writer.Position;
             writer.Write(stringTable);
-            ulong stringTableLen = writer.Position - stringTablePos;
-            ulong fileSize = writer.Position;
+            long stringTableLen = writer.Position - stringTablePos;
+            long fileSize = writer.Position;
             header.stringTablePos = (uint)stringTablePos;
             header.stringTableLen = (uint)stringTableLen;
             header.uncompressedSize = (uint)fileSize;
             writer.Position = 0;
-            header.Write(writer, writer.Position);
+            header.Write(writer);
             return 0;
         }
 

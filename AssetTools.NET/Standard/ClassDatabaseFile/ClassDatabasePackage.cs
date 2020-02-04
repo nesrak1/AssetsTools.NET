@@ -21,7 +21,7 @@ namespace AssetsTools.NET
             if ((header.compressionType & 0x20) == 0x00)
                 throw new NotImplementedException("Please uncompress the package before loading.");
             files = new ClassDatabaseFile[header.fileCount];
-            ulong firstFile = reader.Position;
+            long firstFile = reader.Position;
             for (int i = 0; i < header.fileCount; i++)
             {
                 reader.Position = firstFile + header.files[i].offset;

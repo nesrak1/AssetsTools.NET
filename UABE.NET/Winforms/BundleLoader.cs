@@ -10,7 +10,7 @@ namespace UABE.NET.Winforms
     public partial class BundleLoader : Form
     {
         public AssetsFileReader reader;
-        public AssetsBundleFile bundle;
+        public AssetBundleFile bundle;
         public bool loaded = false;
         public string bundleFilename = "";
         FileStream bundleStream;
@@ -24,7 +24,7 @@ namespace UABE.NET.Winforms
         private void ReadBundle(FileStream stream)
         {
             reader = new AssetsFileReader(stream);
-            bundle = new AssetsBundleFile();
+            bundle = new AssetBundleFile();
             bundleFilename = stream.Name;
             bundle.Read(reader, true);
             reader.Position = 0;
@@ -73,7 +73,7 @@ namespace UABE.NET.Winforms
                 {
                     bundle.Unpack(reader, new AssetsFileWriter(fileStream));
                     fileStream.Position = 0;
-                    bundle = new AssetsBundleFile();
+                    bundle = new AssetBundleFile();
                     bundle.Read(new AssetsFileReader(fileStream), false);
                     fileStream.Close();
                 };

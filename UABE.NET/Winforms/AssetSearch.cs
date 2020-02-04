@@ -41,8 +41,8 @@ namespace UABE.NET.Winforms
             {
                 for (int i = 0; i < details.Count - 1; i++)
                 {
-                    if (details[i].position <= (ulong)findPosition &&
-                        (ulong)findPosition < details[i + 1].position)
+                    if (details[i].position <= findPosition &&
+                        findPosition < details[i + 1].position)
                     {
                         assetNames.Add(details[i].typeName + " " + details[i].name + " (" + details[i].pathID.ToString() + ")");
                         break;
@@ -61,8 +61,8 @@ namespace UABE.NET.Winforms
             {
                 for (int i = 0; i < details.Count - 1; i++)
                 {
-                    if (details[i].position <= (ulong)findPosition &&
-                        (ulong)findPosition < details[i + 1].position)
+                    if (details[i].position <= findPosition &&
+                        findPosition < details[i + 1].position)
                     {
                         assetNames.Add(details[i].typeName + " " + details[i].name + " (" + details[i].pathID.ToString() + ")");
                         break;
@@ -113,7 +113,7 @@ namespace UABE.NET.Winforms
 
         private void searchPosButton_Click(object sender, EventArgs e)
         {
-            ulong pos = ulong.Parse(searchTextBox.Text);
+            long pos = long.Parse(searchTextBox.Text);
             for (int i = 0; i < details.Count - 1; i++)
             {
                 if (details[i].position <= pos &&

@@ -14,7 +14,7 @@ namespace AssetsView.Winforms
     public partial class AssetInfoViewer : Form
     {
         //assets
-        public AssetInfoViewer(uint type, ulong pos, uint size, ulong id, ushort mbid, string name, string typeName, string resourcesPath)
+        public AssetInfoViewer(uint type, long pos, uint size, long id, ushort mbid, string name, string typeName, string resourcesPath)
         {
             InitializeComponent();
             properties.Items.Clear();
@@ -25,7 +25,7 @@ namespace AssetsView.Winforms
                 AddProperty("Path", resourcesPath);
             AddProperty("Position", $"0x{pos.ToString("X2")}");
             AddProperty("Size", size.ToString());
-            AddProperty("ID", ((long)id).ToString());
+            AddProperty("ID", (id).ToString());
             if (mbid != 0xFFFF)
                 AddProperty("Mono ID", mbid.ToString());
         }

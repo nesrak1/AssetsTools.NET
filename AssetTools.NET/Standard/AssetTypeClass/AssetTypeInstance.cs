@@ -2,30 +2,28 @@
 {
     public class AssetTypeInstance
     {
-        public uint baseFieldCount;
+        public int baseFieldCount;
         public AssetTypeValueField[] baseFields;
         public uint allocationCount; public uint allocationBufLen;
         public byte[] memoryToClear;
-        public AssetTypeInstance(uint baseFieldCount, AssetTypeTemplateField[] ppBaseFields, AssetsFileReader reader, bool bigEndian, ulong filePos = 0)
+        public AssetTypeInstance(AssetTypeTemplateField[] baseFields, AssetsFileReader reader, long filePos)
         {
-            this.baseFieldCount = baseFieldCount;
             reader.bigEndian = false;
-            reader.BaseStream.Position = (long)filePos;
-            baseFields = new AssetTypeValueField[this.baseFieldCount];
+            reader.Position = filePos;
+            this.baseFieldCount = baseFields.Length;
+            this.baseFields = new AssetTypeValueField[baseFieldCount];
             for (int i = 0; i < baseFieldCount; i++)
             {
-                //Debug.WriteLine(reader.BaseStream.Position);
-                AssetTypeTemplateField templateBaseField = ppBaseFields[i];
+                AssetTypeTemplateField templateBaseField = baseFields[i];
                 AssetTypeValueField atvf;
-                templateBaseField.MakeValue(reader, reader.Position, out atvf, reader.bigEndian);
-                //atvf.Read(atvf.value, templateBaseField, atvf.childrenCount, atvf.pChildren);
-                baseFields[i] = atvf;
+                templateBaseField.MakeValue(reader, out atvf);
+                this.baseFields[i] = atvf;
             }
         }
-        public AssetTypeInstance(AssetTypeTemplateField ppBaseField, AssetsFileReader reader, bool bigEndian, ulong filePos = 0)
-            : this(1, new[] { ppBaseField }, reader, bigEndian, filePos) { }
-        ///public bool SetChildList(AssetTypeValueField pValueField, AssetTypeValueField[] pChildrenList, uint childrenCount, bool freeMemory = true);
-        ///public bool AddTempMemory(byte[] pMemory);
+        public AssetTypeInstance(AssetTypeTemplateField baseField, AssetsFileReader reader, long filePos)
+            : this(new[] { baseField }, reader, filePos) { }
+        ///public bool SetChildList(AssetTypeValueField valueField, AssetTypeValueField[] childrenList, uint childrenCount, bool freeMemory = true);
+        ///public bool AddTempMemory(byte[] memory);
 
         public static AssetTypeValueField GetDummyAssetTypeField()
         {
@@ -34,7 +32,7 @@
             return atvf;
         }
 
-        public AssetTypeValueField GetBaseField(uint index = 0)
+        public AssetTypeValueField GetBaseField(int index = 0)
         {
             if (index >= baseFieldCount)
                 return GetDummyAssetTypeField();

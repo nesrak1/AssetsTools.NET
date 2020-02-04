@@ -43,7 +43,7 @@ namespace UABE.NET.Winforms
                     {
                         AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
                         AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
-                        for (uint j = 0; j < components.GetValue().AsArray().size; j++)
+                        for (int j = 0; j < components.GetValue().AsArray().size; j++)
                         {
                             int fileId = components.Get(j).Get("component").Get("m_FileID").GetValue().AsInt();
                             long pathId = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();

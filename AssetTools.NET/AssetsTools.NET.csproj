@@ -49,17 +49,17 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.dll</HintPath>
+    <Reference Include="Mono.Cecil, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Mdb.dll</HintPath>
+    <Reference Include="Mono.Cecil.Mdb, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Mdb.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Pdb.dll</HintPath>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.10.3.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.3\lib\net35\Mono.Cecil.Rocks.dll</HintPath>
+    <Reference Include="Mono.Cecil.Rocks, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -71,10 +71,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extra\AssetHelper.cs" />
+    <Compile Include="Extra\AssetsManager\BundleFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsManager.cs" />
-    <Compile Include="Extra\AssetToBundle\AssetToBundle.cs" />
     <Compile Include="Extra\AssetWriters.cs" />
+    <Compile Include="Extra\BundleHelper.cs" />
     <Compile Include="Extra\CldbTypeTreeConverters\C2T5.cs" />
     <Compile Include="Extra\Decompressors\LZ4\Lz4DecoderStream.cs" />
     <Compile Include="Extra\Decompressors\LZMA\Common\CommandLineParser.cs" />
@@ -104,7 +105,6 @@
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleHeader06.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleOffsetPair.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsList.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetFile.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetFileInfo.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetFileList.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetPPtr.cs" />
@@ -143,7 +143,6 @@
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackageHeader.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseType.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseTypeField.cs" />
-    <Compile Include="Standard\defines.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

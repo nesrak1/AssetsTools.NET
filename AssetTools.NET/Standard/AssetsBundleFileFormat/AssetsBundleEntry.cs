@@ -5,7 +5,7 @@
         public uint offset;
         public uint length;
         public byte name;
-        ///public uint GetAbsolutePos(AssetsBundleHeader03 pHeader);//, DWORD listIndex);
-        ///public uint GetAbsolutePos(AssetsBundleFile pFile);//, DWORD listIndex);
+        ///public uint GetAbsolutePos(AssetsBundleHeader03 header);//, DWORD listIndex);
+        ///public uint GetAbsolutePos(AssetsBundleFile file);//, DWORD listIndex);
     }
 }

@@ -26,10 +26,10 @@ namespace AssetsTools.NET
             readerPar = reader.BaseStream;
             
             header = new AssetsFileHeader();
-            header.Read(0, reader);
+            header.Read(reader);
             
             typeTree = new TypeTree();
-            typeTree.Read(reader.Position, reader, header.format, reader.bigEndian);
+            typeTree.Read(reader, header.format);
             
             AssetCount = reader.ReadUInt32();
             reader.Align();
@@ -39,62 +39,62 @@ namespace AssetsTools.NET
             if (header.format > 0x0B)
             {
                 preloadTable = new PreloadList();
-                preloadTable.Read(reader.Position, reader, header.format, reader.bigEndian);
+                preloadTable.Read(reader);
             }
             
             dependencies = new AssetsFileDependencyList();
-            dependencies.Read(reader.Position, reader, header.format, reader.bigEndian);
+            dependencies.Read(reader);
         }
 
         //set fileID to -1 if all replacers are for this .assets file but don't have the fileID set to the same one
         //typeMeta is used to add the type information (hash and type fields) for format >= 0x10 if necessary
-        public ulong Write(AssetsFileWriter writer, ulong filePos, AssetsReplacer[] pReplacers, uint fileID, ClassDatabaseFile typeMeta = null)
+        public void Write(AssetsFileWriter writer, ulong filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
-            header.Write(writer.Position, writer);
+            header.Write(writer);
 
-            for (int i = 0; i < pReplacers.Length; i++)
+            for (int i = 0; i < replacers.Count; i++)
             {
-                AssetsReplacer replacer = pReplacers[i];
-                if (!typeTree.pTypes_Unity5.Any(t => t.classId == replacer.GetClassID()))
+                AssetsReplacer replacer = replacers[i];
+                if (!typeTree.unity5Types.Any(t => t.classId == replacer.GetClassID()))
                 {
                     Type_0D type = new Type_0D()
                     {
                         classId = replacer.GetClassID(),
                         unknown16_1 = 0,
                         scriptIndex = 0xFFFF,
-                        unknown5 = 0,
-                        unknown6 = 0,
-                        unknown7 = 0,
-                        unknown8 = 0,
+                        typeHash1 = 0,
+                        typeHash2 = 0,
+                        typeHash3 = 0,
+                        typeHash4 = 0,
                         typeFieldsExCount = 0,
                         stringTableLen = 0,
-                        pStringTable = ""
+                        stringTable = ""
                     };
-                    typeTree.pTypes_Unity5.Concat(new Type_0D[] { type });
+                    typeTree.unity5Types.Concat(new Type_0D[] { type });
                 }
             }
-            typeTree.Write(writer.Position, writer, header.format);
+            typeTree.Write(writer, header.format);
 
             int initialSize = (int)(AssetFileInfo.GetSize(header.format) * AssetCount);
-            int newSize = (int)(AssetFileInfo.GetSize(header.format) * (AssetCount + pReplacers.Length));
+            int newSize = (int)(AssetFileInfo.GetSize(header.format) * (AssetCount + replacers.Count));
             int appendedSize = newSize - initialSize;
             reader.Position = AssetTablePos;
 
             List<AssetFileInfo> originalAssetInfos = new List<AssetFileInfo>();
             List<AssetFileInfo> assetInfos = new List<AssetFileInfo>();
-            List<AssetsReplacer> currentReplacers = pReplacers.ToList();
+            List<AssetsReplacer> currentReplacers = replacers.ToList();
             uint currentOffset = 0;
 
             //-write all original assets, modify sizes if needed and skip those to be removed
             for (int i = 0; i < AssetCount; i++)
             {
                 AssetFileInfo info = new AssetFileInfo();
-                info.Read(header.format, reader.Position, reader, reader.bigEndian);
+                info.Read(header.format, reader);
                 originalAssetInfos.Add(info);
                 AssetFileInfo newInfo = new AssetFileInfo()
                 {
                     index = info.index,
-                    offs_curFile = currentOffset,
+                    curFileOffset = currentOffset,
                     curFileSize = info.curFileSize,
                     curFileTypeOrIndex = info.curFileTypeOrIndex,
                     inheritedUnityClass = info.inheritedUnityClass,
@@ -109,16 +109,16 @@ namespace AssetsTools.NET
                     {
                         int classIndex;
                         if (replacer.GetMonoScriptID() == 0xFFFF)
-                            classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                            classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID());
                         else
-                            classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
+                            classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
                         newInfo = new AssetFileInfo()
                         {
                             index = replacer.GetPathID(),
-                            offs_curFile = currentOffset,
+                            curFileOffset = currentOffset,
                             curFileSize = (uint)replacer.GetSize(),
-                            curFileTypeOrIndex = (uint)classIndex,
-                            inheritedUnityClass = (ushort)replacer.GetClassID(), //-what is this
+                            curFileTypeOrIndex = classIndex,
+                            inheritedUnityClass = (ushort)replacer.GetClassID(), //for older unity versions
                             scriptIndex = replacer.GetMonoScriptID(),
                             unknown1 = 0
                         };
@@ -143,15 +143,15 @@ namespace AssetsTools.NET
                 {
                     int classIndex;
                     if (replacer.GetMonoScriptID() == 0xFFFF)
-                        classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID());
+                        classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID());
                     else
-                        classIndex = Array.FindIndex(typeTree.pTypes_Unity5, t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
+                        classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
                     AssetFileInfo info = new AssetFileInfo()
                     {
                         index = replacer.GetPathID(),
-                        offs_curFile = currentOffset,
+                        curFileOffset = currentOffset,
                         curFileSize = (uint)replacer.GetSize(),
-                        curFileTypeOrIndex = (uint)classIndex,
+                        curFileTypeOrIndex = classIndex,
                         inheritedUnityClass = (ushort)replacer.GetClassID(),
                         scriptIndex = replacer.GetMonoScriptID(),
                         unknown1 = 0
@@ -169,21 +169,21 @@ namespace AssetsTools.NET
             writer.Align();
             for (int i = 0; i < assetInfos.Count; i++)
             {
-                assetInfos[i].Write(header.format, writer.Position, writer);
+                assetInfos[i].Write(header.format, writer);
             }
 
-            preloadTable.Write(writer.Position, writer, header.format);
+            preloadTable.Write(writer);
 
-            dependencies.Write(writer.Position, writer, header.format);
+            dependencies.Write(writer);
 
-            //todo - uabe put this here but 2 breaks loading in unity builds, find out what this does
-            writer.Write((byte)0); 
-            writer.Write((byte)0);
+            //temporary fix for secondarytypecount and friends
+            if (header.format >= 14)
+            {
+                writer.Write(0); //secondaryTypeCount
+                writer.Write((byte)0); //unknownString length
+            }
 
             uint metadataSize = (uint)writer.Position - 0x14;
-
-            uint metaSizePad = 4 - (metadataSize % 4);
-            if (metaSizePad != 4) metadataSize += metaSizePad;
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             while (writer.Position < 0x1000/*header.offs_firstFile*/)
@@ -198,12 +198,12 @@ namespace AssetsTools.NET
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
-                AssetsReplacer replacer = pReplacers.FirstOrDefault(n => n.GetPathID() == info.index);
+                AssetsReplacer replacer = replacers.FirstOrDefault(n => n.GetPathID() == info.index);
                 if (replacer != null)
                 {
                     if (replacer.GetReplacementType() == AssetsReplacementType.AssetsReplacement_AddOrModify)
                     {
-                        replacer.Write(writer.Position, writer);
+                        replacer.Write(writer);
                         if (i != assetInfos.Count - 1)
                             writer.Align8();
                     }
@@ -217,7 +217,7 @@ namespace AssetsTools.NET
                     AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
                     if (originalInfo != null)
                     {
-                        reader.Position = header.offs_firstFile + originalInfo.offs_curFile;
+                        reader.Position = header.firstFileOffset + originalInfo.curFileOffset;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
                         writer.Write(assetData);
                         if (i != assetInfos.Count - 1)
@@ -226,24 +226,23 @@ namespace AssetsTools.NET
                 }
             }
 
-            header.offs_firstFile = offs_firstFile;
+            header.firstFileOffset = offs_firstFile;
 
-            ulong fileSizeMarker = writer.Position;
+            long fileSizeMarker = writer.Position;
 
-            reader.Position = header.offs_firstFile;
+            reader.Position = header.firstFileOffset;
 
             writer.Position = 0;
             header.metadataSize = metadataSize;
             header.fileSize = (uint)fileSizeMarker;
-            header.Write(writer.Position, writer);
-            return writer.Position;
+            header.Write(writer);
         }
 
-        ///public bool GetAssetFile(ulong fileInfoOffset, AssetsFileReader reader, AssetFile pBuf, FileStream readerPar);
+        ///public bool GetAssetFile(ulong fileInfoOffset, AssetsFileReader reader, AssetFile buf, FileStream readerPar);
         ///public ulong GetAssetFileOffs(ulong fileInfoOffset, AssetsFileReader reader, FileStream readerPar);
-        ///public bool GetAssetFileByIndex(ulong fileIndex, AssetFile pBuf, uint pSize, AssetsFileReader reader, FileStream readerPar);
+        ///public bool GetAssetFileByIndex(ulong fileIndex, AssetFile buf, uint size, AssetsFileReader reader, FileStream readerPar);
         ///public ulong GetAssetFileOffsByIndex(ulong fileIndex, AssetsFileReader reader, FileStream readerPar);
-        ///public bool GetAssetFileByName(string name, AssetFile pBuf, uint pSize, AssetsFileReader reader, FileStream readerPar);
+        ///public bool GetAssetFileByName(string name, AssetFile buf, uint size, AssetsFileReader reader, FileStream readerPar);
         ///public ulong GetAssetFileOffsByName(string name, AssetsFileReader reader, FileStream readerPar);
         ///public ulong GetAssetFileInfoOffs(ulong fileIndex, AssetsFileReader reader, FileStream readerPar);
         ///public ulong GetAssetFileInfoOffsByName(string name, AssetsFileReader reader, FileStream readerPar);

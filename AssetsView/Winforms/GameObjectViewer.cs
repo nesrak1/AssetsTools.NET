@@ -2,14 +2,9 @@
 using AssetsTools.NET.Extra;
 using AssetsView.Util;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AssetsView.Winforms
@@ -20,10 +15,10 @@ namespace AssetsView.Winforms
         private AssetsFileInstance inst;
         private AssetTypeValueField baseField;
         private AssetFileInfoEx componentInfo;
-        private ulong selectedIndex;
-        private ulong selectedComponentIndex;
+        private long selectedIndex;
+        private long selectedComponentIndex;
         private bool firstTimeMBMessage;
-        public GameObjectViewer(AssetsManager helper, AssetsFileInstance inst, AssetTypeValueField baseField, ulong selectedIndex, ulong selectedComponentIndex = ulong.MaxValue)
+        public GameObjectViewer(AssetsManager helper, AssetsFileInstance inst, AssetTypeValueField baseField, long selectedIndex, long selectedComponentIndex = long.MaxValue)
         {
             InitializeComponent();
             this.helper = helper;
@@ -60,6 +55,7 @@ namespace AssetsView.Winforms
             {
                 TreeNode node = goTree.Nodes.Add("[Unknown GameObject]");
                 node.Tag = null;
+                Width = 700;
                 GetSelectedNodeData();
             }
         }
@@ -75,7 +71,7 @@ namespace AssetsView.Winforms
                 {
                     PGProperty dataRoot = LoadGameObjectData((AssetTypeValueField)nodeTag);
                     valueGrid.SelectedObject = dataRoot;
-                    if (selectedComponentIndex != ulong.MaxValue)
+                    if (selectedComponentIndex != long.MaxValue)
                     {
                         GridItem gi = valueGrid.EnumerateAllItems().FirstOrDefault(i =>
                                           i.PropertyDescriptor != null &&
@@ -108,13 +104,13 @@ namespace AssetsView.Winforms
         {
             PGProperty root = new PGProperty("root");
             AssetTypeValueField components = field.Get("m_Component").Get("Array");
-            int componentSize = (int)components.GetValue().AsArray().size;
+            int componentSize = components.GetValue().AsArray().size;
             for (int i = 0; i < componentSize; i++)
             {
-                AssetTypeValueField componentPtr = components[(uint)i].Get("component");
+                AssetTypeValueField componentPtr = components[i].Get("component");
                 if (ModifierKeys == Keys.Shift)
                 {
-                    AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                    AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
                     if (ext.instance != null)
                         LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
                 }
@@ -122,7 +118,7 @@ namespace AssetsView.Winforms
                 {
                     try
                     {
-                        AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                        AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
                         if (ext.instance != null)
                             LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
                     }
@@ -169,7 +165,7 @@ namespace AssetsView.Winforms
         {
             if (atvf.childrenCount == 0)
                 return;
-            foreach (AssetTypeValueField atvfc in atvf.pChildren)
+            foreach (AssetTypeValueField atvfc in atvf.children)
             {
                 if (atvfc == null)
                     return;
@@ -216,7 +212,6 @@ namespace AssetsView.Winforms
 
         private void SetSelectedStateIfSelected(AssetFileInfoEx info, PGProperty prop)
         {
-            //Console.WriteLine($"{info.index} == {selectedComponentIndex}");
             if (info.index == selectedComponentIndex)
             {
                 prop.description = "SELECTEDCOMPONENT";
@@ -235,8 +230,8 @@ namespace AssetsView.Winforms
                                               .Get("Array");
             for (int i = 0; i < children.GetValue().AsArray().size; i++)
             {
-                AssetTypeInstance newInstance = helper.GetExtAsset(inst, children.Get((uint)i)).instance;
-                AssetsManager.AssetExternal gameObjExt = helper.GetExtAsset(inst, newInstance.GetBaseField().Get("m_GameObject"));
+                AssetTypeInstance newInstance = helper.GetExtAsset(inst, children.Get(i)).instance;
+                AssetExternal gameObjExt = helper.GetExtAsset(inst, newInstance.GetBaseField().Get("m_GameObject"));
                 AssetTypeInstance newAti = gameObjExt.instance;
                 AssetTypeValueField newBaseField = newAti.GetBaseField();
                 TreeNode newNode = node.Nodes.Add(newBaseField.Get("m_Name").GetValue().AsString());
@@ -279,15 +274,15 @@ namespace AssetsView.Winforms
                 }
                 if (fileId == 0 && pathId == 0)
                 {
-                    MessageBox.Show("cannot open null reference");
+                    MessageBox.Show("Cannot open null reference", "AssetsView");
                     return;
                 }
                 else if (fileId == -1 || pathId == -1)
                 {
-                    MessageBox.Show("could not find other id, is this really a pptr?");
+                    MessageBox.Show("Could not find other id, is this really a pptr?", "AssetsView");
                     return;
                 }
-                AssetsManager.AssetExternal ext = helper.GetExtAsset(inst, (uint)fileId, (ulong)pathId);
+                AssetExternal ext = helper.GetExtAsset(inst, fileId, pathId);
 
                 GameObjectViewer view = new GameObjectViewer(helper, ext.file, ext.instance.GetBaseField(), ext.info);
                 view.Show();

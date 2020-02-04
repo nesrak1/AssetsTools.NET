@@ -12,7 +12,7 @@ namespace UABE.NET
     {
         //todo, refactor
         string bundlePath = "";
-        AssetsBundleFile bundle;
+        AssetBundleFile bundle;
         public Menu()
         {
             InitializeComponent();
@@ -46,7 +46,7 @@ namespace UABE.NET
                             exportButton.Enabled = true;
                             importButton.Enabled = true;
                             infoButton.Enabled = true;
-                            foreach (AssetsBundleDirectoryInfo06 di in bl.bundle.bundleInf6.dirInf)
+                            foreach (AssetBundleDirectoryInfo06 di in bl.bundle.bundleInf6.dirInf)
                             {
                                 bundleContents.Items.Add(di.name);
                             }

@@ -126,6 +126,12 @@
     <Compile Include="Winforms\OpenAssetsDialog.Designer.cs">
       <DependentUpon>OpenAssetsDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Winforms\OpenBundleDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\OpenBundleDialog.Designer.cs">
+      <DependentUpon>OpenBundleDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\StartScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -152,6 +158,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\OpenAssetsDialog.resx">
       <DependentUpon>OpenAssetsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\OpenBundleDialog.resx">
+      <DependentUpon>OpenBundleDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\StartScreen.resx">
       <DependentUpon>StartScreen.cs</DependentUpon>

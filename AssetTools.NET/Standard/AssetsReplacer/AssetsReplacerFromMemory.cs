@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace AssetsTools.NET
 {
     public class AssetsReplacerFromMemory : AssetsReplacer
     {
-        public AssetsReplacerFromMemory(uint fileID, ulong pathID, int classID, ushort monoScriptIndex, byte[] buffer/*, cbFreeMemoryResource freeResourceCallback*/)
+        public AssetsReplacerFromMemory(int fileID, long pathID, int classID, ushort monoScriptIndex, byte[] buffer/*, cbFreeMemoryResource freeResourceCallback*/)
         {
             this.fileID = fileID;
             this.pathID = pathID;
@@ -12,8 +13,8 @@ namespace AssetsTools.NET
             this.monoScriptIndex = monoScriptIndex;
             this.buffer = buffer;
         }
-        private uint fileID;
-        private ulong pathID;
+        private int fileID;
+        private long pathID;
         private int classID;
         private ushort monoScriptIndex;
         private byte[] buffer;
@@ -21,11 +22,11 @@ namespace AssetsTools.NET
         {
             return AssetsReplacementType.AssetsReplacement_AddOrModify;
         }
-        public override uint GetFileID()
+        public override int GetFileID()
         {
             return fileID;
         }
-        public override ulong GetPathID()
+        public override long GetPathID()
         {
             return pathID;
         }
@@ -37,19 +38,18 @@ namespace AssetsTools.NET
         {
             return monoScriptIndex;
         }
-        public override ulong GetSize()
+        public override long GetSize()
         {
-            return (ulong)buffer.Length;
+            return buffer.Length;
         }
-        public override ulong Write(ulong pos, AssetsFileWriter writer)
+        public override long Write(AssetsFileWriter writer)
         {
             writer.Write(buffer);
             return writer.Position;
         }
-        public override ulong WriteReplacer(ulong pos, AssetsFileWriter writer)
+        public override long WriteReplacer(AssetsFileWriter writer)
         {
-            //-no idea what this is supposed to write
-            return writer.Position;
+            throw new NotImplementedException("not implemented");
         }
     }
 }

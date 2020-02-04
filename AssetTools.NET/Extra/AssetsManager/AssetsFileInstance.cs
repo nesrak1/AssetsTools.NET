@@ -25,7 +25,7 @@ namespace AssetsTools.NET.Extra
             file = new AssetsFile(new AssetsFileReader(stream));
             table = new AssetsFileTable(file);
             dependencies.AddRange(
-                Enumerable.Range(0, (int)file.dependencies.dependencyCount)
+                Enumerable.Range(0, file.dependencies.dependencyCount)
                           .Select(d => (AssetsFileInstance)null)
             );
         }
@@ -37,7 +37,7 @@ namespace AssetsTools.NET.Extra
             file = new AssetsFile(new AssetsFileReader(stream));
             table = new AssetsFileTable(file);
             dependencies.AddRange(
-                Enumerable.Range(0, (int)file.dependencies.dependencyCount)
+                Enumerable.Range(0, file.dependencies.dependencyCount)
                           .Select(d => (AssetsFileInstance)null)
             );
         }

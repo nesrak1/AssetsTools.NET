@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -10,10 +11,10 @@ namespace AssetsTools.NET.Extra
     public static class AssetWriters
     {
         //AssetsBundleFile
-        public static void Write(this AssetsBundleFile file, AssetsFileWriter writer/*AssetsFile assetsFile, AssetsReplacer[] replacers*/)
+        public static void Write(this AssetBundleFile file, AssetsFileWriter writer/*AssetsFile assetsFile, AssetsReplacer[] replacers*/)
         {
-            file.bundleHeader6.Write(writer, 0);
-            file.bundleInf6.Write(writer, writer.Position);
+            file.bundleHeader6.Write(writer);
+            file.bundleInf6.Write(writer);
             //assetsFile.Write(writer, writer.Position, replacers, 0);
         }
         //AssetTypeInstance
@@ -24,6 +25,17 @@ namespace AssetsTools.NET.Extra
                 instance.baseFields[i].Write(writer);
             }
         }
+        public static byte[] WriteToByteArray(this AssetTypeInstance instance)
+        {
+            byte[] data;
+            using (MemoryStream ms = new MemoryStream())
+            using (AssetsFileWriter w = new AssetsFileWriter(ms))
+            {
+                instance.Write(w);
+                data = ms.ToArray();
+            }
+            return data;
+        }
         //AssetTypeValueField
         public static void Write(this AssetTypeValueField valueField, AssetsFileWriter writer, int depth = 0)
         {
@@ -31,18 +43,18 @@ namespace AssetsTools.NET.Extra
             {
                 if (valueField.templateField.valueType == EnumValueTypes.ValueType_ByteArray)
                 {
-                    uint size = valueField.value.value.asByteArray.size;
+                    AssetTypeByteArray byteArray = valueField.value.value.asByteArray;
 
-                    writer.Write(valueField.value.value.asByteArray.size);
-                    writer.Write(valueField.value.value.asByteArray.data);
+                    writer.Write(byteArray.size);
+                    writer.Write(byteArray.data);
                     if (valueField.templateField.align) writer.Align();
                 }
                 else
                 {
-                    uint size = valueField.value.value.asArray.size;
+                    int size = valueField.value.value.asArray.size;
 
                     writer.Write(size);
-                    for (uint i = 0; i < size; i++)
+                    for (int i = 0; i < size; i++)
                     {
                         valueField[i].Write(writer, depth + 1);
                     }
@@ -101,13 +113,24 @@ namespace AssetsTools.NET.Extra
                 }
                 else
                 {
-                    for (uint i = 0; i < valueField.childrenCount; i++)
+                    for (int i = 0; i < valueField.childrenCount; i++)
                     {
                         valueField[i].Write(writer, depth + 1);
                     }
                     if (valueField.templateField.align) writer.Align();
                 }
             }
+        }
+        public static byte[] WriteToByteArray(this AssetTypeValueField valueField)
+        {
+            byte[] data;
+            using (MemoryStream ms = new MemoryStream())
+            using (AssetsFileWriter w = new AssetsFileWriter(ms))
+            {
+                valueField.Write(w);
+                data = ms.ToArray();
+            }
+            return data;
         }
     }
 }

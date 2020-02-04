@@ -12,9 +12,10 @@ namespace AssetsTools.NET.Extra
     {
         public bool updateAfterLoad = true;
         public bool useTemplateFieldCache = false;
-        public ClassDatabasePackage classDatabase;
+        public ClassDatabasePackage classPackage;
         public ClassDatabaseFile classFile;
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
+        public List<BundleFileInstance> bundles = new List<BundleFileInstance>();
         private Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
 
         public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "")
@@ -57,12 +58,30 @@ namespace AssetsTools.NET.Extra
                 LoadDeps(instance, Path.GetDirectoryName(stream.Name));
             return instance;
         }
+        public BundleFileInstance LoadBundleFile(FileStream stream)
+        {
+            BundleFileInstance instance;
+            int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
+            if (index == -1)
+            {
+                instance = new BundleFileInstance(stream, "");
+                bundles.Add(instance);
+            }
+            else
+            {
+                instance = bundles[index];
+            }
+            return instance;
+        }
         public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps, string root = "")
         {
             return LoadAssetsFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), loadDeps, root);
         }
-
-        //linq this somehow
+        public BundleFileInstance LoadBundleFile(string path)
+        {
+            return LoadBundleFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+        }
+        
         private void UpdateDependency(AssetsFileInstance ofFile)
         {
             for (int i = 0; i < files.Count; i++)
@@ -70,7 +89,7 @@ namespace AssetsTools.NET.Extra
                 AssetsFileInstance file = files[i];
                 for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
                 {
-                    AssetsFileDependency dep = file.file.dependencies.pDependencies[j];
+                    AssetsFileDependency dep = file.file.dependencies.dependencies[j];
                     if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
                     {
                         file.dependencies[j] = ofFile;
@@ -89,7 +108,7 @@ namespace AssetsTools.NET.Extra
                     AssetsFileInstance file = files[i];
                     for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
                     {
-                        AssetsFileDependency dep = file.file.dependencies.pDependencies[j];
+                        AssetsFileDependency dep = file.file.dependencies.dependencies[j];
                         if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
                         {
                             file.dependencies[j] = ofFile;
@@ -104,7 +123,7 @@ namespace AssetsTools.NET.Extra
         {
             for (int i = 0; i < ofFile.dependencies.Count; i++)
             {
-                string depPath = ofFile.file.dependencies.pDependencies[i].assetPath;
+                string depPath = ofFile.file.dependencies.dependencies[i].assetPath;
                 if (files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
                 {
                     string absPath = Path.Combine(path, depPath);
@@ -123,7 +142,7 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, uint fileId, ulong pathId, bool onlyGetInfo = false, bool fromTypeTree = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, int fileId, long pathId, bool onlyGetInfo = false, bool forceFromCldb = false)
         {
             AssetExternal ext = new AssetExternal();
             if (fileId == 0 && pathId == 0)
@@ -134,19 +153,19 @@ namespace AssetsTools.NET.Extra
             }
             else if (fileId != 0)
             {
-                AssetsFileInstance dep = relativeTo.dependencies[(int)fileId - 1];
-                ext.info = dep.table.getAssetInfo(pathId);
+                AssetsFileInstance dep = relativeTo.dependencies[fileId - 1];
+                ext.info = dep.table.GetAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(dep.file, ext.info, fromTypeTree);
+                    ext.instance = GetATI(dep.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
                 ext.file = dep;
             }
             else
             {
-                ext.info = relativeTo.table.getAssetInfo(pathId);
+                ext.info = relativeTo.table.GetAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(relativeTo.file, ext.info, fromTypeTree);
+                    ext.instance = GetATI(relativeTo.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
                 ext.file = relativeTo;
@@ -154,20 +173,16 @@ namespace AssetsTools.NET.Extra
             return ext;
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false, bool fromTypeTree = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false, bool forceFromCldb = false)
         {
-            uint fileId = (uint)atvf.Get("m_FileID").GetValue().AsInt();
-            ulong pathId = (ulong)atvf.Get("m_PathID").GetValue().AsInt64();
-            return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, fromTypeTree);
+            int fileId = atvf.Get("m_FileID").GetValue().AsInt();
+            long pathId = atvf.Get("m_PathID").GetValue().AsInt64();
+            return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, forceFromCldb);
         }
 
-        public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool fromTypeTree = false)
+        public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
-            //do we still need pooling?
-            //(it accumulates memory over time and we don't
-            // really need to read the same ati twice)
-
-            ushort scriptIndex = file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
+            ushort scriptIndex = file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
             //unity is wack
             uint fixedId = info.curFileType;
             if (fixedId == 0xf1) //AudioMixerController
@@ -177,49 +192,50 @@ namespace AssetsTools.NET.Extra
             else if (fixedId == 0xf5) //AudioMixerSnapshotController
                 fixedId = 0x110;      //AudioMixerSnapshot
 
-            AssetTypeTemplateField pBaseField = null;
+            bool hasTypeTree = file.typeTree.hasTypeTree;
+            AssetTypeTemplateField baseField = null;
             if (useTemplateFieldCache)
             {
                 if (templateFieldCache.ContainsKey(fixedId))
                 {
-                    pBaseField = templateFieldCache[fixedId];
+                    baseField = templateFieldCache[fixedId];
                 }
                 else
                 {
-                    pBaseField = new AssetTypeTemplateField();
-                    if (fromTypeTree)
-                        pBaseField.From0D(file.typeTree.pTypes_Unity5.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
+                    baseField = new AssetTypeTemplateField();
+                    if (hasTypeTree && !forceFromCldb)
+                        baseField.From0D(file.typeTree.unity5Types.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
                     else
-                        pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                        baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
 
-                    templateFieldCache[fixedId] = pBaseField;
+                    templateFieldCache[fixedId] = baseField;
                 }
             }
             else
             {
-                pBaseField = new AssetTypeTemplateField();
-                if (fromTypeTree)
-                    pBaseField.From0D(file.typeTree.pTypes_Unity5.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
+                baseField = new AssetTypeTemplateField();
+                if (hasTypeTree && !forceFromCldb)
+                    baseField.From0D(file.typeTree.unity5Types.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
                 else
-                    pBaseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                    baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
             }
 
-            return new AssetTypeInstance(pBaseField, file.reader, false, info.absoluteFilePos);
+            return new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
         }
 
         public AssetTypeValueField GetMonoBaseFieldCached(AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
         {
             AssetsFile file = inst.file;
-            ushort scriptIndex = file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex;
+            ushort scriptIndex = file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
             if (scriptIndex != 0xFFFF && inst.templateFieldCache.ContainsKey(scriptIndex))
             {
                 AssetTypeTemplateField baseTemplateField = inst.templateFieldCache[scriptIndex];
-                AssetTypeInstance baseAti = new AssetTypeInstance(baseTemplateField, file.reader, false, info.absoluteFilePos);
+                AssetTypeInstance baseAti = new AssetTypeInstance(baseTemplateField, file.reader, info.absoluteFilePos);
                 return baseAti.GetBaseField();
             }
             else
             {
-                AssetTypeValueField baseValueField = MonoClass.GetMonoBaseField(this, inst, info, managedPath);
+                AssetTypeValueField baseValueField = MonoDeserializer.GetMonoBaseField(this, inst, info, managedPath);
                 inst.templateFieldCache[scriptIndex] = baseValueField.templateField;
                 return baseValueField;
             }
@@ -237,30 +253,30 @@ namespace AssetsTools.NET.Extra
         }
         public ClassDatabaseFile LoadClassDatabaseFromPackage(string version, bool specific = false)
         {
-            if (classDatabase == null)
+            if (classPackage == null)
                 throw new Exception("No class package loaded!");
 
             if (specific)
             {
                 if (!version.StartsWith("U"))
                     version = "U" + version;
-                int index = classDatabase.header.files.FindIndex(f => f.name == version);
+                int index = classPackage.header.files.FindIndex(f => f.name == version);
                 if (index == -1)
                     return null;
 
-                classFile = classDatabase.files[index];
+                classFile = classPackage.files[index];
                 return classFile;
             }
             else
             {
                 if (version.StartsWith("U"))
                     version = version.Substring(1);
-                for (int i = 0; i < classDatabase.files.Length; i++)
+                for (int i = 0; i < classPackage.files.Length; i++)
                 {
-                    ClassDatabaseFile file = classDatabase.files[i];
-                    for (int j = 0; j < file.header.pUnityVersions.Length; j++)
+                    ClassDatabaseFile file = classPackage.files[i];
+                    for (int j = 0; j < file.header.unityVersions.Length; j++)
                     {
-                        string unityVersion = file.header.pUnityVersions[j];
+                        string unityVersion = file.header.unityVersions[j];
                         if (WildcardMatches(version, unityVersion))
                         {
                             classFile = file;
@@ -279,20 +295,20 @@ namespace AssetsTools.NET.Extra
 
         public ClassDatabasePackage LoadClassPackage(Stream stream)
         {
-            classDatabase = new ClassDatabasePackage();
-            classDatabase.Read(new AssetsFileReader(stream));
-            return classDatabase;
+            classPackage = new ClassDatabasePackage();
+            classPackage.Read(new AssetsFileReader(stream));
+            return classPackage;
         }
         public ClassDatabasePackage LoadClassPackage(string path)
         {
             return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
+    }
 
-        public struct AssetExternal
-        {
-            public AssetFileInfoEx info;
-            public AssetTypeInstance instance;
-            public AssetsFileInstance file;
-        }
+    public struct AssetExternal
+    {
+        public AssetFileInfoEx info;
+        public AssetTypeInstance instance;
+        public AssetsFileInstance file;
     }
 }

@@ -12,91 +12,90 @@ namespace AssetsTools.NET
         public bool isArray;
         public bool align;
         public bool hasValue;
-        public uint childrenCount;
+        public int childrenCount;
         public AssetTypeTemplateField[] children;
 
         ///public AssetTypeTemplateField()
         ///public void Clear()
-        public bool From0D(Type_0D pU5Type, uint fieldIndex)
+        public bool From0D(Type_0D u5Type, int fieldIndex)
         {
-            TypeField_0D field = pU5Type.pTypeFieldsEx[fieldIndex];
-            name = field.GetNameString(pU5Type.pStringTable);
-            type = field.GetTypeString(pU5Type.pStringTable);
+            TypeField_0D field = u5Type.typeFieldsEx[fieldIndex];
+            name = field.GetNameString(u5Type.stringTable);
+            type = field.GetTypeString(u5Type.stringTable);
             valueType = AssetTypeValueField.GetValueTypeByTypeName(type);
             isArray = field.isArray == 1 ? true : false;
             align = (field.flags & 0x4000) != 0x00 ? true : false;
             hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
 
             List<int> childrenIndexes = new List<int>();
-            int thisDepth = pU5Type.pTypeFieldsEx[(int)fieldIndex].depth;
-            for (int i = (int)fieldIndex + 1; i < pU5Type.typeFieldsExCount; i++)
+            int thisDepth = u5Type.typeFieldsEx[fieldIndex].depth;
+            for (int i = fieldIndex + 1; i < u5Type.typeFieldsExCount; i++)
             {
-                if (pU5Type.pTypeFieldsEx[i].depth == thisDepth + 1)
+                if (u5Type.typeFieldsEx[i].depth == thisDepth + 1)
                 {
                     childrenCount++;
                     childrenIndexes.Add(i);
                 }
-                if (pU5Type.pTypeFieldsEx[i].depth <= thisDepth) break;
+                if (u5Type.typeFieldsEx[i].depth <= thisDepth) break;
             }
             children = new AssetTypeTemplateField[childrenCount];
             int child = 0;
-            for (int i = (int)fieldIndex + 1; i < pU5Type.typeFieldsExCount; i++)
+            for (int i = fieldIndex + 1; i < u5Type.typeFieldsExCount; i++)
             {
-                if (pU5Type.pTypeFieldsEx[i].depth == thisDepth + 1)
+                if (u5Type.typeFieldsEx[i].depth == thisDepth + 1)
                 {
                     children[child] = new AssetTypeTemplateField();
-                    children[child].From0D(pU5Type, (uint)childrenIndexes[child]);
+                    children[child].From0D(u5Type, childrenIndexes[child]);
                     child++;
                 }
-                if (pU5Type.pTypeFieldsEx[i].depth <= thisDepth) break;
+                if (u5Type.typeFieldsEx[i].depth <= thisDepth) break;
             }
             return true;
         }
-        public bool FromClassDatabase(ClassDatabaseFile pFile, ClassDatabaseType pType, uint fieldIndex)
+        public bool FromClassDatabase(ClassDatabaseFile file, ClassDatabaseType type, uint fieldIndex)
         {
-            ClassDatabaseTypeField field = pType.fields[(int)fieldIndex];
-            name = field.fieldName.GetString(pFile);
-            type = field.typeName.GetString(pFile);
-            valueType = AssetTypeValueField.GetValueTypeByTypeName(type);
+            ClassDatabaseTypeField field = type.fields[(int)fieldIndex];
+            name = field.fieldName.GetString(file);
+            this.type = field.typeName.GetString(file);
+            valueType = AssetTypeValueField.GetValueTypeByTypeName(this.type);
             isArray = field.isArray == 1 ? true : false;
             align = (field.flags2 & 0x4000) != 0x00 ? true : false;
             hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
 
             List<int> childrenIndexes = new List<int>();
-            int thisDepth = pType.fields[(int)fieldIndex].depth;
-            for (int i = (int)fieldIndex + 1; i < pType.fields.Count; i++)
+            int thisDepth = type.fields[(int)fieldIndex].depth;
+            for (int i = (int)fieldIndex + 1; i < type.fields.Count; i++)
             {
-                if (pType.fields[i].depth == thisDepth + 1)
+                if (type.fields[i].depth == thisDepth + 1)
                 {
                     childrenCount++;
                     childrenIndexes.Add(i);
                 }
-                if (pType.fields[i].depth <= thisDepth) break;
+                if (type.fields[i].depth <= thisDepth) break;
             }
             children = new AssetTypeTemplateField[childrenCount];
             int child = 0;
-            for (int i = (int)fieldIndex + 1; i < pType.fields.Count; i++)
+            for (int i = (int)fieldIndex + 1; i < type.fields.Count; i++)
             {
-                if (pType.fields[i].depth == thisDepth + 1)
+                if (type.fields[i].depth == thisDepth + 1)
                 {
                     children[child] = new AssetTypeTemplateField();
-                    children[child].FromClassDatabase(pFile, pType, (uint)childrenIndexes[child]);
+                    children[child].FromClassDatabase(file, type, (uint)childrenIndexes[child]);
                     child++;
                 }
-                if (pType.fields[i].depth <= thisDepth) break;
+                if (type.fields[i].depth <= thisDepth) break;
             }
             return true;
         }
-        ///public bool From07(TypeField_07 pTypeField)
-        public ulong MakeValue(AssetsFileReader reader, ulong filePos, out AssetTypeValueField ppValueField, bool bigEndian)
+        ///public bool From07(TypeField_07 typeField)
+        public void MakeValue(AssetsFileReader reader, out AssetTypeValueField valueField)
         {
-            ppValueField = new AssetTypeValueField();
-            ppValueField.templateField = this;
-            ppValueField = ReadType(reader, filePos, ppValueField, bigEndian);
-            return reader.Position;
+            valueField = new AssetTypeValueField();
+            valueField.templateField = this;
+            valueField = ReadType(reader, valueField);
         }
 
-        public AssetTypeValueField ReadType(AssetsFileReader reader, ulong filePos, AssetTypeValueField valueField, bool bigEndian)
+        public AssetTypeValueField ReadType(AssetsFileReader reader, AssetTypeValueField valueField)
         {
             if (valueField.templateField.isArray)
             {
@@ -106,13 +105,13 @@ namespace AssetsTools.NET
                     if (sizeType == EnumValueTypes.ValueType_Int32 ||
                         sizeType == EnumValueTypes.ValueType_UInt32)
                     {
-                        valueField.childrenCount = reader.ReadUInt32();
-                        valueField.pChildren = new AssetTypeValueField[valueField.childrenCount];
+                        valueField.childrenCount = reader.ReadInt32();
+                        valueField.children = new AssetTypeValueField[valueField.childrenCount];
                         for (int i = 0; i < valueField.childrenCount; i++)
                         {
-                            valueField.pChildren[i] = new AssetTypeValueField();
-                            valueField.pChildren[i].templateField = valueField.templateField.children[1];
-                            valueField.pChildren[i] = ReadType(reader, reader.Position, valueField.pChildren[i], bigEndian);
+                            valueField.children[i] = new AssetTypeValueField();
+                            valueField.children[i].templateField = valueField.templateField.children[1];
+                            valueField.children[i] = ReadType(reader, valueField.children[i]);
                         }
                         if (valueField.templateField.align) reader.Align();
                         AssetTypeArray ata = new AssetTypeArray();
@@ -143,7 +142,7 @@ namespace AssetsTools.NET
                     valueField.childrenCount = valueField.templateField.childrenCount;
                     if (valueField.childrenCount == 0)
                     {
-                        valueField.pChildren = new AssetTypeValueField[0];
+                        valueField.children = new AssetTypeValueField[0];
                         switch (valueField.templateField.valueType)
                         {
                             case EnumValueTypes.ValueType_Int8:
@@ -185,12 +184,12 @@ namespace AssetsTools.NET
                     }
                     else
                     {
-                        valueField.pChildren = new AssetTypeValueField[valueField.childrenCount];
+                        valueField.children = new AssetTypeValueField[valueField.childrenCount];
                         for (int i = 0; i < valueField.childrenCount; i++)
                         {
-                            valueField.pChildren[i] = new AssetTypeValueField();
-                            valueField.pChildren[i].templateField = valueField.templateField.children[i];
-                            valueField.pChildren[i] = ReadType(reader, reader.Position, valueField.pChildren[i], bigEndian);
+                            valueField.children[i] = new AssetTypeValueField();
+                            valueField.children[i].templateField = valueField.templateField.children[i];
+                            valueField.children[i] = ReadType(reader, valueField.children[i]);
                         }
                         if (valueField.templateField.align) reader.Align();
                     }

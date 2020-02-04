@@ -26,14 +26,14 @@ namespace AssetsView.AssetHelpers
             {
                 reader.Position = afi.absoluteFilePos;
                 int size = reader.ReadInt32();
-                reader.Position += (ulong)size * 12;
-                reader.Position += 4UL;
+                reader.Position += size * 12;
+                reader.Position += 4;
                 return reader.ReadCountStringInt32();
             }
             else if (type.name.GetString(cldb) == "MonoBehaviour")
             {
                 reader.Position = afi.absoluteFilePos;
-                reader.Position += 28UL;
+                reader.Position += 28;
                 string name = reader.ReadCountStringInt32();
                 if (name != "")
                 {

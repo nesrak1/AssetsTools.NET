@@ -4,7 +4,7 @@
     {
         public uint pos;
         public uint count;
-        public AssetsBundleEntry[] ppEntries;
+        public AssetsBundleEntry[] entries;
         public uint allocatedCount;
         //AssetsBundleEntry entries[0];
         ///public void Free();

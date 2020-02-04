@@ -9,8 +9,6 @@ namespace AssetsTools.NET
 
         public struct ValueTypes
         {
-            //I thought this was a terrible idea at first...
-            //but a basic benchmark showed 15% less memory with no cpu change
             private object value;
             public AssetTypeArray asArray
             {
@@ -82,27 +80,6 @@ namespace AssetsTools.NET
                 get { return (string)value; }
                 set { this.value = value; }
             }
-            //public AssetTypeArray asArray;
-            //public AssetTypeByteArray asByteArray;
-            //
-            //public bool asBool;
-            //
-            //public sbyte asInt8;
-            //public byte asUInt8;
-            //
-            //public short asInt16;
-            //public ushort asUInt16;
-            //
-            //public int asInt32;
-            //public uint asUInt32;
-            //
-            //public long asInt64;
-            //public ulong asUInt64;
-            //
-            //public float asFloat;
-            //public double asDouble;
-            //
-            //public string asString;
         }
         public ValueTypes value = new ValueTypes();
 
@@ -120,9 +97,6 @@ namespace AssetsTools.NET
         {
             return type;
         }
-        //-What is this monstrosity
-        //-UABE uses unions, which I could use a special struct but decided against
-        //-Obviously this doesn't cover everything, eg casting a uint8 to string
         public void Set(object valueContainer)
         {
             unchecked

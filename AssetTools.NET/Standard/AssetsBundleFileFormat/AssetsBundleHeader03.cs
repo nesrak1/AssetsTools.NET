@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetsBundleHeader03
+    public struct AssetBundleHeader03
     {
         public string signature; //0-terminated; UnityWeb or UnityRaw
         public uint fileVersion; //big-endian; 3 : Unity 3.5 and 4;
@@ -10,7 +10,7 @@
         public uint bundleDataOffs; //big-endian;
         public uint numberOfAssetsToDownload; //big-endian;
         public uint levelCount; //big-endian;
-        public AssetsBundleOffsetPair[] pLevelList;
+        public AssetsBundleOffsetPair[] levelList;
         public uint fileSize2; //big-endian; for fileVersion >= 2
         public uint unknown2; //big-endian; for fileVersion >= 3
         public byte unknown3;

@@ -1,12 +1,12 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetsBundleDirectoryInfo06
+    public struct AssetBundleDirectoryInfo06
     {
-        public ulong offset;
-        public ulong decompressedSize;
+        public long offset;
+        public long decompressedSize;
         public uint flags;
         public string name;
-        ///public ulong GetAbsolutePos(AssetsBundleHeader06 pHeader)
-        ///public ulong GetAbsolutePos(AssetsBundleFile pFile)
+        ///public ulong GetAbsolutePos(AssetsBundleHeader06 header)
+        ///public ulong GetAbsolutePos(AssetsBundleFile file)
     }
 }

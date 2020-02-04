@@ -7,41 +7,46 @@
 using Mono.Cecil;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-//see https://docs.unity3d.com/Manual/class-ScriptableObject.html for some serialized data info
-//also https://docs.unity3d.com/ScriptReference/SerializeField.html
 namespace AssetsTools.NET.Extra
 {
-    public class MonoClass
+    public class MonoDeserializer
     {
         public uint format;
-        public uint childrenCount;
-        public AssetTypeTemplateField[] children;
-        private AssemblyDefinition assembly;
-        public bool Read(string typeName, string assemblyLocation, uint format)
+        public int childrenCount;
+        public List<AssetTypeTemplateField> children;
+        private static Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
+        public void Read(string typeName, AssemblyDefinition assembly, uint format)
         {
             this.format = format;
-            DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(Path.GetDirectoryName(assemblyLocation));
-            ReaderParameters readerParameters = new ReaderParameters();
-            readerParameters.AssemblyResolver = resolver;
-            assembly = AssemblyDefinition.ReadAssembly(assemblyLocation, readerParameters);
-
-            children = new AssetTypeTemplateField[] { };
-            children = RecursiveTypeLoad(assembly.MainModule, typeName, children);
-            childrenCount = (uint)children.Length;
-            return true;
+            children = new List<AssetTypeTemplateField>();
+            RecursiveTypeLoad(assembly.MainModule, typeName, children);
+            childrenCount = children.Count;
         }
-        public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
+        public void Read(string typeName, string assemblyPath, uint format)
+        {
+            AssemblyDefinition asmDef = GetAssemblyWithDependencies(assemblyPath);
+            Read(typeName, asmDef, format);
+        }
+        public static AssemblyDefinition GetAssemblyWithDependencies(string path)
+        {
+            DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(Path.GetDirectoryName(path));
+            ReaderParameters readerParameters = new ReaderParameters()
+            {
+                AssemblyResolver = resolver
+            };
+            return AssemblyDefinition.ReadAssembly(path, readerParameters);
+        }
+        public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfoEx info, string managedPath, bool cached = true)
         {
             AssetsFile file = inst.file;
             AssetTypeTemplateField baseField = new AssetTypeTemplateField();
             baseField.FromClassDatabase(am.classFile, AssetHelper.FindAssetClassByID(am.classFile, info.curFileType), 0);
-            AssetTypeInstance mainAti = new AssetTypeInstance(baseField, file.reader, false, info.absoluteFilePos);
-            if (file.typeTree.pTypes_Unity5[info.curFileTypeOrIndex].scriptIndex != 0xFFFF)
+            AssetTypeInstance mainAti = new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
+            if (file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex != 0xFFFF)
             {
                 AssetTypeInstance scriptAti = am.GetExtAsset(inst, mainAti.GetBaseField().Get("m_Script")).instance;
                 string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
@@ -49,109 +54,130 @@ namespace AssetsTools.NET.Extra
                 string assemblyPath = Path.Combine(managedPath, assemblyName);
                 if (File.Exists(assemblyPath))
                 {
-                    MonoClass mc = new MonoClass();
-                    mc.Read(scriptName, assemblyPath, inst.file.header.format);
-                    AssetTypeTemplateField[] monoTemplateFields = mc.children;
+                    AssemblyDefinition asmDef;
+                    if (cached)
+                    {
+                        if (!loadedAssemblies.ContainsKey(assemblyName))
+                        {
+                            loadedAssemblies.Add(assemblyName, GetAssemblyWithDependencies(assemblyPath));
+                        }
+                        asmDef = loadedAssemblies[assemblyName];
+                    }
+                    else
+                    {
+                        asmDef = GetAssemblyWithDependencies(assemblyPath);
+                    }
+
+                    MonoDeserializer mc = new MonoDeserializer();
+                    mc.Read(scriptName, asmDef, inst.file.header.format);
+                    List<AssetTypeTemplateField> monoTemplateFields = mc.children;
 
                     AssetTypeTemplateField[] templateField = baseField.children.Concat(monoTemplateFields).ToArray();
                     baseField.children = templateField;
-                    baseField.childrenCount = (uint)baseField.children.Length;
+                    baseField.childrenCount = baseField.children.Length;
 
-                    mainAti = new AssetTypeInstance(baseField, file.reader, false, info.absoluteFilePos);
+                    mainAti = new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
                 }
             }
             return mainAti.GetBaseField();
         }
-        private AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, string typeName, AssetTypeTemplateField[] attf)
+        private void RecursiveTypeLoad(ModuleDefinition module, string typeName, List<AssetTypeTemplateField> attf)
         {
-            TypeDefinition type = module.GetTypes()
-                .Where(t => t.Name.Equals(typeName))
-                .Select(t => t)
-                .First();
-
-            return RecursiveTypeLoad(module, type, attf);
+            TypeDefinition type = module.GetTypes().First(t => t.Name.Equals(typeName));
+            RecursiveTypeLoad(type, attf);
         }
-        private AssetTypeTemplateField[] RecursiveTypeLoad(ModuleDefinition module, TypeDefinition type, AssetTypeTemplateField[] attf)
+        private void RecursiveTypeLoad(TypeDefinition type, List<AssetTypeTemplateField> attf)
         {
-            if (type.BaseType.Name != "Object" &&
-                type.BaseType.Name != "MonoBehaviour" &&
-                type.BaseType.Name != "ScriptableObject")
+            string baseName = type.BaseType.FullName;
+            if (baseName != "System.Object" &&
+                baseName != "UnityEngine.Object" &&
+                baseName != "UnityEngine.MonoBehaviour" &&
+                baseName != "UnityEngine.ScriptableObject")
             {
                 TypeDefinition typeDef = type.BaseType.Resolve();
-                attf = RecursiveTypeLoad(typeDef.Module, typeDef, attf);
+                RecursiveTypeLoad(typeDef, attf);
             }
 
-            AssetTypeTemplateField[] newChildren = ReadTypes(type);
-            return attf.Concat(newChildren).ToArray(); //-todo, why would you use arrays?
-            //children = children.Concat(newChildren).ToArray();
+            attf.AddRange(ReadTypes(type));
         }
-        private AssetTypeTemplateField[] ReadTypes(TypeDefinition type)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefinition type)
         {
-            FieldDefinition[] acceptableFields = GetAcceptableFields(type);
-            AssetTypeTemplateField[] localChildren = new AssetTypeTemplateField[acceptableFields.Length];
-            for (int i = 0; i < localChildren.Length; i++)
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
+            List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
+            for (int i = 0; i < acceptableFields.Count; i++)
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 FieldDefinition fieldDef = acceptableFields[i];
-                TypeDefinition fieldType = fieldDef.FieldType.Resolve();
-                if (fieldType.Name.StartsWith("List")) //should always be `1 but 'cha never know
+                TypeReference fieldTypeRef = fieldDef.FieldType;
+                TypeDefinition fieldType = fieldTypeRef.Resolve();
+                string fieldTypeName = fieldType.Name;
+                bool isArrayOrList = false;
+
+                if (fieldTypeRef.MetadataType == MetadataType.Array)
+                {
+                    ArrayType arrType = (ArrayType)fieldTypeRef;
+                    isArrayOrList = arrType.IsVector;
+                }
+                else if (fieldType.FullName == "System.Collections.Generic.List`1")
                 {
                     fieldType = ((GenericInstanceType)fieldDef.FieldType).GenericArguments[0].Resolve();
+                    fieldTypeName = fieldType.Name;
+                    isArrayOrList = true;
                 }
-                string arrayFixedName = fieldType.Name;
-                if ((fieldType.Name.EndsWith("[]") && !fieldType.Name.EndsWith("[][]")) ||
-                     fieldType.Name.EndsWith("`1")) {
-                    arrayFixedName = arrayFixedName.Substring(0, arrayFixedName.Length - 2);
-                }
+
                 field.name = fieldDef.Name;
-                field.type = ConvertBaseToPrimitive(arrayFixedName);
-                if (fieldType.IsEnum)
-                {
-                    field.valueType = EnumValueTypes.ValueType_Int32;
-                } else
-                {
-                    field.valueType = AssetTypeValueField.GetValueTypeByTypeName(field.type);
-                }
-                field.isArray = fieldDef.FieldType.IsArray;
-                field.align = IsAlignable(field.valueType);
-                field.hasValue = (field.valueType == EnumValueTypes.ValueType_None) ? false : true;
-                if (IsAcceptablePrimitiveType(fieldType))
+                field.type = ConvertBaseToPrimitive(fieldTypeName);
+                if (IsPrimitiveType(fieldType))
                 {
                     field.childrenCount = 0;
                     field.children = new AssetTypeTemplateField[] { };
-                } else if (fieldType.Name.Equals("String"))
+                }
+                else if (fieldType.Name.Equals("String"))
                 {
                     SetString(field);
-                } else if (IsAcceptableUnityType(fieldType))
+                }
+                else if (IsSpecialUnityType(fieldType))
                 {
                     SetSpecialUnity(field, fieldType);
-                } else if (DerivesFromUEObject(fieldType))
+                }
+                else if (DerivesFromUEObject(fieldType))
                 {
-                    SetPPtr(field);
-                } else if (fieldType.IsSerializable)
+                    SetPPtr(field, false);
+                }
+                else if (fieldType.IsSerializable)
                 {
                     SetSerialized(field, fieldType);
                 }
-                string baseFieldType = fieldDef.FieldType.Name;
-                if ((baseFieldType.EndsWith("[]") && !baseFieldType.EndsWith("[][]")) //IsArray won't work here for whatever reason
-                    || baseFieldType.StartsWith("List"))
+
+                if (fieldType.IsEnum)
                 {
-                    field = SetArray(field, fieldType);
+                    field.valueType = EnumValueTypes.ValueType_Int32;
                 }
-                localChildren[i] = field;
+                else
+                {
+                    field.valueType = AssetTypeValueField.GetValueTypeByTypeName(field.type);
+                }
+                field.align = TypeAligns(field.valueType);
+                field.hasValue = field.valueType != EnumValueTypes.ValueType_None;
+
+                if (isArrayOrList)
+                {
+                    field = SetArray(field);
+                }
+                localChildren.Add(field);
             }
             return localChildren;
         }
-        private FieldDefinition[] GetAcceptableFields(TypeDefinition typeDef)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefinition typeDef)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
             foreach (FieldDefinition f in typeDef.Fields)
             {
-                if (f.Attributes.HasFlag(FieldAttributes.Public) ||
+                if (HasFlag(f.Attributes, FieldAttributes.Public) ||
                     f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))) //field is public or has exception attribute
                 {
-                    if (!f.Attributes.HasFlag(FieldAttributes.Static) &&
-                        !f.Attributes.HasFlag(FieldAttributes.NotSerialized) &&
+                    if (!HasFlag(f.Attributes, FieldAttributes.Static) &&
+                        !HasFlag(f.Attributes, FieldAttributes.NotSerialized) &&
                         !f.IsInitOnly &&
                         !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
@@ -165,14 +191,14 @@ namespace AssetsTools.NET.Extra
                             ftd.IsEnum ||
                             ftd.IsSerializable ||
                             DerivesFromUEObject(ftd) ||
-                            IsAcceptableUnityType(ftd)) //field has a serializable type
+                            IsSpecialUnityType(ftd)) //field has a serializable type
                         {
                             validFields.Add(f);
                         }
                     }
                 }
             }
-            return validFields.ToArray();
+            return validFields;
         }
         private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
@@ -198,48 +224,46 @@ namespace AssetsTools.NET.Extra
             }
             return name;
         }
-        private bool IsAcceptablePrimitiveType(TypeDefinition typeDef)
+        private bool IsPrimitiveType(TypeDefinition typeDef)
         {
-            string name = typeDef.Name;
+            string name = typeDef.FullName;
             if (typeDef.IsEnum ||
-                name == "Boolean" ||
-                name == "Int64" ||
-                name == "Int16" ||
-                name == "UInt64" ||
-                name == "UInt32" ||
-                name == "UInt16" ||
-                name == "Char" ||
-                name == "Byte" ||
-                name == "SByte" ||
-                name == "Double" ||
-                name == "Single" ||
-                name == "Int32") return true;
+                name == "System.Boolean" ||
+                name == "System.Int64" ||
+                name == "System.Int16" ||
+                name == "System.UInt64" ||
+                name == "System.UInt32" ||
+                name == "System.UInt16" ||
+                name == "System.Char" ||
+                name == "System.Byte" ||
+                name == "System.SByte" ||
+                name == "System.Double" ||
+                name == "System.Single" ||
+                name == "System.Int32") return true;
             return false;
         }
-        //Not a complete list! Todo!
-        private bool IsAcceptableUnityType(TypeDefinition typeDef)
+        private bool IsSpecialUnityType(TypeDefinition typeDef)
         {
-            string name = typeDef.Name;
-            if (name == "Color" ||
-                name == "Color32" ||
-                name == "Gradient" ||
-                name == "Vector2" ||
-                name == "Vector3" ||
-                name == "Vector4" ||
-                name == "LayerMask" ||
-                name == "Quaternion" ||
-                name == "Bounds" ||
-                name == "Rect" ||
-                name == "Matrix4x4" ||
-                name == "AnimationCurve") return true;
+            string name = typeDef.FullName;
+            if (name == "UnityEngine.Color" ||
+                name == "UnityEngine.Color32" ||
+                name == "UnityEngine.Gradient" ||
+                name == "UnityEngine.Vector2" ||
+                name == "UnityEngine.Vector3" ||
+                name == "UnityEngine.Vector4" ||
+                name == "UnityEngine.LayerMask" ||
+                name == "UnityEngine.Quaternion" ||
+                name == "UnityEngine.Bounds" ||
+                name == "UnityEngine.Rect" ||
+                name == "UnityEngine.Matrix4x4" ||
+                name == "UnityEngine.AnimationCurve" ||
+                name == "UnityEngine.GUIStyle") return true;
             return false;
-        }
-        private uint GetAcceptableFieldCount(TypeDefinition typeDef)
-        {
-            return (uint)GetAcceptableFields(typeDef).Length;
         }
         private bool DerivesFromUEObject(TypeDefinition typeDef)
         {
+            if (typeDef.IsInterface)
+                return false;
             if (typeDef.BaseType.FullName == "UnityEngine.Object" ||
                 typeDef.FullName == "UnityEngine.Object")
                 return true;
@@ -247,7 +271,7 @@ namespace AssetsTools.NET.Extra
                 return DerivesFromUEObject(typeDef.BaseType.Resolve());
             return false;
         }
-        private bool IsAlignable(EnumValueTypes valueType)
+        private bool TypeAligns(EnumValueTypes valueType)
         {
             if (valueType.Equals(EnumValueTypes.ValueType_Bool) ||
                 valueType.Equals(EnumValueTypes.ValueType_Int8) ||
@@ -257,15 +281,7 @@ namespace AssetsTools.NET.Extra
                 return true;
             return false;
         }
-        private bool IsValueType(TypeDefinition typeDef)
-        {
-            if (typeDef.IsValueType || typeDef.Name.Equals("String"))
-                return true;
-            if (typeDef.IsEnum)
-                return true;
-            return false;
-        }
-        private AssetTypeTemplateField SetArray(AssetTypeTemplateField field, TypeDefinition type)
+        private AssetTypeTemplateField SetArray(AssetTypeTemplateField field)
         {
             AssetTypeTemplateField size = new AssetTypeTemplateField();
             size.name = "size";
@@ -341,14 +357,53 @@ namespace AssetsTools.NET.Extra
                 array
             };
         }
+        private void SetPPtr(AssetTypeTemplateField field, bool dollar)
+        {
+            if (dollar)
+                field.type = $"PPtr<${field.type}>";
+            else
+                field.type = $"PPtr<{field.type}>";
+            field.childrenCount = 2;
+
+            AssetTypeTemplateField fileID = new AssetTypeTemplateField();
+            fileID.name = "m_FileID";
+            fileID.type = "int";
+            fileID.valueType = EnumValueTypes.ValueType_Int32;
+            fileID.isArray = false;
+            fileID.align = false;
+            fileID.hasValue = true;
+            fileID.childrenCount = 0;
+            fileID.children = new AssetTypeTemplateField[] { };
+
+            AssetTypeTemplateField pathID = new AssetTypeTemplateField();
+            pathID.name = "m_PathID";
+            if (format < 0x10)
+            {
+                pathID.type = "int";
+                pathID.valueType = EnumValueTypes.ValueType_Int32;
+            }
+            else
+            {
+                pathID.type = "SInt64";
+                pathID.valueType = EnumValueTypes.ValueType_Int64;
+            }
+            pathID.isArray = false;
+            pathID.align = false;
+            pathID.hasValue = true;
+            pathID.childrenCount = 0;
+            pathID.children = new AssetTypeTemplateField[] { };
+            field.children = new AssetTypeTemplateField[] {
+                fileID, pathID
+            };
+        }
         private void SetSerialized(AssetTypeTemplateField field, TypeDefinition type)
         {
-            AssetTypeTemplateField[] types = new AssetTypeTemplateField[] { };
-            types = RecursiveTypeLoad(assembly.MainModule, type, types);
-            //AssetTypeTemplateField[] types = ReadTypes(type);
-            field.childrenCount = (uint)types.Length;
-            field.children = types;
+            List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
+            RecursiveTypeLoad(type, types);
+            field.childrenCount = types.Count;
+            field.children = types.ToArray();
         }
+        #region special unity serialization
         private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefinition type)
         {
             switch (type.Name)
@@ -371,13 +426,14 @@ namespace AssetsTools.NET.Extra
                 case "Color32":
                     SetGradientRGBAb(field);
                     break;
+                case "GUIStyle":
+                    SetGUIStyle(field);
+                    break;
                 default:
                     SetSerialized(field, type);
                     break;
             }
         }
-        //Todo, we may need some new deserializer file like classdatabase
-        //Currently, you can generate them from the typetree in bundles generated from the editor
         private void SetGradient(AssetTypeTemplateField field)
         {
             field.childrenCount = 27;
@@ -470,13 +526,13 @@ namespace AssetsTools.NET.Extra
         private void SetAABB(AssetTypeTemplateField field)
         {
             field.childrenCount = 2;
-            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", EnumValueTypes.ValueType_None, 3, VECf());
-            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3f", EnumValueTypes.ValueType_None, 3, VECf());
+            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", EnumValueTypes.ValueType_None, 3, Vec3f());
+            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3f", EnumValueTypes.ValueType_None, 3, Vec3f());
             field.children = new AssetTypeTemplateField[] {
                 m_Center, m_Extent
             };
         }
-        private AssetTypeTemplateField[] VECf()
+        private AssetTypeTemplateField[] Vec3f()
         {
             AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
             AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
@@ -502,42 +558,74 @@ namespace AssetsTools.NET.Extra
                 rgba
             };
         }
-        private void SetPPtr(AssetTypeTemplateField field)
+        //only supports 2019 right now
+        private void SetGUIStyle(AssetTypeTemplateField field)
         {
-            field.type = $"PPtr<{field.type}>";
-            field.childrenCount = 2;
-
-            AssetTypeTemplateField fileID = new AssetTypeTemplateField();
-            fileID.name = "m_FileID";
-            fileID.type = "int";
-            fileID.valueType = EnumValueTypes.ValueType_Int32;
-            fileID.isArray = false;
-            fileID.align = false;
-            fileID.hasValue = true;
-            fileID.childrenCount = 0;
-            fileID.children = new AssetTypeTemplateField[] { };
-
-            AssetTypeTemplateField pathID = new AssetTypeTemplateField();
-            pathID.name = "m_PathID";
-            if (format < 0x10)
-            {
-                pathID.type = "int";
-                pathID.valueType = EnumValueTypes.ValueType_Int32;
-            }
-            else
-            {
-                pathID.type = "SInt64";
-                pathID.valueType = EnumValueTypes.ValueType_Int64;
-            }
-            pathID.isArray = false;
-            pathID.align = false;
-            pathID.hasValue = true;
-            pathID.childrenCount = 0;
-            pathID.children = new AssetTypeTemplateField[] { };
-
+            field.childrenCount = 26;
+            AssetTypeTemplateField m_Name = CreateTemplateField("m_Name", "string", EnumValueTypes.ValueType_String, 1, String());
+            AssetTypeTemplateField m_Normal = CreateTemplateField("m_Normal", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Hover = CreateTemplateField("m_Hover", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Active = CreateTemplateField("m_Active", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Focused = CreateTemplateField("m_Focused", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnNormal = CreateTemplateField("m_OnNormal", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnHover = CreateTemplateField("m_OnHover", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnActive = CreateTemplateField("m_OnActive", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnFocused = CreateTemplateField("m_OnFocused", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Border = CreateTemplateField("m_Border", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
+            AssetTypeTemplateField m_Margin = CreateTemplateField("m_Margin", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
+            AssetTypeTemplateField m_Padding = CreateTemplateField("m_Padding", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
+            AssetTypeTemplateField m_Overflow = CreateTemplateField("m_Overflow", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
+            AssetTypeTemplateField m_Font = CreateTemplateField("m_Font", "PPtr<Font>", EnumValueTypes.ValueType_None, 2, PPtr());
+            AssetTypeTemplateField m_FontSize = CreateTemplateField("m_FontSize", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_FontStyle = CreateTemplateField("m_FontStyle", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_Alignment = CreateTemplateField("m_Alignment", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_WordWrap = CreateTemplateField("m_WordWrap", "bool", EnumValueTypes.ValueType_Bool);
+            AssetTypeTemplateField m_RichText = CreateTemplateField("m_RichText", "bool", EnumValueTypes.ValueType_Bool, false, true);
+            AssetTypeTemplateField m_TextClipping = CreateTemplateField("m_TextClipping", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_ImagePosition = CreateTemplateField("m_ImagePosition", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_ContentOffset = CreateTemplateField("m_ContentOffset", "Vector2f", EnumValueTypes.ValueType_None, 2, Vec2f());
+            AssetTypeTemplateField m_FixedWidth = CreateTemplateField("m_FixedWidth", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField m_FixedHeight = CreateTemplateField("m_FixedHeight", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField m_StretchWidth = CreateTemplateField("m_StretchWidth", "bool", EnumValueTypes.ValueType_Bool);
+            AssetTypeTemplateField m_StretchHeight = CreateTemplateField("m_StretchHeight", "bool", EnumValueTypes.ValueType_Bool, false, true);
             field.children = new AssetTypeTemplateField[] {
-                fileID, pathID
+                m_Name, m_Normal, m_Hover, m_Active, m_Focused, m_OnNormal, m_OnHover, m_OnActive, m_OnFocused, m_Border, m_Margin, m_Padding, m_Overflow, m_Font, m_FontSize, m_FontStyle, m_Alignment, m_WordWrap, m_RichText, m_TextClipping, m_ImagePosition, m_ContentOffset, m_FixedWidth, m_FixedHeight, m_StretchWidth, m_StretchHeight
             };
+        }
+        private AssetTypeTemplateField[] String()
+        {
+            AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField data = CreateTemplateField("char", "data", EnumValueTypes.ValueType_UInt8);
+            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.ValueType_Array, true, true, 2, new AssetTypeTemplateField[] {
+                size, data
+            });
+            return new AssetTypeTemplateField[] { Array };
+        }
+        private AssetTypeTemplateField[] GUIStyleState()
+        {
+            AssetTypeTemplateField m_Background = CreateTemplateField("m_Background", "PPtr<Texture2D>", EnumValueTypes.ValueType_None, 2, PPtr());
+            AssetTypeTemplateField m_TextColor = CreateTemplateField("m_TextColor", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
+            return new AssetTypeTemplateField[] { m_Background, m_TextColor };
+        }
+        private AssetTypeTemplateField[] RectOffset()
+        {
+            AssetTypeTemplateField m_Left = CreateTemplateField("m_Left", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_Right = CreateTemplateField("m_Right", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_Top = CreateTemplateField("m_Top", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_Bottom = CreateTemplateField("m_Bottom", "int", EnumValueTypes.ValueType_Int32);
+            return new AssetTypeTemplateField[] { m_Left, m_Right, m_Top, m_Bottom };
+        }
+        private AssetTypeTemplateField[] PPtr()
+        {
+            AssetTypeTemplateField m_FileID = CreateTemplateField("m_FileID", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_PathID = CreateTemplateField("m_PathID", "SInt64", EnumValueTypes.ValueType_Int64);
+            return new AssetTypeTemplateField[] { m_FileID, m_PathID };
+        }
+        private AssetTypeTemplateField[] Vec2f()
+        {
+            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
+            return new AssetTypeTemplateField[] { x, y };
         }
 
         private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType)
@@ -548,11 +636,11 @@ namespace AssetsTools.NET.Extra
         {
             return CreateTemplateField(name, type, valueType, isArray, align, 0, null);
         }
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, uint childrenCount, AssetTypeTemplateField[] children)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, int childrenCount, AssetTypeTemplateField[] children)
         {
             return CreateTemplateField(name, type, valueType, false, false, childrenCount, children);
         }
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align, uint childrenCount, AssetTypeTemplateField[] children)
+        private AssetTypeTemplateField CreateTemplateField(string name, string type, EnumValueTypes valueType, bool isArray, bool align, int childrenCount, AssetTypeTemplateField[] children)
         {
             AssetTypeTemplateField field = new AssetTypeTemplateField();
             field.name = name;
@@ -560,24 +648,16 @@ namespace AssetsTools.NET.Extra
             field.valueType = valueType;
             field.isArray = isArray;
             field.align = align;
-            field.hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
+            field.hasValue = valueType != EnumValueTypes.ValueType_None;
             field.childrenCount = childrenCount;
             field.children = children;
             
             return field;
         }
-    }
-
-    //https://stackoverflow.com/a/4108907
-    public static class EnumExt
-    {
-        /// <summary>
-        /// Check to see if a flags enumeration has a specific flag set.
-        /// </summary>
-        /// <param name="variable">Flags enumeration to check</param>
-        /// <param name="value">Flag to check for</param>
-        /// <returns></returns>
-        public static bool HasFlag(this Enum variable, Enum value)
+        #endregion
+        #region .net polyfill
+        //https://stackoverflow.com/a/4108907
+        private static bool HasFlag(Enum variable, Enum value)
         {
             if (variable == null)
                 return false;
@@ -595,5 +675,6 @@ namespace AssetsTools.NET.Extra
             ulong num = Convert.ToUInt64(value);
             return ((Convert.ToUInt64(variable) & num) == num);
         }
+        #endregion
     }
 }

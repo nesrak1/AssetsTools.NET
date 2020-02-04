@@ -1,11 +1,7 @@
 ﻿using AssetsTools.NET;
 using AssetsTools.NET.Extra;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AssetsView.Util
 {
@@ -13,9 +9,13 @@ namespace AssetsView.Util
     {
         public static bool AllDependenciesLoaded(AssetsManager am, AssetsFileInstance afi)
         {
-            foreach (AssetsFileDependency dep in afi.file.dependencies.pDependencies)
+            foreach (AssetsFileDependency dep in afi.file.dependencies.dependencies)
             {
                 string absAssetPath = dep.assetPath;
+                if (absAssetPath.StartsWith("archive:/"))
+                {
+                    return false; //todo
+                }
                 if (!Path.IsPathRooted(absAssetPath))
                 {
                     absAssetPath = Path.Combine(Path.GetDirectoryName(afi.path), dep.assetPath);

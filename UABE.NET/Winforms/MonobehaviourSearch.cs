@@ -31,7 +31,7 @@ namespace UABE.NET.Winforms
             startedScanning = true;
             loadingBar.Maximum = details.Count;
 
-            Dictionary<ulong, string> monos = new Dictionary<ulong, string>();
+            Dictionary<long, string> monos = new Dictionary<long, string>();
 
             BackgroundWorker bw = new BackgroundWorker();
             bw.WorkerReportsProgress = true;
@@ -66,9 +66,7 @@ namespace UABE.NET.Winforms
                             monos.Add(ad.pathID, text);
                         }
                         bw.ReportProgress(i);
-                    } catch (Exception ex)
-                    {
-                    }
+                    } catch { }
                 }
                 for (int i = 0; i < details.Count; i++)
                 {
@@ -78,12 +76,12 @@ namespace UABE.NET.Winforms
                     {
                         AssetTypeInstance gameObjectAti = manager.GetATI(manager.GetStream(ad.fileID), manager.GetInfo(ad.fileID, ad.pathID));
                         AssetTypeValueField components = gameObjectAti.GetBaseField().Get("m_Component").Get("Array");
-                        for (uint j = 0; j < components.GetValue().AsArray().size; j++)
+                        for (int j = 0; j < components.GetValue().AsArray().size; j++)
                         {
                             long id = components.Get(j).Get("component").Get("m_PathID").GetValue().AsInt64();
-                            if (monos.ContainsKey((ulong)id))
+                            if (monos.ContainsKey(id))
                             {
-                                monos[(ulong)id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "(" + ad.fileID + "/" + ad.pathID + ")";
+                                monos[id] += " -> " + gameObjectAti.GetBaseField().Get("m_Name").GetValue().AsString() + "(" + ad.fileID + "/" + ad.pathID + ")";
                             }
                         }
                         bw.ReportProgress(i);

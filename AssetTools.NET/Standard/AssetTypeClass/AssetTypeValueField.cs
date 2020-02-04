@@ -4,16 +4,16 @@
     {
         public AssetTypeTemplateField templateField;
 
-        public uint childrenCount;
-        public AssetTypeValueField[] pChildren;
+        public int childrenCount;
+        public AssetTypeValueField[] children;
         public AssetTypeValue value;
 
-        public void Read(AssetTypeValue pValue, AssetTypeTemplateField pTemplate, uint childrenCount, AssetTypeValueField[] pChildren)
+        public void Read(AssetTypeValue value, AssetTypeTemplateField template, AssetTypeValueField[] children)
         {
-            templateField = pTemplate;
-            this.childrenCount = childrenCount;
-            this.pChildren = pChildren;
-            value = pValue;
+            templateField = template;
+            this.childrenCount = children.Length;
+            this.children = children;
+            this.value = value;
         }
         ///public ulong Write(AssetsFileWriter writer, FileStream writerPar, ulong filePos);
 
@@ -24,7 +24,7 @@
         {
             get
             {
-                foreach (AssetTypeValueField atvf in pChildren)
+                foreach (AssetTypeValueField atvf in children)
                 {
                     if (atvf.templateField.name == name)
                     {
@@ -36,23 +36,23 @@
             set { }
         }
         //get a child field by its index
-        public AssetTypeValueField this[uint index]
+        public AssetTypeValueField this[int index]
         {
-            get { return pChildren[index]; }
+            get { return children[index]; }
             set { }
         }
 
         public AssetTypeValueField Get(string name) { return (this)[name]; }
-        public AssetTypeValueField Get(uint index) { return (this)[index]; }
+        public AssetTypeValueField Get(int index) { return (this)[index]; }
 
         public string GetName() { return templateField.name; }
         public string GetFieldType() { return templateField.type; }
         public AssetTypeValue GetValue() { return value; }
         public AssetTypeTemplateField GetTemplateField() { return templateField; }
-        public AssetTypeValueField[] GetChildrenList() { return pChildren; }
-        public void SetChildrenList(AssetTypeValueField[] pChildren, uint childrenCount) { this.pChildren = pChildren; this.childrenCount = childrenCount; }
+        public AssetTypeValueField[] GetChildrenList() { return children; }
+        public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; this.childrenCount = children.Length; }
 
-        public uint GetChildrenCount() { return childrenCount; }
+        public int GetChildrenCount() { return childrenCount; }
 
         public bool IsDummy()
         {
@@ -105,11 +105,6 @@
                     return EnumValueTypes.ValueType_Double;
                 case "bool":
                     return EnumValueTypes.ValueType_Bool;
-                //in the original function, array and byte array are actually returned as none, how strange
-                //case "array":
-                //    return EnumValueTypes.ValueType_Array;
-                //case "bytearray":
-                //    return EnumValueTypes.ValueType_ByteArray;
                 default:
                     return EnumValueTypes.ValueType_None;
             }

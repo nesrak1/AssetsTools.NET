@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -11,15 +12,16 @@ namespace AssetsTools.NET
         public uint compressedSize, uncompressedSize;
 
         public byte unityVersionCount;
-        public string[] pUnityVersions;
+        public string[] unityVersions;
         
         public uint stringTableLen;
         public uint stringTablePos;
-        public ulong Read(AssetsFileReader reader, ulong filePos)
+        public void Read(AssetsFileReader reader)
         {
             reader.bigEndian = false;
             header = reader.ReadStringLength(4);
-            if (header != "cldb") return reader.Position;
+            if (header != "cldb")
+                throw new NotImplementedException("header not detected. is this a cldb file?");
             fileVersion = reader.ReadByte();
             switch (fileVersion)
             {
@@ -27,24 +29,24 @@ namespace AssetsTools.NET
                     break;
                 case 3:
                     compressionType = reader.ReadByte();
-                    if (compressionType != 0) return reader.Position;
+                    if (compressionType != 0)
+                        throw new NotImplementedException("compressed cldb reading not supported");
                     compressedSize = reader.ReadUInt32();
                     uncompressedSize = reader.ReadUInt32();
                     break;
                 default:
-                    return reader.Position;
+                    return;
             }
             unityVersionCount = reader.ReadByte();
-            pUnityVersions = new string[unityVersionCount];
+            unityVersions = new string[unityVersionCount];
             for (int i = 0; i < unityVersionCount; i++)
             {
-                pUnityVersions[i] = reader.ReadCountString();
+                unityVersions[i] = reader.ReadCountString();
             }
             stringTableLen = reader.ReadUInt32();
             stringTablePos = reader.ReadUInt32();
-            return reader.Position;
         }
-        public ulong Write(AssetsFileWriter writer, ulong filePos)
+        public void Write(AssetsFileWriter writer)
         {
             writer.bigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(header));
@@ -54,22 +56,22 @@ namespace AssetsTools.NET
                 case 1:
                     break;
                 case 3:
+                    if (compressionType != 0)
+                        throw new NotImplementedException("compressed cldb writing not supported");
                     writer.Write(compressionType);
-                    if (compressionType != 0) return writer.Position;
                     writer.Write(compressedSize);
                     writer.Write(uncompressedSize);
                     break;
                 default:
-                    return writer.Position;
+                    return;
             }
             writer.Write(unityVersionCount);
             for (int i = 0; i < unityVersionCount; i++)
             {
-                writer.WriteCountString(pUnityVersions[i]);
+                writer.WriteCountString(unityVersions[i]);
             }
             writer.Write(stringTableLen);
             writer.Write(stringTablePos);
-            return writer.Position;
         }
     }
 }

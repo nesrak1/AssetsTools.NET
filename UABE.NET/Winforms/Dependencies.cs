@@ -23,7 +23,7 @@ namespace UABE.NET.Winforms
             listBox1.Items.Add("0 - " + fileName);
             for (int i = 0; i < af.dependencies.dependencyCount; i++)
             {
-                listBox1.Items.Add((i + 1) + " - " + af.dependencies.pDependencies[i].assetPath.Replace("library/", "resources\\"));
+                listBox1.Items.Add((i + 1) + " - " + af.dependencies.dependencies[i].assetPath.Replace("library/", "resources\\"));
             }
             listBox2.Items.Add("UABE.NET currently does");
             listBox2.Items.Add("not load dependencies");

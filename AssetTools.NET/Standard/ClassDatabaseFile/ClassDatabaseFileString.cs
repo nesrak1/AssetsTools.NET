@@ -10,18 +10,18 @@
         public TableString str;
 
         public bool fromStringTable;
-        public string GetString(ClassDatabaseFile pFile)
+        public string GetString(ClassDatabaseFile file)
         {
             if (fromStringTable)
             {
-                return AssetsFileReader.ReadNullTerminatedArray(pFile.stringTable, str.stringTableOffset);
+                return AssetsFileReader.ReadNullTerminatedArray(file.stringTable, str.stringTableOffset);
             }
             else
             {
                 return str.@string;
             }
         }
-        public ulong Read(AssetsFileReader reader, ulong filePos)
+        public void Read(AssetsFileReader reader)
         {
             fromStringTable = true;
             str.stringTableOffset = reader.ReadUInt32();
@@ -35,16 +35,14 @@
                 fromStringTable = false;
                 str.@string = reader.ReadCountString();
             }
-            return reader.Position;
         }
-        public ulong Write(AssetsFileWriter writer, ulong filePos)
+        public void Write(AssetsFileWriter writer)
         {
             writer.Write(str.stringTableOffset);
             if (!fromStringTable)
             {
                 writer.WriteCountString(str.@string);
             }
-            return writer.Position;
         }
     }
 }

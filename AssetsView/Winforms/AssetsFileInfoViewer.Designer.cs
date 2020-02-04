@@ -52,12 +52,12 @@
             this.label11 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
-            this.textBox11 = new System.Windows.Forms.TextBox();
-            this.textBox10 = new System.Windows.Forms.TextBox();
-            this.textBox9 = new System.Windows.Forms.TextBox();
-            this.textBox8 = new System.Windows.Forms.TextBox();
-            this.textBox6 = new System.Windows.Forms.TextBox();
-            this.textBox7 = new System.Windows.Forms.TextBox();
+            this.ttr_flags = new System.Windows.Forms.TextBox();
+            this.ttr_index = new System.Windows.Forms.TextBox();
+            this.ttr_size = new System.Windows.Forms.TextBox();
+            this.ttr_isarray = new System.Windows.Forms.TextBox();
+            this.ttr_depth = new System.Windows.Forms.TextBox();
+            this.ttr_version = new System.Windows.Forms.TextBox();
             this.ttr_monohash = new System.Windows.Forms.TextBox();
             this.ttr_hash = new System.Windows.Forms.TextBox();
             this.ttr_scriptid = new System.Windows.Forms.TextBox();
@@ -180,7 +180,7 @@
             this.tabPage2.Controls.Add(this.splitContainer1);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.tabPage2.Size = new System.Drawing.Size(613, 312);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Type Tree";
@@ -211,12 +211,12 @@
             this.splitContainer1.Panel2.Controls.Add(this.label11);
             this.splitContainer1.Panel2.Controls.Add(this.label10);
             this.splitContainer1.Panel2.Controls.Add(this.label9);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox11);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox10);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox9);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox8);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox6);
-            this.splitContainer1.Panel2.Controls.Add(this.textBox7);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_flags);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_index);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_size);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_isarray);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_depth);
+            this.splitContainer1.Panel2.Controls.Add(this.ttr_version);
             this.splitContainer1.Panel2.Controls.Add(this.ttr_monohash);
             this.splitContainer1.Panel2.Controls.Add(this.ttr_hash);
             this.splitContainer1.Panel2.Controls.Add(this.ttr_scriptid);
@@ -224,7 +224,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.ttr_type);
             this.splitContainer1.Panel2.Controls.Add(this.ttr_list);
             this.splitContainer1.Size = new System.Drawing.Size(613, 312);
-            this.splitContainer1.SplitterDistance = 207;
+            this.splitContainer1.SplitterDistance = 206;
             this.splitContainer1.TabIndex = 0;
             // 
             // ttr_tree
@@ -234,13 +234,14 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ttr_tree.Location = new System.Drawing.Point(3, 3);
             this.ttr_tree.Name = "ttr_tree";
-            this.ttr_tree.Size = new System.Drawing.Size(201, 303);
+            this.ttr_tree.Size = new System.Drawing.Size(200, 303);
             this.ttr_tree.TabIndex = 0;
+            this.ttr_tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.ttr_tree_AfterSelect);
             // 
             // label19
             // 
             this.label19.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label19.Location = new System.Drawing.Point(211, 289);
+            this.label19.Location = new System.Drawing.Point(210, 289);
             this.label19.Name = "label19";
             this.label19.Size = new System.Drawing.Size(66, 20);
             this.label19.TabIndex = 2;
@@ -250,7 +251,7 @@
             // label18
             // 
             this.label18.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label18.Location = new System.Drawing.Point(211, 263);
+            this.label18.Location = new System.Drawing.Point(210, 263);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(66, 20);
             this.label18.TabIndex = 2;
@@ -260,7 +261,7 @@
             // label17
             // 
             this.label17.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label17.Location = new System.Drawing.Point(211, 237);
+            this.label17.Location = new System.Drawing.Point(210, 237);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(66, 20);
             this.label17.TabIndex = 2;
@@ -270,7 +271,7 @@
             // label16
             // 
             this.label16.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label16.Location = new System.Drawing.Point(211, 211);
+            this.label16.Location = new System.Drawing.Point(210, 211);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(66, 20);
             this.label16.TabIndex = 2;
@@ -280,7 +281,7 @@
             // label15
             // 
             this.label15.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label15.Location = new System.Drawing.Point(211, 185);
+            this.label15.Location = new System.Drawing.Point(210, 185);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(66, 20);
             this.label15.TabIndex = 2;
@@ -290,7 +291,7 @@
             // label14
             // 
             this.label14.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label14.Location = new System.Drawing.Point(211, 159);
+            this.label14.Location = new System.Drawing.Point(210, 159);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(66, 20);
             this.label14.TabIndex = 2;
@@ -300,7 +301,7 @@
             // label13
             // 
             this.label13.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label13.Location = new System.Drawing.Point(211, 107);
+            this.label13.Location = new System.Drawing.Point(210, 107);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(66, 20);
             this.label13.TabIndex = 2;
@@ -310,7 +311,7 @@
             // label12
             // 
             this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label12.Location = new System.Drawing.Point(211, 81);
+            this.label12.Location = new System.Drawing.Point(210, 81);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(66, 20);
             this.label12.TabIndex = 2;
@@ -320,7 +321,7 @@
             // label11
             // 
             this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label11.Location = new System.Drawing.Point(211, 55);
+            this.label11.Location = new System.Drawing.Point(210, 55);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(66, 20);
             this.label11.TabIndex = 2;
@@ -330,7 +331,7 @@
             // label10
             // 
             this.label10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label10.Location = new System.Drawing.Point(211, 29);
+            this.label10.Location = new System.Drawing.Point(210, 29);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(66, 20);
             this.label10.TabIndex = 2;
@@ -340,71 +341,71 @@
             // label9
             // 
             this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label9.Location = new System.Drawing.Point(211, 3);
+            this.label9.Location = new System.Drawing.Point(210, 3);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(66, 20);
             this.label9.TabIndex = 2;
             this.label9.Text = "Type";
             this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // textBox11
+            // ttr_flags
             // 
-            this.textBox11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox11.Location = new System.Drawing.Point(283, 289);
-            this.textBox11.Name = "textBox11";
-            this.textBox11.ReadOnly = true;
-            this.textBox11.Size = new System.Drawing.Size(113, 20);
-            this.textBox11.TabIndex = 3;
+            this.ttr_flags.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_flags.Location = new System.Drawing.Point(282, 289);
+            this.ttr_flags.Name = "ttr_flags";
+            this.ttr_flags.ReadOnly = true;
+            this.ttr_flags.Size = new System.Drawing.Size(113, 20);
+            this.ttr_flags.TabIndex = 3;
             // 
-            // textBox10
+            // ttr_index
             // 
-            this.textBox10.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox10.Location = new System.Drawing.Point(283, 263);
-            this.textBox10.Name = "textBox10";
-            this.textBox10.ReadOnly = true;
-            this.textBox10.Size = new System.Drawing.Size(113, 20);
-            this.textBox10.TabIndex = 3;
+            this.ttr_index.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_index.Location = new System.Drawing.Point(282, 263);
+            this.ttr_index.Name = "ttr_index";
+            this.ttr_index.ReadOnly = true;
+            this.ttr_index.Size = new System.Drawing.Size(113, 20);
+            this.ttr_index.TabIndex = 3;
             // 
-            // textBox9
+            // ttr_size
             // 
-            this.textBox9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox9.Location = new System.Drawing.Point(283, 237);
-            this.textBox9.Name = "textBox9";
-            this.textBox9.ReadOnly = true;
-            this.textBox9.Size = new System.Drawing.Size(113, 20);
-            this.textBox9.TabIndex = 3;
+            this.ttr_size.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_size.Location = new System.Drawing.Point(282, 237);
+            this.ttr_size.Name = "ttr_size";
+            this.ttr_size.ReadOnly = true;
+            this.ttr_size.Size = new System.Drawing.Size(113, 20);
+            this.ttr_size.TabIndex = 3;
             // 
-            // textBox8
+            // ttr_isarray
             // 
-            this.textBox8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox8.Location = new System.Drawing.Point(283, 211);
-            this.textBox8.Name = "textBox8";
-            this.textBox8.ReadOnly = true;
-            this.textBox8.Size = new System.Drawing.Size(113, 20);
-            this.textBox8.TabIndex = 3;
+            this.ttr_isarray.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_isarray.Location = new System.Drawing.Point(282, 211);
+            this.ttr_isarray.Name = "ttr_isarray";
+            this.ttr_isarray.ReadOnly = true;
+            this.ttr_isarray.Size = new System.Drawing.Size(113, 20);
+            this.ttr_isarray.TabIndex = 3;
             // 
-            // textBox6
+            // ttr_depth
             // 
-            this.textBox6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox6.Location = new System.Drawing.Point(283, 185);
-            this.textBox6.Name = "textBox6";
-            this.textBox6.ReadOnly = true;
-            this.textBox6.Size = new System.Drawing.Size(113, 20);
-            this.textBox6.TabIndex = 3;
+            this.ttr_depth.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_depth.Location = new System.Drawing.Point(282, 185);
+            this.ttr_depth.Name = "ttr_depth";
+            this.ttr_depth.ReadOnly = true;
+            this.ttr_depth.Size = new System.Drawing.Size(113, 20);
+            this.ttr_depth.TabIndex = 3;
             // 
-            // textBox7
+            // ttr_version
             // 
-            this.textBox7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox7.Location = new System.Drawing.Point(283, 159);
-            this.textBox7.Name = "textBox7";
-            this.textBox7.ReadOnly = true;
-            this.textBox7.Size = new System.Drawing.Size(113, 20);
-            this.textBox7.TabIndex = 3;
+            this.ttr_version.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.ttr_version.Location = new System.Drawing.Point(282, 159);
+            this.ttr_version.Name = "ttr_version";
+            this.ttr_version.ReadOnly = true;
+            this.ttr_version.Size = new System.Drawing.Size(113, 20);
+            this.ttr_version.TabIndex = 3;
             // 
             // ttr_monohash
             // 
             this.ttr_monohash.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ttr_monohash.Location = new System.Drawing.Point(283, 107);
+            this.ttr_monohash.Location = new System.Drawing.Point(282, 107);
             this.ttr_monohash.Name = "ttr_monohash";
             this.ttr_monohash.ReadOnly = true;
             this.ttr_monohash.Size = new System.Drawing.Size(113, 20);
@@ -413,7 +414,7 @@
             // ttr_hash
             // 
             this.ttr_hash.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ttr_hash.Location = new System.Drawing.Point(283, 81);
+            this.ttr_hash.Location = new System.Drawing.Point(282, 81);
             this.ttr_hash.Name = "ttr_hash";
             this.ttr_hash.ReadOnly = true;
             this.ttr_hash.Size = new System.Drawing.Size(113, 20);
@@ -422,7 +423,7 @@
             // ttr_scriptid
             // 
             this.ttr_scriptid.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ttr_scriptid.Location = new System.Drawing.Point(283, 55);
+            this.ttr_scriptid.Location = new System.Drawing.Point(282, 55);
             this.ttr_scriptid.Name = "ttr_scriptid";
             this.ttr_scriptid.ReadOnly = true;
             this.ttr_scriptid.Size = new System.Drawing.Size(113, 20);
@@ -431,7 +432,7 @@
             // ttr_typeid
             // 
             this.ttr_typeid.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ttr_typeid.Location = new System.Drawing.Point(283, 29);
+            this.ttr_typeid.Location = new System.Drawing.Point(282, 29);
             this.ttr_typeid.Name = "ttr_typeid";
             this.ttr_typeid.ReadOnly = true;
             this.ttr_typeid.Size = new System.Drawing.Size(113, 20);
@@ -440,7 +441,7 @@
             // ttr_type
             // 
             this.ttr_type.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.ttr_type.Location = new System.Drawing.Point(283, 3);
+            this.ttr_type.Location = new System.Drawing.Point(282, 3);
             this.ttr_type.Name = "ttr_type";
             this.ttr_type.ReadOnly = true;
             this.ttr_type.Size = new System.Drawing.Size(113, 20);
@@ -455,7 +456,7 @@
             this.ttr_list.IntegralHeight = false;
             this.ttr_list.Location = new System.Drawing.Point(3, 3);
             this.ttr_list.Name = "ttr_list";
-            this.ttr_list.Size = new System.Drawing.Size(202, 303);
+            this.ttr_list.Size = new System.Drawing.Size(201, 303);
             this.ttr_list.TabIndex = 0;
             this.ttr_list.SelectedIndexChanged += new System.EventHandler(this.Ttr_list_SelectedIndexChanged);
             // 
@@ -465,7 +466,7 @@
             this.tabPage1.Controls.Add(this.groupBox1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
             this.tabPage1.Size = new System.Drawing.Size(613, 312);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Asset/Type Tree Headers";
@@ -676,14 +677,14 @@
             this.tabControl1.Size = new System.Drawing.Size(621, 338);
             this.tabControl1.TabIndex = 0;
             // 
-            // AssetInfoViewer
+            // AssetsFileInfoViewer
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(645, 362);
             this.Controls.Add(this.tabControl1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "AssetInfoViewer";
+            this.Name = "AssetsFileInfoViewer";
             this.Text = "Assets File Info Viewer";
             this.Load += new System.EventHandler(this.AssetInfo_Load);
             this.tabPage4.ResumeLayout(false);
@@ -724,12 +725,12 @@
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.TextBox textBox11;
-        private System.Windows.Forms.TextBox textBox10;
-        private System.Windows.Forms.TextBox textBox9;
-        private System.Windows.Forms.TextBox textBox8;
-        private System.Windows.Forms.TextBox textBox6;
-        private System.Windows.Forms.TextBox textBox7;
+        private System.Windows.Forms.TextBox ttr_flags;
+        private System.Windows.Forms.TextBox ttr_index;
+        private System.Windows.Forms.TextBox ttr_size;
+        private System.Windows.Forms.TextBox ttr_isarray;
+        private System.Windows.Forms.TextBox ttr_depth;
+        private System.Windows.Forms.TextBox ttr_version;
         private System.Windows.Forms.TextBox ttr_monohash;
         private System.Windows.Forms.TextBox ttr_hash;
         private System.Windows.Forms.TextBox ttr_scriptid;

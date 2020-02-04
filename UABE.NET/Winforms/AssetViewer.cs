@@ -78,7 +78,7 @@ namespace UABE.NET.Winforms
             AssetsFileReader worker = new AssetsFileReader(assetStream);
             worker.bigEndian = false;
 
-            foreach (AssetFileInfoEx afi in aft.pAssetFileInfo)
+            foreach (AssetFileInfoEx afi in aft.assetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(cldb, afi.curFileType);
                 string assetName = GetAssetNameFast(afi, cldb, type, worker);
@@ -97,7 +97,7 @@ namespace UABE.NET.Winforms
                         (uint)file,
                         afi.curFileType,
                         afi.absoluteFilePos,
-                        af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex
+                        af.typeTree.types_Unity5[afi.curFileTypeOrIndex].scriptIndex
                     )
                 );
                 assetList.Items.Add(new ListViewItem(items));
@@ -108,17 +108,17 @@ namespace UABE.NET.Winforms
             assetsManager.LoadClassFile(Path.Combine(Application.StartupPath, "cldb.dat"));
             AssetsFileReader worker = new AssetsFileReader(assetStream);
             worker.bigEndian = false;
-            foreach (AssetFileInfoEx afi in assetsManager.initialTable.pAssetFileInfo)
+            foreach (AssetFileInfoEx afi in assetsManager.initialTable.assetFileInfo)
             {
                 AddAssetItem(assetsManager.initialFile, afi, worker, 0);
             }
             assetList.Items.RemoveAt(0);
-            uint id = 1;
+            int id = 1;
             foreach (AssetsManagerLegacy.Dependency dep in assetsManager.dependencies)
             {
                 worker = new AssetsFileReader(dep.file);
                 worker.bigEndian = false;
-                foreach (AssetFileInfoEx afi in dep.aft.pAssetFileInfo)
+                foreach (AssetFileInfoEx afi in dep.aft.assetFileInfo)
                 {
                     AddAssetItem(dep.af, afi, worker, id);
                 }
@@ -126,7 +126,7 @@ namespace UABE.NET.Winforms
             }
         }
 
-        private void AddAssetItem(AssetsFile af, AssetFileInfoEx afi, AssetsFileReader worker, uint fileId)
+        private void AddAssetItem(AssetsFile af, AssetFileInfoEx afi, AssetsFileReader worker, int fileId)
         {
             uint classId;
             ushort monoId;
@@ -145,8 +145,8 @@ namespace UABE.NET.Winforms
             }
             else
             {
-                classId = (uint)af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].classId;
-                monoId = af.typeTree.pTypes_Unity5[afi.curFileTypeOrIndex].scriptIndex;
+                classId = (uint)af.typeTree.unity5Types[afi.curFileTypeOrIndex].classId;
+                monoId = af.typeTree.unity5Types[afi.curFileTypeOrIndex].scriptIndex;
             }
             ClassDatabaseType type = AssetHelper.FindAssetClassByID(assetsManager.initialClassFile, classId);
             if (type == null)
@@ -213,7 +213,7 @@ namespace UABE.NET.Winforms
             {
                 reader.Position = afi.absoluteFilePos;
                 int size = reader.ReadInt32();
-                reader.Position += (ulong)(size * 12);
+                reader.Position += size * 12;
                 reader.Position += 4;
                 return reader.ReadCountStringInt32();
             } else if (type.name.GetString(cldb) == "MonoBehaviour")
@@ -243,13 +243,13 @@ namespace UABE.NET.Winforms
         {
             public string name;
             public string typeName;
-            public ulong pathID;
-            public uint fileID;
+            public long pathID;
+            public int fileID;
             public uint type;
-            public ulong position;
+            public long position;
             public ushort monoType;
 
-            public AssetDetails(string name, string typeName, ulong pathID, uint fileID, uint type, ulong position, ushort monoType)
+            public AssetDetails(string name, string typeName, long pathID, int fileID, uint type, long position, ushort monoType)
             {
                 this.name = name;
                 this.typeName = typeName;

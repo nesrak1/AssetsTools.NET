@@ -1,21 +1,22 @@
-﻿namespace AssetsTools.NET
+﻿using System.Collections.Generic;
+
+namespace AssetsTools.NET
 {
     public struct PreloadList
     {
-        public uint len;
-        public AssetPPtr[] items;
+        public int len;
+        public List<AssetPPtr> items;
 
-        public ulong Read(ulong absFilePos, AssetsFileReader reader, uint format, bool bigEndian)
+        public void Read(AssetsFileReader reader)
         {
-            len = reader.ReadUInt32();
-            items = new AssetPPtr[len];
+            len = reader.ReadInt32();
+            items = new List<AssetPPtr>();
             for (int i = 0; i < len; i++)
             {
-                items[i] = new AssetPPtr(reader.ReadUInt32(), reader.ReadUInt64());
+                items.Add(new AssetPPtr(reader.ReadInt32(), reader.ReadInt64()));
             }
-            return reader.Position;
         }
-        public ulong Write(ulong absFilePos, AssetsFileWriter writer, uint format)
+        public void Write(AssetsFileWriter writer)
         {
             writer.Write(len);
             for (int i = 0; i < len; i++)
@@ -23,7 +24,6 @@
                 writer.Write(items[i].fileID);
                 writer.Write(items[i].pathID);
             }
-            return writer.Position;
         }
     }
 }

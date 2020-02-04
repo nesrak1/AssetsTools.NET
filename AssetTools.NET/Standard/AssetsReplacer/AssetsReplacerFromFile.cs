@@ -1,10 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace AssetsTools.NET
 {
     public class AssetsReplacerFromFile : AssetsReplacer
     {
-        public AssetsReplacerFromFile(uint fileID, ulong pathID, int classID, ushort monoScriptIndex, FileStream stream, ulong offset, ulong size)
+        public AssetsReplacerFromFile(int fileID, long pathID, int classID, ushort monoScriptIndex, FileStream stream, long offset, long size)
         {
             this.fileID = fileID;
             this.pathID = pathID;
@@ -14,22 +15,22 @@ namespace AssetsTools.NET
             this.offset = offset;
             this.size = size;
         }
-        private uint fileID;
-        private ulong pathID;
+        private int fileID;
+        private long pathID;
         private int classID;
         private ushort monoScriptIndex;
         private FileStream stream;
-        private ulong offset;
-        private ulong size;
+        private long offset;
+        private long size;
         public override AssetsReplacementType GetReplacementType()
         {
             return AssetsReplacementType.AssetsReplacement_AddOrModify;
         }
-        public override uint GetFileID()
+        public override int GetFileID()
         {
             return fileID;
         }
-        public override ulong GetPathID()
+        public override long GetPathID()
         {
             return pathID;
         }
@@ -41,11 +42,11 @@ namespace AssetsTools.NET
         {
             return monoScriptIndex;
         }
-        public override ulong GetSize()
+        public override long GetSize()
         {
             return size;
         }
-        public override ulong Write(ulong pos, AssetsFileWriter writer)
+        public override long Write(AssetsFileWriter writer)
         {
             stream.Position = (int)offset;
             byte[] assetData = new byte[size];
@@ -53,10 +54,9 @@ namespace AssetsTools.NET
             writer.Write(assetData);
             return writer.Position;
         }
-        public override ulong WriteReplacer(ulong pos, AssetsFileWriter writer)
+        public override long WriteReplacer(AssetsFileWriter writer)
         {
-            //-no idea what this is supposed to write
-            return writer.Position;
+            throw new NotImplementedException("not implemented");
         }
     }
 }

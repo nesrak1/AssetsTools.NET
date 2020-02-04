@@ -2,12 +2,12 @@
 {
     public class AssetPPtr
     {
-        public AssetPPtr(uint fileID, ulong pathID)
+        public AssetPPtr(int fileID, long pathID)
         {
             this.fileID = fileID;
             this.pathID = pathID;
         }
-        public uint fileID;
-        public ulong pathID;
+        public int fileID;
+        public long pathID;
     }
 }

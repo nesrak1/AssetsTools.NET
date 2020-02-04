@@ -2,21 +2,20 @@
 using SevenZip.Compression.LZMA;
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET
 {
-    public class AssetsBundleFile
+    public class AssetBundleFile
     {
         //AssetsFileReader reader;
-        public AssetsBundleHeader03 bundleHeader3;
-        public AssetsBundleHeader06 bundleHeader6;
+        public AssetBundleHeader03 bundleHeader3;
+        public AssetBundleHeader06 bundleHeader6;
 
         public AssetsList assetsLists3;
-        public AssetsBundleBlockAndDirectoryList06 bundleInf6;
+        public AssetBundleBlockAndDirectoryList06 bundleInf6;
 
-        public uint listCount;
-
-        private AssetsFileReader reader;
+        public AssetsFileReader reader;
 
         ///public AssetsBundleFile();
         ///public ~AssetsBundleFile();
@@ -24,7 +23,7 @@ namespace AssetsTools.NET
         {
             reader.Close();
         }
-        public bool Read(AssetsFileReader reader, /*AssetsFileVerifyLogger errorLogger = NULL,*/ bool allowCompressed = false)
+        public bool Read(AssetsFileReader reader, bool allowCompressed = false)
         {
             this.reader = reader;
             reader.ReadNullTerminated();
@@ -32,33 +31,32 @@ namespace AssetsTools.NET
             if (version == 6)
             {
                 reader.Position = 0;
-                bundleHeader6 = new AssetsBundleHeader06();
-                if (bundleHeader6.Read(reader))
+                bundleHeader6 = new AssetBundleHeader06();
+                bundleHeader6.Read(reader);
+                if (bundleHeader6.signature == "UnityFS")
                 {
-                    if (bundleHeader6.signature == "UnityFS")
+                    bundleInf6 = new AssetBundleBlockAndDirectoryList06();
+                    if ((bundleHeader6.flags & 0x3F) != 0)
                     {
-                        bundleInf6 = new AssetsBundleBlockAndDirectoryList06();
-                        if ((bundleHeader6.flags & 0x3F) != 0)
+                        if (allowCompressed)
                         {
-                            if (allowCompressed)
-                            {
-                                return true;
-                            }
-                            else
-                            {
-                                Close();
-                                return false;
-                            }
+                            return true;
                         }
                         else
                         {
-                            return bundleInf6.Read(bundleHeader6.GetBundleInfoOffset(), reader);
+                            Close();
+                            return false;
                         }
                     }
                     else
                     {
-                        new NotImplementedException("Non UnityFS bundles are not supported yet.");
+                        bundleInf6.Read(bundleHeader6.GetBundleInfoOffset(), reader);
+                        return true;
                     }
+                }
+                else
+                {
+                    new NotImplementedException("Non UnityFS bundles are not supported yet.");
                 }
             }
             else if (version == 3)
@@ -74,7 +72,7 @@ namespace AssetsTools.NET
         ///public bool Write(AssetsFileReader reader, LPARAM readerPar,
         ///    AssetsFileWriter writer, LPARAM writerPar,
         ///
-        ///    class BundleReplacer **pReplacers, size_t replacerCount,
+        ///    class BundleReplacer **replacers, size_t replacerCount,
         ///    AssetsFileVerifyLogger errorLogger = NULL, ClassDatabaseFile* typeMeta = NULL);
         //-todo, use a faster custom bundle decompressor. currently a copy paste of unity studio's
         public bool Unpack(AssetsFileReader reader, AssetsFileWriter writer)
@@ -84,15 +82,19 @@ namespace AssetsTools.NET
                 reader.Position = bundleHeader6.GetBundleInfoOffset();
                 MemoryStream blocksInfoStream;
                 AssetsFileReader memReader;
+                int compressedSize = (int)bundleHeader6.compressedSize;
                 switch (bundleHeader6.flags & 0x3F)
                 {
                     case 1:
-                        blocksInfoStream = SevenZipHelper.StreamDecompress(new MemoryStream(reader.ReadBytes((int)bundleHeader6.compressedSize)));
+                        using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
+                        {
+                            blocksInfoStream = SevenZipHelper.StreamDecompress(mstream);
+                        }
                         break;
                     case 2:
                     case 3:
                         byte[] uncompressedBytes = new byte[bundleHeader6.decompressedSize];
-                        using (var mstream = new MemoryStream(reader.ReadBytes((int)bundleHeader6.compressedSize)))
+                        using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
                         {
                             var decoder = new Lz4DecoderStream(mstream);
                             decoder.Read(uncompressedBytes, 0, (int)bundleHeader6.decompressedSize);
@@ -115,7 +117,7 @@ namespace AssetsTools.NET
                 byte[][] blocksData = new byte[bundleInf6.blockCount][];
                 for (int i = 0; i < bundleInf6.blockCount; i++)
                 {
-                    AssetsBundleBlockInfo06 info = bundleInf6.blockInf[i];
+                    AssetBundleBlockInfo06 info = bundleInf6.blockInf[i];
                     byte[] data = reader.ReadBytes((int)info.compressedSize);
                     switch (info.flags & 0x3F)
                     {
@@ -143,7 +145,7 @@ namespace AssetsTools.NET
                             break;
                     }
                 }
-                AssetsBundleHeader06 newBundleHeader6 = new AssetsBundleHeader06()
+                AssetBundleHeader06 newBundleHeader6 = new AssetBundleHeader06()
                 {
                     signature = bundleHeader6.signature,
                     fileVersion = bundleHeader6.fileVersion,
@@ -154,26 +156,26 @@ namespace AssetsTools.NET
                     decompressedSize = bundleHeader6.decompressedSize,
                     flags = bundleHeader6.flags & 0x40 //set compression and block position to 0
                 };
-                ulong fileSize = newBundleHeader6.GetFileDataOffset();
+                long fileSize = newBundleHeader6.GetFileDataOffset();
                 for (int i = 0; i < bundleInf6.blockCount; i++)
                     fileSize += bundleInf6.blockInf[i].decompressedSize;
                 newBundleHeader6.totalFileSize = fileSize;
-                AssetsBundleBlockAndDirectoryList06 newBundleInf6 = new AssetsBundleBlockAndDirectoryList06()
+                AssetBundleBlockAndDirectoryList06 newBundleInf6 = new AssetBundleBlockAndDirectoryList06()
                 {
                     checksumLow = 0, //-todo, figure out how to make real checksums, uabe sets these to 0 too
                     checksumHigh = 0,
                     blockCount = bundleInf6.blockCount,
                     directoryCount = bundleInf6.directoryCount
                 };
-                newBundleInf6.blockInf = new AssetsBundleBlockInfo06[newBundleInf6.blockCount];
+                newBundleInf6.blockInf = new AssetBundleBlockInfo06[newBundleInf6.blockCount];
                 for (int i = 0; i < newBundleInf6.blockCount; i++)
                 {
-                    newBundleInf6.blockInf[i] = new AssetsBundleBlockInfo06();
+                    newBundleInf6.blockInf[i] = new AssetBundleBlockInfo06();
                     newBundleInf6.blockInf[i].compressedSize = bundleInf6.blockInf[i].decompressedSize;
                     newBundleInf6.blockInf[i].decompressedSize = bundleInf6.blockInf[i].decompressedSize;
                     newBundleInf6.blockInf[i].flags = (ushort)(bundleInf6.blockInf[i].flags & 0xC0); //set compression to none
                 }
-                newBundleInf6.dirInf = new AssetsBundleDirectoryInfo06[newBundleInf6.directoryCount];
+                newBundleInf6.dirInf = new AssetBundleDirectoryInfo06[newBundleInf6.directoryCount];
                 for (int i = 0; i < newBundleInf6.directoryCount; i++)
                 {
                     newBundleInf6.dirInf[i].offset = bundleInf6.dirInf[i].offset;
@@ -181,8 +183,8 @@ namespace AssetsTools.NET
                     newBundleInf6.dirInf[i].flags = bundleInf6.dirInf[i].flags;
                     newBundleInf6.dirInf[i].name = bundleInf6.dirInf[i].name;
                 }
-                newBundleHeader6.Write(writer, 0);
-                newBundleInf6.Write(writer, writer.Position);
+                newBundleHeader6.Write(writer);
+                newBundleInf6.Write(writer);
                 for (int i = 0; i < newBundleInf6.blockCount; i++)
                 {
                     writer.Write(blocksData[i]);
@@ -192,10 +194,32 @@ namespace AssetsTools.NET
             return false;
         }
         ///public bool Pack(AssetsFileReader reader, LPARAM lPar, AssetsFileWriter writer, LPARAM writerPar);
-        ///public bool IsAssetsFile(AssetsFileReader reader, LPARAM pLPar, AssetsBundleDirectoryInfo06* pEntry);
-        ///public bool IsAssetsFile(AssetsFileReader reader, LPARAM pLPar, AssetsBundleEntry* pEntry);
-        ///public AssetsFileReader MakeAssetsFileReader(AssetsFileReader reader, LPARAM* pLPar, AssetsBundleDirectoryInfo06* pEntry);
-        ///public AssetsFileReader MakeAssetsFileReader(AssetsFileReader reader, LPARAM* pLPar, AssetsBundleEntry* pEntry);
-        //void FreeAssetsFileReader(LPARAM *pLPar, AssetsFileReader *pReader);
+        public bool IsAssetsFile(AssetsFileReader reader, AssetBundleDirectoryInfo06 entry)
+        {
+            //todo - not fully implemented
+            long offset = bundleHeader6.GetFileDataOffset() + entry.offset;
+            if (entry.decompressedSize < 0x20)
+                return false;
+
+            reader.Position = offset;
+            string possibleBundleHeader = reader.ReadStringLength(7);
+            if (possibleBundleHeader == "UnityFS")
+                return false;
+
+            reader.Position = offset + 0x08;
+            int possibleFormat = reader.ReadInt32();
+            if (possibleFormat > 99)
+                return false;
+
+            reader.Position = offset + 0x14;
+            string possibleVersion = reader.ReadNullTerminated();
+            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
+            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
+            return emptyVersion == "" && fullVersion.Length > 0;
+        }
+        ///public bool IsAssetsFile(AssetsFileReader reader, LPARAM lPar, AssetsBundleEntry* entry);
+        ///public AssetsFileReader MakeAssetsFileReader(AssetsFileReader reader, LPARAM* lPar, AssetsBundleDirectoryInfo06* entry);
+        ///public AssetsFileReader MakeAssetsFileReader(AssetsFileReader reader, LPARAM* lPar, AssetsBundleEntry* entry);
+        //void FreeAssetsFileReader(LPARAM *lPar, AssetsFileReader *reader);
     }
 }
