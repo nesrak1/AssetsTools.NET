@@ -68,11 +68,11 @@ Otherwise, if you just want to loop through all assets or all assets of a specif
 ```cs
 foreach (var inf in table.assetFileInfo)
 {
-    Console.WriteLine(${inf.index} {inf.absoluteFilePos}");
+    Console.WriteLine($"{inf.index} {inf.absoluteFilePos}");
 }
 foreach (var inf in table.GetAssetsOfType(0x01))
 {
-    Console.WriteLine(${inf.index} {inf.absoluteFilePos}");
+    Console.WriteLine($"{inf.index} {inf.absoluteFilePos}");
 }
 ```
 
