@@ -9,6 +9,9 @@ Jump to a tool:
 
 # AssetsTools
 
+[![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET)
+[![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases)
+
 ## Terminology
 
 Programs/Libraries (since they all have similar names)
