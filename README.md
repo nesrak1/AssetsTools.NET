@@ -25,7 +25,7 @@ Files (both assetstools and unity)
 * cltpk/tpk/Class Type Package - Stores multiple class databases
 * asset - Any data of an asset, not to be confused with "assets file"
 * .assets/assets file - Stores multiple assets and optionally a type tree
-* .unity3d/bundle file - Stores multiple assets files
+* .unity3d/bundle file - Stores multiple .assets files
 * ggm/globalgamemanagers - Metadata for unity games
 * resources.assets - The file where assets built in the Resources folder go
 * level file - Gameobjects and components go here
@@ -37,12 +37,14 @@ AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classe
 
 It is recommended to use `AssetsManager` for most cases unless you only need to read/write one assets file and it's a simple task.
 
-To load the file, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
+To load an assets, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
 
 ```cs
 var am = new AssetsManager(); 
 var inst = am.LoadAssetsFile("resources.assets", true);
 ```
+
+See the bottom for how to load asset bundles (usually `.unity3d`)
 
 An `AssetsFileInstance` holds the `AssetsFile` and `AssetsFileTable` instances. The `AssetsFile` contains information about the version of the file, the `TypeTree` which may contain serialization data and other info on decoding assets, and the dependencies that the file needs (it may be easier to look in `AssetsFileInstance.dependencies` though). The `AssetsFileTable` is a table of information about assets like their path id, type id, and pointer in data.
 
@@ -54,7 +56,6 @@ var inf = table.GetAssetInfo(1);
 ```
 
 If you know the name you can use `GetAssetInfo(string name[, uint typeId])`:
-(type ids will be explained later)
 
 ```cs
 //if you know there is only one asset by the name RocketShip, you don't need to search by type
@@ -155,16 +156,18 @@ inst.file.Write(writer, new AssetsReplacer[] { repl });
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
 
-The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. Reading these normally will probably crash the program, so when calling `GetATI`, `GetExtAsset`, and other methods that accept it, set the `fromTypeTree` argument to `true`.
+The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. AssetsManager will try to read from the type tree if one exists, but if you still want to override this for whatever reason, the `forceFromCldb` in methods such as `GetExtAsset` can be used to do so.
 
 Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
 
 ```cs
 var am = new AssetsManager();
-var bun = am.LoadBundleFile("bundle.unity3d", true);
+var bun = am.LoadBundleFile("bundle.unity3d");
 var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name instead
 //...
 ```
+
+If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
 
 ## Hmms 🤔
 
