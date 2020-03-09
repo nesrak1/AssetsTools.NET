@@ -1,5 +1,4 @@
-﻿using SevenZip.Compression.LZMA;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AssetsTools.NET
 {
@@ -17,7 +16,7 @@ namespace AssetsTools.NET
             header = new ClassDatabaseFileHeader();
             header.Read(reader);
             if (header.header != "cldb" ||
-                !(header.fileVersion == 3 || header.fileVersion == 1) ||
+                !(header.fileVersion >= 3 || header.fileVersion == 1) ||
                 header.compressionType != 0)
             {
                 valid = false;
@@ -32,20 +31,20 @@ namespace AssetsTools.NET
             for (int i = 0; i < size; i++)
             {
                 ClassDatabaseType cdt = new ClassDatabaseType();
-                cdt.Read(reader, header.fileVersion);
+                cdt.Read(reader, header.fileVersion, header.flags);
                 classes.Add(cdt);
             }
             valid = true;
             return valid;
         }
 
-        public ulong Write(AssetsFileWriter writer, int optimizeStringTable, uint compress, bool writeStringTable = true)
+        public void Write(AssetsFileWriter writer)
         {
             header.Write(writer);
             writer.Write(classes.Count);
             for (int i = 0; i < classes.Count; i++)
             {
-                classes[i].Write(writer, header.fileVersion);
+                classes[i].Write(writer, header.fileVersion, header.flags);
             }
             long stringTablePos = writer.Position;
             writer.Write(stringTable);
@@ -56,7 +55,6 @@ namespace AssetsTools.NET
             header.uncompressedSize = (uint)fileSize;
             writer.Position = 0;
             header.Write(writer);
-            return 0;
         }
 
         public bool IsValid()

@@ -40,6 +40,10 @@
             this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewCurrentAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewSelectedAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.globalSearchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.globalSearchInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.monoBehaviourToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -56,6 +60,7 @@
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
+            this.assetDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -72,7 +77,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.assetTree.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.assetTree.Location = new System.Drawing.Point(0, 0);
-            this.assetTree.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.assetTree.Margin = new System.Windows.Forms.Padding(2);
             this.assetTree.Name = "assetTree";
             this.assetTree.Size = new System.Drawing.Size(287, 386);
             this.assetTree.TabIndex = 0;
@@ -84,6 +89,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.infoToolStripMenuItem,
+            this.globalSearchToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -151,6 +157,36 @@
             this.viewSelectedAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
             this.viewSelectedAssetInfoToolStripMenuItem.Text = "View Selected Assets File Info";
             // 
+            // globalSearchToolStripMenuItem
+            // 
+            this.globalSearchToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.globalSearchInfoToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.assetDataToolStripMenuItem,
+            this.monoBehaviourToolStripMenuItem});
+            this.globalSearchToolStripMenuItem.Name = "globalSearchToolStripMenuItem";
+            this.globalSearchToolStripMenuItem.Size = new System.Drawing.Size(91, 22);
+            this.globalSearchToolStripMenuItem.Text = "Global Search";
+            // 
+            // globalSearchInfoToolStripMenuItem
+            // 
+            this.globalSearchInfoToolStripMenuItem.Enabled = false;
+            this.globalSearchInfoToolStripMenuItem.Name = "globalSearchInfoToolStripMenuItem";
+            this.globalSearchInfoToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+            this.globalSearchInfoToolStripMenuItem.Text = "(These options search all files in a folder)";
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(284, 6);
+            // 
+            // monoBehaviourToolStripMenuItem
+            // 
+            this.monoBehaviourToolStripMenuItem.Name = "monoBehaviourToolStripMenuItem";
+            this.monoBehaviourToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+            this.monoBehaviourToolStripMenuItem.Text = "MonoBehaviour";
+            this.monoBehaviourToolStripMenuItem.Click += new System.EventHandler(this.monoBehaviourToolStripMenuItem_Click);
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -173,7 +209,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
             this.splitContainer1.Location = new System.Drawing.Point(0, 23);
-            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -211,11 +247,11 @@
             this.SizeCol});
             this.assetList.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.assetList.Location = new System.Drawing.Point(1, 28);
-            this.assetList.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.assetList.Margin = new System.Windows.Forms.Padding(2);
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(408, 358);
+            this.assetList.Size = new System.Drawing.Size(410, 358);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
@@ -263,10 +299,10 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(374, 2);
-            this.goDirectory.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.goDirectory.Location = new System.Drawing.Point(373, 2);
+            this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
-            this.goDirectory.Size = new System.Drawing.Size(34, 25);
+            this.goDirectory.Size = new System.Drawing.Size(36, 25);
             this.goDirectory.TabIndex = 3;
             this.goDirectory.Text = "Go";
             this.goDirectory.UseVisualStyleBackColor = true;
@@ -279,16 +315,16 @@
             this.pathBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pathBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             this.pathBox.Location = new System.Drawing.Point(42, 2);
-            this.pathBox.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(328, 25);
+            this.pathBox.Size = new System.Drawing.Size(327, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
             // upDirectory
             // 
             this.upDirectory.Location = new System.Drawing.Point(2, 2);
-            this.upDirectory.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.upDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.upDirectory.Name = "upDirectory";
             this.upDirectory.Size = new System.Drawing.Size(36, 25);
             this.upDirectory.TabIndex = 1;
@@ -336,6 +372,13 @@
             this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.dataGridViewImageColumn1.Width = 30;
             // 
+            // assetDataToolStripMenuItem
+            // 
+            this.assetDataToolStripMenuItem.Name = "assetDataToolStripMenuItem";
+            this.assetDataToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+            this.assetDataToolStripMenuItem.Text = "Asset Data";
+            this.assetDataToolStripMenuItem.Click += new System.EventHandler(this.assetDataToolStripMenuItem_Click);
+            // 
             // StartScreen
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -345,7 +388,7 @@
             this.Controls.Add(this.menuStrip1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "StartScreen";
             this.Text = "AssetsView .NET";
             this.menuStrip1.ResumeLayout(false);
@@ -390,6 +433,11 @@
         private System.Windows.Forms.DataGridViewImageColumn dataGridViewImageColumn1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem globalSearchToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem globalSearchInfoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem monoBehaviourToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem assetDataToolStripMenuItem;
     }
 }
 

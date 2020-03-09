@@ -50,8 +50,13 @@ namespace AssetsTools.NET.Extra
             {
                 AssetTypeInstance scriptAti = am.GetExtAsset(inst, mainAti.GetBaseField().Get("m_Script")).instance;
                 string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
+                string scriptNamespace = scriptAti.GetBaseField().Get("m_Namespace").GetValue().AsString();
                 string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
                 string assemblyPath = Path.Combine(managedPath, assemblyName);
+
+                if (scriptNamespace != string.Empty)
+                    scriptName = scriptNamespace + "." + scriptName;
+
                 if (File.Exists(assemblyPath))
                 {
                     AssemblyDefinition asmDef;
@@ -83,7 +88,7 @@ namespace AssetsTools.NET.Extra
         }
         private void RecursiveTypeLoad(ModuleDefinition module, string typeName, List<AssetTypeTemplateField> attf)
         {
-            TypeDefinition type = module.GetTypes().First(t => t.Name.Equals(typeName));
+            TypeDefinition type = module.GetTypes().First(t => t.FullName.Equals(typeName));
             RecursiveTypeLoad(type, attf);
         }
         private void RecursiveTypeLoad(TypeDefinition type, List<AssetTypeTemplateField> attf)
@@ -187,13 +192,16 @@ namespace AssetsTools.NET.Extra
                             ft = ft.GetElementType();
                         }
                         TypeDefinition ftd = ft.Resolve();
-                        if (ftd.IsPrimitive ||
-                            ftd.IsEnum ||
-                            ftd.IsSerializable ||
-                            DerivesFromUEObject(ftd) ||
-                            IsSpecialUnityType(ftd)) //field has a serializable type
+                        if (ftd != null)
                         {
-                            validFields.Add(f);
+                            if (ftd.IsPrimitive ||
+                                ftd.IsEnum ||
+                                ftd.IsSerializable ||
+                                DerivesFromUEObject(ftd) ||
+                                IsSpecialUnityType(ftd)) //field has a serializable type
+                            {
+                                validFields.Add(f);
+                            }
                         }
                     }
                 }

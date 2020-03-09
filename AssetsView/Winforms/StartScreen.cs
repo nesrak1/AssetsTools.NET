@@ -137,18 +137,40 @@ namespace AssetsView.Winforms
             }
         }
 
-        private void LoadMainAssetsFile(AssetsFileInstance inst)
+        public void LoadMainAssetsFile(AssetsFileInstance inst)
         {
-            inst.table.GenerateQuickLookupTree();
-            helper.UpdateDependencies();
-            helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-            UpdateFileList();
-            currentFile = inst;
-            LoadGeneric(inst, false);
+            if (currentFile == null || Path.GetFullPath(currentFile.path) != Path.GetFullPath(inst.path))
+            {
+                inst.table.GenerateQuickLookupTree();
+                helper.UpdateDependencies();
+                helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+                UpdateFileList();
+                currentFile = inst;
 
-            string[] vers = helper.classFile.header.unityVersions;
-            string corVer = vers.FirstOrDefault(v => !v.Contains("*"));
-            Text = "AssetsView .NET - ver " + inst.file.typeTree.unityVersion + " / db " + corVer;
+                string ggmPath = Path.Combine(Path.GetDirectoryName(inst.path), "globalgamemanagers");
+                if (inst.name == "resources.assets" && File.Exists(ggmPath))
+                {
+                    if (MessageBox.Show("Load resources.assets in directory mode? (Significantly faster)", "Assets View",
+                        MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        AssetsFileInstance ggmInst = helper.LoadAssetsFile(ggmPath, true);
+                        helper.UpdateDependencies();
+                        LoadResources(ggmInst);
+                    }
+                    else
+                    {
+                        LoadGeneric(inst, false);
+                    }
+                }
+                else
+                {
+                    LoadGeneric(inst, false);
+                }
+
+                string[] vers = helper.classFile.header.unityVersions;
+                string corVer = vers.FirstOrDefault(v => !v.Contains("*"));
+                Text = "AssetsView .NET - ver " + inst.file.typeTree.unityVersion + " / db " + corVer;
+            }
         }
 
         private void clearFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -166,15 +188,15 @@ namespace AssetsView.Winforms
             assetList.Rows.Clear();
         }
 
-        private void LoadGGM(AssetsFileInstance mainFile)
+        private void LoadResources(AssetsFileInstance ggm)
         {
             //swap this with resources so we can actually see ggm assets
-            foreach (AssetFileInfoEx info in mainFile.table.assetFileInfo)
+            foreach (AssetFileInfoEx info in ggm.table.assetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
                 if (type.name.GetString(helper.classFile) == "ResourceManager")
                 {
-                    AssetTypeInstance inst = helper.GetATI(mainFile.file, info);
+                    AssetTypeInstance inst = helper.GetATI(ggm.file, info);
                     AssetTypeValueField baseField = inst.GetBaseField();
                     AssetTypeValueField m_Container = baseField.Get("m_Container").Get("Array");
                     List<AssetDetails> assets = new List<AssetDetails>();
@@ -183,10 +205,33 @@ namespace AssetsView.Winforms
                         AssetTypeValueField item = m_Container[i];
                         string path = item.Get("first").GetValue().AsString();
                         AssetTypeValueField pointerField = item.Get("second");
-                        int fileID = pointerField.Get("m_FileID").GetValue().AsInt();
-                        long pathID = pointerField.Get("m_PathID").GetValue().AsInt64();
                         //paths[path] = new AssetDetails(new AssetPPtr(fileID, pathID));
-                        assets.Add(new AssetDetails(new AssetPPtr(fileID, pathID), AssetIcon.Unknown, path));
+
+                        AssetExternal assetExt = helper.GetExtAsset(ggm, pointerField, true);
+                        AssetFileInfoEx assetInfo = assetExt.info;
+                        ClassDatabaseType assetType = AssetHelper.FindAssetClassByID(helper.classFile, assetInfo.curFileType);
+                        if (assetType == null)
+                            continue;
+                        string assetTypeName = assetType.name.GetString(helper.classFile);
+                        if (assetTypeName != "GameObject")
+                            continue;
+                        string assetName = AssetInfo.GetAssetNameFast(assetInfo, helper.classFile, assetType, assetExt.file);
+                        if (path.Contains("/"))
+                        {
+                            if (path.Substring(path.LastIndexOf('/') + 1) == assetName.ToLower())
+                            {
+                                path = path.Substring(0, path.LastIndexOf('/') + 1) + assetName;
+                            }
+                        }
+                        else
+                        {
+                            if (path == assetName.ToLower())
+                            {
+                                path = path.Substring(0, path.LastIndexOf('/') + 1) + assetName;
+                            }
+                        }
+
+                        assets.Add(new AssetDetails(new AssetPPtr(0, assetInfo.index), GetIconForName(assetTypeName), path, assetTypeName, (int)assetInfo.curFileSize));
                     }
                     rootDir = new FSDirectory();
                     //rootDir.Create(paths);
@@ -247,7 +292,7 @@ namespace AssetsView.Winforms
             UpdateDirectoryList();
         }
 
-        private void UpdateFileList()
+        public void UpdateFileList()
         {
             assetTree.Nodes.Clear();
             foreach (AssetsFileInstance dep in helper.files)
@@ -256,7 +301,7 @@ namespace AssetsView.Winforms
             }
         }
 
-        private void UpdateDirectoryList()
+        public void UpdateDirectoryList()
         {
             assetList.Rows.Clear();
             pathBox.Text = currentDir.path;
@@ -396,61 +441,52 @@ namespace AssetsView.Winforms
                 }
                 else
                 {
-                    ClassDatabaseFile classFile = helper.classFile;
-                    AssetsFileInstance correctAti = currentFile;
-                    ClassDatabaseType classType = AssetHelper.FindAssetClassByName(classFile, typeName);
-                    /*if (currentFile.name == "globalgamemanagers")
-                    {
-                        int rsrcIndex = helper.files.FindIndex(f => f.name == "resources.assets");
-                        if (rsrcIndex != -1)
-                        {
-                            correctAti = helper.files[rsrcIndex];
-                        }
-                        else
-                        {
-                            string rsrcPath = Path.Combine(Path.GetDirectoryName(currentFile.path), "resources.assets");
-                            correctAti = helper.LoadAssetsFile(rsrcPath, false);
-                            UpdateDependencies();
-                        }
-                        if (typeName == "")
-                            return;
-                    }*/
-                    AssetFileInfoEx info = correctAti.table.GetAssetInfo((long)selRow.Cells[3].Value);
-                    bool hasGameobjectField = classType.fields.Any(f => f.fieldName.GetString(classFile) == "m_GameObject");
-                    bool parentPointerNull = false;
-                    if (typeName != "GameObject" && hasGameobjectField)
-                    {
-                        //get gameobject parent
-                        AssetTypeValueField componentBaseField = helper.GetATI(correctAti.file, info).GetBaseField();
-                        AssetFileInfoEx newInfo = helper.GetExtAsset(correctAti, componentBaseField["m_GameObject"], true).info;
-                        if (newInfo != null && newInfo.index != 0)
-                        {
-                            info = newInfo;
-                        }
-                        else
-                        {
-                            parentPointerNull = true;
-                        }
-                    }
-                    if ((typeName == "GameObject" || hasGameobjectField) && !parentPointerNull)
-                    {
-                        AssetTypeValueField baseField = helper.GetATI(correctAti.file, info).GetBaseField();
-
-                        AssetTypeValueField transformPtr = baseField["m_Component"]["Array"][0]["component"];
-                        AssetTypeValueField transform = helper.GetExtAsset(correctAti, transformPtr).instance.GetBaseField();
-                        baseField = GetRootTransform(helper, currentFile, transform);
-                        AssetTypeValueField gameObjectPtr = baseField["m_GameObject"];
-                        AssetTypeValueField gameObject = helper.GetExtAsset(correctAti, gameObjectPtr).instance.GetBaseField();
-                        GameObjectViewer view = new GameObjectViewer(helper, correctAti, gameObject, info.index, (long)selRow.Cells[3].Value);
-                        view.Show();
-                    }
-                    else
-                    {
-                        AssetTypeValueField baseField = helper.GetATI(correctAti.file, info).GetBaseField();
-                        GameObjectViewer view = new GameObjectViewer(helper, correctAti, baseField, info);
-                        view.Show();
-                    }
+                    OpenAsset((long)selRow.Cells[3].Value);
                 }
+            }
+        }
+
+        public void OpenAsset(long id)
+        {
+            ClassDatabaseFile classFile = helper.classFile;
+            AssetsFileInstance correctAti = currentFile;
+            AssetFileInfoEx info = correctAti.table.GetAssetInfo(id);
+            //todo this won't work for assets with typetrees
+            ClassDatabaseType classType = AssetHelper.FindAssetClassByID(classFile, info.curFileType);
+            string typeName = classType.name.GetString(classFile);
+            bool hasGameobjectField = classType.fields.Any(f => f.fieldName.GetString(classFile) == "m_GameObject");
+            bool parentPointerNull = false;
+            if (typeName != "GameObject" && hasGameobjectField)
+            {
+                //get gameobject parent
+                AssetTypeValueField componentBaseField = helper.GetATI(correctAti.file, info).GetBaseField();
+                AssetFileInfoEx newInfo = helper.GetExtAsset(correctAti, componentBaseField["m_GameObject"], true).info;
+                if (newInfo != null && newInfo.index != 0)
+                {
+                    info = newInfo;
+                }
+                else
+                {
+                    parentPointerNull = true;
+                }
+            }
+            if ((typeName == "GameObject" || hasGameobjectField) && !parentPointerNull)
+            {
+                AssetTypeValueField baseField = helper.GetATI(correctAti.file, info).GetBaseField();
+
+                AssetTypeValueField transformPtr = baseField["m_Component"]["Array"][0]["component"];
+                AssetTypeValueField transform = helper.GetExtAsset(correctAti, transformPtr).instance.GetBaseField();
+                baseField = GetRootTransform(helper, currentFile, transform);
+                AssetTypeValueField gameObjectPtr = baseField["m_GameObject"];
+                AssetTypeValueField gameObject = helper.GetExtAsset(correctAti, gameObjectPtr).instance.GetBaseField();
+                GameObjectViewer view = new GameObjectViewer(helper, correctAti, gameObject, info.index, id);
+                view.Show();
+            }
+            else
+            {
+                AssetTypeValueField baseField = helper.GetATI(correctAti.file, info).GetBaseField();
+                GameObjectViewer view = new GameObjectViewer(helper, correctAti, baseField, info);
+                view.Show();
             }
         }
 
@@ -497,7 +533,7 @@ namespace AssetsView.Winforms
             }
         }
 
-        private void UpdateDependencies()
+        public void UpdateDependencies()
         {
             helper.UpdateDependencies();
             UpdateFileList();
@@ -624,6 +660,42 @@ namespace AssetsView.Winforms
             UpdateFileList();
             currentFile = inst;
             LoadGeneric(inst, false);
+        }
+
+        private string SelectFolderAndLoad()
+        {
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                CheckFileExists = false,
+                FileName = "[select folder]",
+                Title = "Select folder to scan"
+            };
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                string dirName = Path.GetDirectoryName(ofd.FileName);
+                if (Directory.Exists(dirName))
+                {
+                    return dirName;
+                }
+                else
+                {
+                    MessageBox.Show("Directory does not exist.", "Assets View");
+                    return string.Empty;
+                }
+            }
+            return string.Empty;
+        }
+
+        private void monoBehaviourToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string dirName = SelectFolderAndLoad();
+            new MonoBehaviourScanner(this, helper, dirName).Show();
+        }
+
+        private void assetDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string dirName = SelectFolderAndLoad();
+            new AssetDataScanner(this, helper, dirName).Show();
         }
     }
 }

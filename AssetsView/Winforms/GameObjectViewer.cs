@@ -154,7 +154,7 @@ namespace AssetsView.Winforms
                 else if (!firstTimeMBMessage)
                 {
                     firstTimeMBMessage = true;
-                    MessageBox.Show("can't display monobehaviour data until dependencies are loaded");
+                    MessageBox.Show("Can't display MonoBehaviour data until dependencies are loaded", "Assets View");
                 }
             }
             string category = new string('\t', size - index) + className;
@@ -169,7 +169,6 @@ namespace AssetsView.Winforms
             {
                 if (atvfc == null)
                     return;
-                object value = "";
                 EnumValueTypes evt;
                 if (atvfc.GetValue() != null)
                 {
@@ -178,8 +177,7 @@ namespace AssetsView.Winforms
                     {
                         if (1 <= (int)evt && (int)evt <= 12)
                         {
-                            value = atvfc.GetValue().AsString();
-
+                            string value = atvfc.GetValue().AsString();
                             PGProperty prop = new PGProperty(atvfc.GetName(), value);
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
@@ -200,7 +198,31 @@ namespace AssetsView.Winforms
                 }
                 else
                 {
-                    PGProperty childProps = new PGProperty("child");
+                    PGProperty childProps;
+                    if (atvfc.childrenCount == 2)
+                    {
+                        AssetTypeValueField fileId = atvfc.children[0];
+                        AssetTypeValueField pathId = atvfc.children[1];
+                        string fileIdName = fileId.templateField.name;
+                        string fileIdType = fileId.templateField.type;
+                        string pathIdName = pathId.templateField.name;
+                        string pathIdType = pathId.templateField.type;
+                        if (fileIdName == "m_FileID" && fileIdType == "int" &&
+                            pathIdName == "m_PathID" && pathIdType == "SInt64")
+                        {
+                            int fileIdValue = fileId.GetValue().AsInt();
+                            long pathIdValue = fileId.GetValue().AsInt64();
+                            childProps = new PGProperty("child", "", $"[fileid: {fileIdValue}, pathid: {pathIdValue}]");
+                        }
+                        else
+                        {
+                            childProps = new PGProperty("child", "");
+                        }
+                    }
+                    else
+                    {
+                        childProps = new PGProperty("child", "");
+                    }
                     PGProperty prop = new PGProperty(atvfc.GetName(), childProps);
                     prop.category = category;
                     SetSelectedStateIfSelected(info, prop);
@@ -274,12 +296,12 @@ namespace AssetsView.Winforms
                 }
                 if (fileId == 0 && pathId == 0)
                 {
-                    MessageBox.Show("Cannot open null reference", "AssetsView");
+                    MessageBox.Show("Cannot open null reference", "Assets View");
                     return;
                 }
                 else if (fileId == -1 || pathId == -1)
                 {
-                    MessageBox.Show("Could not find other id, is this really a pptr?", "AssetsView");
+                    MessageBox.Show("Could not find other id, is this really a pptr?", "Assets View");
                     return;
                 }
                 AssetExternal ext = helper.GetExtAsset(inst, fileId, pathId);

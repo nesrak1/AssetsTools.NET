@@ -120,6 +120,18 @@
     <Compile Include="Winforms\LoadingBar.Designer.cs">
       <DependentUpon>LoadingBar.cs</DependentUpon>
     </Compile>
+    <Compile Include="Winforms\AssetDataScanner.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\AssetDataScanner.Designer.cs">
+      <DependentUpon>AssetDataScanner.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Winforms\MonoBehaviourScanner.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\MonoBehaviourScanner.Designer.cs">
+      <DependentUpon>MonoBehaviourScanner.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\OpenAssetsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -155,6 +167,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\LoadingBar.resx">
       <DependentUpon>LoadingBar.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\AssetDataScanner.resx">
+      <DependentUpon>AssetDataScanner.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\MonoBehaviourScanner.resx">
+      <DependentUpon>MonoBehaviourScanner.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\OpenAssetsDialog.resx">
       <DependentUpon>OpenAssetsDialog.cs</DependentUpon>

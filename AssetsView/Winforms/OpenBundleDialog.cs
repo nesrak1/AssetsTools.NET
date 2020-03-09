@@ -109,7 +109,7 @@ namespace AssetsView.Winforms
             {
                 if (error != string.Empty)
                 {
-                    MessageBox.Show("An error occurred:\n" + error, "AssetsView", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("An error occurred:\n" + error, "Assets View", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 else
                 {

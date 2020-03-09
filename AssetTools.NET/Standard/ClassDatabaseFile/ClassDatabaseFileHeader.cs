@@ -8,6 +8,7 @@ namespace AssetsTools.NET
         public string header;
         public byte fileVersion;
 
+        public byte flags;
         public byte compressionType; //0 - none, 1 - lz4, only supports none right now
         public uint compressedSize, uncompressedSize;
 
@@ -23,11 +24,15 @@ namespace AssetsTools.NET
             if (header != "cldb")
                 throw new NotImplementedException("header not detected. is this a cldb file?");
             fileVersion = reader.ReadByte();
+            flags = 0;
+            if (fileVersion == 4)
+                flags = reader.ReadByte();
             switch (fileVersion)
             {
                 case 1:
                     break;
                 case 3:
+                case 4:
                     compressionType = reader.ReadByte();
                     if (compressionType != 0)
                         throw new NotImplementedException("compressed cldb reading not supported");
@@ -51,11 +56,14 @@ namespace AssetsTools.NET
             writer.bigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(header));
             writer.Write(fileVersion);
-            switch(fileVersion)
+            if (fileVersion == 4)
+                writer.Write(flags);
+            switch (fileVersion)
             {
                 case 1:
                     break;
                 case 3:
+                case 4:
                     if (compressionType != 0)
                         throw new NotImplementedException("compressed cldb writing not supported");
                     writer.Write(compressionType);

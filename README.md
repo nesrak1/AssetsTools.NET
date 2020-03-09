@@ -40,7 +40,7 @@ AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classe
 
 It is recommended to use `AssetsManager` for most cases unless you only need to read/write one assets file and it's a simple task.
 
-To load an assets, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
+To load an assets file, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
 
 ```cs
 var am = new AssetsManager(); 
@@ -126,7 +126,7 @@ var transformBf = transform.instance.GetBaseField();
 
 Set `onlyGetInfo` if you only want the asset info without reading the serialized data. You may want to do this if you want to only read a specific type which is much faster than reading all of the types you don't need to read.
 
-Reading MonoBehaviours are a little different because the information for deserialization is stored in Assembly-CSharp.dll, rather than the type tree or the class database file.
+Reading MonoBehaviours are a little different because the information for deserialization is stored in assemblies in the Managed folder, rather than the type tree or the class database file.
 
 ```cs
 //example for a GameObject

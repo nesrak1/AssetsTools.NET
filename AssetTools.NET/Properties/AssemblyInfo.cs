@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("AssetTools.NET")]
 [assembly: AssemblyDescription("A remake and port of DerPopo's AssetTools")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("nesrak1")]
 [assembly: AssemblyProduct("AssetTools.NET")]
 [assembly: AssemblyCopyright("Written by nes")]
 [assembly: AssemblyTrademark("")]

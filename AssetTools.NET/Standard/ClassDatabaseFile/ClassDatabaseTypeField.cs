@@ -25,6 +25,7 @@
                     flags2 = reader.ReadUInt32();
                     break;
                 case 3:
+                case 4:
                     this.version = reader.ReadUInt16();
                     flags2 = reader.ReadUInt32();
                     break;
@@ -43,6 +44,7 @@
                     writer.Write(flags2);
                     break;
                 case 3:
+                case 4:
                     writer.Write(this.version);
                     writer.Write(flags2);
                     break;
