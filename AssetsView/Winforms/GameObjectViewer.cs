@@ -211,7 +211,7 @@ namespace AssetsView.Winforms
                             pathIdName == "m_PathID" && pathIdType == "SInt64")
                         {
                             int fileIdValue = fileId.GetValue().AsInt();
-                            long pathIdValue = fileId.GetValue().AsInt64();
+                            long pathIdValue = pathId.GetValue().AsInt64();
                             childProps = new PGProperty("child", "", $"[fileid: {fileIdValue}, pathid: {pathIdValue}]");
                         }
                         else
