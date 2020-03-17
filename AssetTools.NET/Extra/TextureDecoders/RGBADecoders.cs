@@ -27,15 +27,16 @@ namespace AssetsTools.NET.Extra
             byte[] bytes = new byte[len];
             stream.Read(bytes, 0, len);
             byte[] pixel = new byte[4];
+            byte[] data = new byte[width * height * 4];
             for (int i = 0; i < len; i += 2)
             {
                 pixel[0] = (byte)(bytes[i + 1] & 0xf);
                 pixel[1] = (byte)(bytes[i] >> 4);
                 pixel[2] = (byte)(bytes[i] & 0xf);
                 pixel[3] = (byte)(bytes[i + 1] >> 4);
-                Buffer.BlockCopy(pixel, 0, bytes, i / 2 * 4, 4);
+                Buffer.BlockCopy(pixel, 0, data, i / 2 * 4, 4);
             }
-            return bytes;
+            return data;
         }
         public static byte[] ReadARGB32(Stream stream, int width, int height)
         {
@@ -59,15 +60,16 @@ namespace AssetsTools.NET.Extra
             byte[] bytes = new byte[len];
             stream.Read(bytes, 0, len);
             byte[] pixel = new byte[4];
+            byte[] data = new byte[width * height * 4];
             for (int i = 0; i < len; i += 2)
             {
                 pixel[0] = (byte)(bytes[i + 1] >> 4);
                 pixel[1] = (byte)(bytes[i + 1] & 0xf);
                 pixel[2] = (byte)(bytes[i] >> 4);
                 pixel[3] = (byte)(bytes[i] & 0xf);
-                Buffer.BlockCopy(pixel, 0, bytes, i / 2 * 4, 4);
+                Buffer.BlockCopy(pixel, 0, data, i / 2 * 4, 4);
             }
-            return bytes;
+            return data;
         }
         public static byte[] ReadRGB24(Stream stream, int width, int height)
         {
