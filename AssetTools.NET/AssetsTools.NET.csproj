@@ -94,6 +94,12 @@
     <Compile Include="Extra\Decompressors\LZMA\Compress\RangeCoder\RangeCoderBitTree.cs" />
     <Compile Include="Extra\Decompressors\LZMA\ICoder.cs" />
     <Compile Include="Extra\Decompressors\LZMA\SevenZipHelper.cs" />
+    <Compile Include="Extra\TextureDecoders\BC7BitReader.cs" />
+    <Compile Include="Extra\TextureDecoders\BC7Decoder.cs" />
+    <Compile Include="Extra\TextureDecoders\BPTCTables.cs" />
+    <Compile Include="Extra\TextureDecoders\DivisionTables.cs" />
+    <Compile Include="Extra\TextureDecoders\DXTDecoders.cs" />
+    <Compile Include="Extra\TextureDecoders\RGBADecoders.cs" />
     <Compile Include="Extra\MonoDeserializer\MonoDeserializer.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleBlockAndDirectoryList06.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleBlockInfo06.cs" />
@@ -143,6 +149,7 @@
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackageHeader.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseType.cs" />
     <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseTypeField.cs" />
+    <Compile Include="Standard\TextureFileFormat\TextureFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

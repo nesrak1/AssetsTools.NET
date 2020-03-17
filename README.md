@@ -40,6 +40,8 @@ AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classe
 
 It is recommended to use `AssetsManager` for most cases unless you only need to read/write one assets file and it's a simple task.
 
+### Assets file reading
+
 To load an assets file, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
 
 ```cs
@@ -79,6 +81,8 @@ foreach (var inf in table.GetAssetsOfType(0x01))
     Console.WriteLine($"{inf.index} {inf.absoluteFilePos}");
 }
 ```
+
+### Serialized data loading
 
 Once you have the info for an asset, you can start to get the serialized data of it. For the library to understand what how to deserialize the fields, it needs a class database or a type tree. For assets files in built games, there isn't a type tree, so a class database is needed. UABE has class databases (dat files) stored in the class package file (classdata.tpk). If you are targeting multiple unity versions, you can use `AssetsManager`'s `LoadClassDatabaseFromPackage`:
 
@@ -126,6 +130,8 @@ var transformBf = transform.instance.GetBaseField();
 
 Set `onlyGetInfo` if you only want the asset info without reading the serialized data. You may want to do this if you want to only read a specific type which is much faster than reading all of the types you don't need to read.
 
+### MonoBehaviour loading
+
 Reading MonoBehaviours are a little different because the information for deserialization is stored in assemblies in the Managed folder, rather than the type tree or the class database file.
 
 ```cs
@@ -138,6 +144,8 @@ var startMenuBf = MonoDeserializer.GetMonoBaseField(am, inst, startMenu.info, ma
 ```
 
 You can also use `AssetsManager.GetMonoBaseFieldCached` to cache types that take long to load, however, with the speed improvements `MonoDeserializer` has now, it may not be needed.
+
+### Assets file writing
 
 To modify a assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
 
@@ -159,7 +167,11 @@ inst.file.Write(writer, new AssetsReplacer[] { repl });
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
 
+### Info on type trees
+
 The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. AssetsManager will try to read from the type tree if one exists, but if you still want to override this for whatever reason, the `forceFromCldb` in methods such as `GetExtAsset` can be used to do so.
+
+### Loading bundle files
 
 Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
 
@@ -171,6 +183,44 @@ var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name in
 ```
 
 If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
+
+### Loading textures
+
+Texture2Ds can contain data in many different kinds of compression types. AssetsTools.NET is meant to be portable and doesn't rely on any native libraries or use any unsafe code. As a result, the Texture2D decoder won't be 100% as fast as the native versions, however, they are fast enough for most tasks (85%-95% of native speed, depending on compression method.) If you know how to, you can always hook up a native library for extra speed using the data from resS or the data byte array.
+
+Supported formats:
+
+* R8
+* R16
+* RG16
+* RGB24
+* RGBA32
+* ARGB32
+* RGBA4444
+* ARGB4444
+* Alpha8
+* DXT1
+* DXT5
+* BC7
+
+In the future I'll be adding more formats but these should be good for most games.
+
+The output of these are in BGRA which makes it easy to use Format32bppArgb with System.Drawing's bitmaps. Here's a quick and dirty way to implement that:
+
+```cs
+AssetTypeValueField atvf = am.GetATI(inst.file, texInf).GetBaseField();
+TextureFile tf = TextureFile.ReadTextureFile(atvf);
+byte[] texDat = tf.GetTextureData();
+if (texDat != null && texDat.Length > 0)
+{
+	Bitmap canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
+		Marshal.UnsafeAddrOfPinnedArrayElement(texDat, 0));
+	canvas.RotateFlip(RotateFlipType.RotateNoneFlipY);
+	canvas.Save("out.png");
+}
+```
+
+Note that the original AssetsTools uses RGBA output instead of BGRA output. In the future I'll probably add a flag to support choosing which order the output is in.
 
 ## Hmms 🤔
 

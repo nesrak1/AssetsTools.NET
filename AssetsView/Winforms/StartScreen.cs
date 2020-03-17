@@ -190,7 +190,6 @@ namespace AssetsView.Winforms
 
         private void LoadResources(AssetsFileInstance ggm)
         {
-            //swap this with resources so we can actually see ggm assets
             foreach (AssetFileInfoEx info in ggm.table.assetFileInfo)
             {
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType);
@@ -213,8 +212,6 @@ namespace AssetsView.Winforms
                         if (assetType == null)
                             continue;
                         string assetTypeName = assetType.name.GetString(helper.classFile);
-                        if (assetTypeName != "GameObject")
-                            continue;
                         string assetName = AssetInfo.GetAssetNameFast(assetInfo, helper.classFile, assetType, assetExt.file);
                         if (path.Contains("/"))
                         {
