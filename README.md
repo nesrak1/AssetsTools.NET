@@ -208,15 +208,15 @@ In the future I'll be adding more formats but these should be good for most game
 The output of these are in BGRA which makes it easy to use Format32bppArgb with System.Drawing's bitmaps. Here's a quick and dirty way to implement that:
 
 ```cs
-AssetTypeValueField atvf = am.GetATI(inst.file, texInf).GetBaseField();
-TextureFile tf = TextureFile.ReadTextureFile(atvf);
-byte[] texDat = tf.GetTextureData();
+var atvf = am.GetATI(inst.file, texInf).GetBaseField();
+var tf = TextureFile.ReadTextureFile(atvf);
+var texDat = tf.GetTextureData();
 if (texDat != null && texDat.Length > 0)
 {
-	Bitmap canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
-		Marshal.UnsafeAddrOfPinnedArrayElement(texDat, 0));
-	canvas.RotateFlip(RotateFlipType.RotateNoneFlipY);
-	canvas.Save("out.png");
+    var canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
+        Marshal.UnsafeAddrOfPinnedArrayElement(texDat, 0));
+    canvas.RotateFlip(RotateFlipType.RotateNoneFlipY);
+    canvas.Save("out.png");
 }
 ```
 
