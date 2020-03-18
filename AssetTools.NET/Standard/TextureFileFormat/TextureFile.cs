@@ -135,12 +135,11 @@ namespace AssetsTools.NET
 
         public byte[] GetTextureData()
         {
-            Stream stream;
             if (m_StreamData.size != 0 && m_StreamData.path != string.Empty)
             {
                 if (File.Exists(m_StreamData.path))
                 {
-                    stream = File.OpenRead(m_StreamData.path);
+                    Stream stream = File.OpenRead(m_StreamData.path);
                     stream.Position = m_StreamData.offset;
                     pictureData = new byte[m_StreamData.size];
                     stream.Read(pictureData, 0, (int)m_StreamData.size);
@@ -153,12 +152,11 @@ namespace AssetsTools.NET
             int width = m_Width;
             int height = m_Height;
             TextureFormat texFmt = (TextureFormat)m_TextureFormat;
-            return GetTextureDataFromStream(pictureData, /*stream, */texFmt, width, height);
+            return GetTextureDataFromStream(pictureData, texFmt, width, height);
         }
 
         public static byte[] GetTextureDataFromStream(byte[] data, TextureFormat texFmt, int width, int height)
         {
-            MemoryStream stream = new MemoryStream(data);
             switch (texFmt)
             {
                 case TextureFormat.R8:
