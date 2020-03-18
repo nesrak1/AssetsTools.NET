@@ -21,7 +21,7 @@ namespace AssetsTools.NET.Extra
 {
     public static class DXTDecoders
     {
-        public static byte[] ReadDXT1(Stream stream, int width, int height, bool dxt1a = false)
+        public static byte[] ReadDXT1(byte[] data, int width, int height, bool dxt1a = false)
         {
             int blockCountX = (width + 3) >> 2;
             int blockCountY = (height + 3) >> 2;
@@ -29,11 +29,6 @@ namespace AssetsTools.NET.Extra
             int len = blockCountX * blockCountY * 16 * 4;
             byte[] bytes = new byte[len];
 
-            int dataLen = blockCountX * blockCountY * 16;
-            byte[] data = new byte[dataLen];
-            stream.Read(data, 0, dataLen);
-
-            byte[] pixel = new byte[4];
             int pos = 0;
 
             bool opaque;
@@ -88,11 +83,11 @@ namespace AssetsTools.NET.Extra
                     {
                         pix = (code >> (i * 2)) & 0x3;
 
-                        pixel[0] = (byte)cb[pix];
-                        pixel[1] = (byte)cg[pix];
-                        pixel[2] = (byte)cr[pix];
-                        pixel[3] = (byte)ca;
-                        Buffer.BlockCopy(pixel, 0, bytes, (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4), 4);
+                        int dataPos = (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4);
+                        bytes[dataPos] = (byte)cb[pix];
+                        bytes[dataPos + 1] = (byte)cg[pix];
+                        bytes[dataPos + 2] = (byte)cr[pix];
+                        bytes[dataPos + 3] = (byte)ca;
                     }
                     pos += 8;
                 }
@@ -100,7 +95,7 @@ namespace AssetsTools.NET.Extra
             return bytes;
         }
 
-        public static byte[] ReadDXT5(Stream stream, int width, int height)
+        public static byte[] ReadDXT5(byte[] data, int width, int height)
         {
             int blockCountX = (width + 3) >> 2;
             int blockCountY = (height + 3) >> 2;
@@ -108,11 +103,6 @@ namespace AssetsTools.NET.Extra
             int len = blockCountX * blockCountY * 16 * 4;
             byte[] bytes = new byte[len];
 
-            int dataLen = blockCountX * blockCountY * 16;
-            byte[] data = new byte[dataLen];
-            stream.Read(data, 0, dataLen);
-
-            byte[] pixel = new byte[4];
             int pos = 0;
 
             int a0, a1;
@@ -189,11 +179,12 @@ namespace AssetsTools.NET.Extra
                                 default: ca = 0; break;
                             }
                         }
-                        pixel[0] = (byte)cb[pix];
-                        pixel[1] = (byte)cg[pix];
-                        pixel[2] = (byte)cr[pix];
-                        pixel[3] = (byte)ca;
-                        Buffer.BlockCopy(pixel, 0, bytes, (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4), 4);
+
+                        int dataPos = (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4);
+                        bytes[dataPos] = (byte)cb[pix];
+                        bytes[dataPos + 1] = (byte)cg[pix];
+                        bytes[dataPos + 2] = (byte)cr[pix];
+                        bytes[dataPos + 3] = (byte)ca;
                     }
                     pos += 16;
                 }

@@ -142,50 +142,49 @@ namespace AssetsTools.NET
                 {
                     stream = File.OpenRead(m_StreamData.path);
                     stream.Position = m_StreamData.offset;
+                    pictureData = new byte[m_StreamData.size];
+                    stream.Read(pictureData, 0, (int)m_StreamData.size);
                 }
                 else
                 {
                     return null;
                 }
             }
-            else
-            {
-                stream = new MemoryStream(pictureData);
-            }
             int width = m_Width;
             int height = m_Height;
             TextureFormat texFmt = (TextureFormat)m_TextureFormat;
-            return GetTextureDataFromStream(stream, texFmt, width, height);
+            return GetTextureDataFromStream(pictureData, /*stream, */texFmt, width, height);
         }
 
-        public static byte[] GetTextureDataFromStream(Stream stream, TextureFormat texFmt, int width, int height)
+        public static byte[] GetTextureDataFromStream(byte[] data, TextureFormat texFmt, int width, int height)
         {
+            MemoryStream stream = new MemoryStream(data);
             switch (texFmt)
             {
                 case TextureFormat.R8:
-                    return RGBADecoders.ReadR8(stream, width, height);
+                    return RGBADecoders.ReadR8(data, width, height);
                 case TextureFormat.R16:
-                    return RGBADecoders.ReadR16(stream, width, height);
+                    return RGBADecoders.ReadR16(data, width, height);
                 case TextureFormat.RG16:
-                    return RGBADecoders.ReadRG16(stream, width, height);
+                    return RGBADecoders.ReadRG16(data, width, height);
                 case TextureFormat.RGB24:
-                    return RGBADecoders.ReadRGB24(stream, width, height);
+                    return RGBADecoders.ReadRGB24(data, width, height);
                 case TextureFormat.RGBA32:
-                    return RGBADecoders.ReadRGBA32(stream, width, height);
+                    return RGBADecoders.ReadRGBA32(data, width, height);
                 case TextureFormat.ARGB32:
-                    return RGBADecoders.ReadARGB32(stream, width, height);
+                    return RGBADecoders.ReadARGB32(data, width, height);
                 case TextureFormat.RGBA4444:
-                    return RGBADecoders.ReadRGBA4444(stream, width, height);
+                    return RGBADecoders.ReadRGBA4444(data, width, height);
                 case TextureFormat.ARGB4444:
-                    return RGBADecoders.ReadARGB4444(stream, width, height);
+                    return RGBADecoders.ReadARGB4444(data, width, height);
                 case TextureFormat.Alpha8:
-                    return RGBADecoders.ReadAlpha8(stream, width, height);
+                    return RGBADecoders.ReadAlpha8(data, width, height);
                 case TextureFormat.DXT1:
-                    return DXTDecoders.ReadDXT1(stream, width, height);
+                    return DXTDecoders.ReadDXT1(data, width, height);
                 case TextureFormat.DXT5:
-                    return DXTDecoders.ReadDXT5(stream, width, height);
+                    return DXTDecoders.ReadDXT5(data, width, height);
                 case TextureFormat.BC7:
-                    return BC7Decoder.ReadBC7(stream, width, height);
+                    return BC7Decoder.ReadBC7(data, width, height);
                 default:
                     return null;
             }

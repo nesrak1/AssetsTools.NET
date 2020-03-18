@@ -21,7 +21,7 @@ namespace AssetsTools.NET.Extra
 {
     public static class BC7Decoder
     {
-        public static byte[] ReadBC7(Stream stream, int width, int height)
+        public static byte[] ReadBC7(byte[] data, int width, int height)
         {
             int blockCountX = (width + 3) >> 2;
             int blockCountY = (height + 3) >> 2;
@@ -29,11 +29,6 @@ namespace AssetsTools.NET.Extra
             int len = blockCountX * blockCountY * 16 * 4;
             byte[] bytes = new byte[len];
 
-            int dataLen = blockCountX * blockCountY * 16;
-            byte[] data = new byte[dataLen];
-            stream.Read(data, 0, dataLen);
-
-            byte[] pixel = new byte[4];
             int pos = 0;
 
             BitReader bitReader = new BitReader();
@@ -191,12 +186,11 @@ namespace AssetsTools.NET.Extra
                                 endpointEnd[j] = m1Endpoints[(2 * subsetIndex[i] + 1) * 3 + j];
                             }
 
-                            pixel[0] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], 3);
-                            pixel[1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], 3);
-                            pixel[2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], 3);
-                            pixel[3] = 0xFF;
-
-                            Buffer.BlockCopy(pixel, 0, bytes, (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4), 4);
+                            int dataPos = (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4);
+                            bytes[dataPos] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], 3);
+                            bytes[dataPos + 1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], 3);
+                            bytes[dataPos + 2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], 3);
+                            bytes[dataPos + 3] = 0xFF;
                         }
                     }
                     else
@@ -481,42 +475,42 @@ namespace AssetsTools.NET.Extra
                                 endpointEnd[j] = mxEndpoints[(2 * subsetIndex[i] + 1) * 4 + j];
                             }
 
+                            int dataPos = (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4);
                             if (rotation == 0)
                             {
                                 //rgba -> bgra
-                                pixel[0] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
-                                pixel[1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
-                                pixel[2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
-                                pixel[3] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
+                                bytes[dataPos] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
+                                bytes[dataPos + 1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
+                                bytes[dataPos + 2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
+                                bytes[dataPos + 3] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
                             }
                             else
                             {
                                 if (rotation == 1)
                                 {
                                     //agbr -> bgar
-                                    pixel[0] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
-                                    pixel[1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
-                                    pixel[2] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
-                                    pixel[3] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 2] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
+                                    bytes[dataPos + 3] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
                                 }
                                 else if (rotation == 2)
                                 {
                                     //rabg -> barg
-                                    pixel[0] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
-                                    pixel[1] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
-                                    pixel[2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
-                                    pixel[3] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 1] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
+                                    bytes[dataPos + 2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 3] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
                                 }
                                 else
                                 {
                                     //rgab -> agrb
-                                    pixel[0] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
-                                    pixel[1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
-                                    pixel[2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
-                                    pixel[3] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos] = Interpolate(endpointStart[3], endpointEnd[3], alphaIndex[i], alphaIndexBitCount);
+                                    bytes[dataPos + 1] = Interpolate(endpointStart[1], endpointEnd[1], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 2] = Interpolate(endpointStart[0], endpointEnd[0], colorIndex[i], colorIndexBitCount);
+                                    bytes[dataPos + 3] = Interpolate(endpointStart[2], endpointEnd[2], colorIndex[i], colorIndexBitCount);
                                 }
                             }
-                            Buffer.BlockCopy(pixel, 0, bytes, (x * 4 * 4) + (i % 4 * 4) + (y * width * 4 * 4) + ((i >> 2) * width * 4), 4);
                         }
                     }
                     pos += 16;
