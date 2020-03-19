@@ -234,9 +234,7 @@ Unity versions 5.0-5.4 are not supported right now, unless you can help out and 
 
 ### Does the library have a way to extract assets
 
-Extracting assets into non-serialized formats (like `png`s or `obj`s) is not supported by the library. Texture extraction is supported by the original but isn't implemented in this port due to the many libraries needed to make it work. However, TexSharp, a c# port of detex, may be implemented later in the future.
-
-As for other assets such as models, I have no plan to write any extractors for them as they are not part of the original library, and as mentioned, there are already other tools that can do that.
+Extracting assets into non-serialized formats (like `obj`s, `wav`s, etc.) is not supported by the library. I have no plan to write any extractors for them as they are not part of the original library, and as mentioned, there are already other tools that can do that.
 
 ### Do I need Mono.Cecil
 
