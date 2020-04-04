@@ -212,7 +212,19 @@ namespace AssetsTools.NET
                 return false;
 
             reader.Position = offset + 0x14;
-            string possibleVersion = reader.ReadNullTerminated();
+
+            //ReadNullTerminated but stops after 0xFF length and handles bad chars
+            string possibleVersion = "";
+            char curChar;
+            while ((curChar = (char)reader.ReadByte()) != 0x00)
+            {
+                possibleVersion += curChar;
+                if (possibleVersion.Length > 0xFF)
+                {
+                    return false;
+                }
+            }
+
             string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
             string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
             return emptyVersion == "" && fullVersion.Length > 0;
