@@ -39,7 +39,16 @@ namespace AssetsTools.NET
             writer.Write(index);
             writer.Write(flags);
             if (format >= 0x12)
-                writer.Write(unknown);
+            {
+                if (unknown == null)
+                {
+                    writer.Write(new byte[8]);
+                }
+                else
+                {
+                    writer.Write(unknown);
+                }
+            }
         }
         public enum TypeFieldArrayType
         {

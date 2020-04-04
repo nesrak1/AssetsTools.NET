@@ -35,11 +35,31 @@ namespace AssetsTools.NET
             guid.Read(reader);
             type = reader.ReadInt32();
             assetPath = reader.ReadNullTerminated();
-            //todo: the switchero was here for testing purposes, should be handled by application for full control
-            if (assetPath.StartsWith("library/"))
+
+            //because lowercase "resources" is read by unity fine on linux, it either uses
+            //hardcoded replaces like below or it has case insensitive pathing somehow
+            //this isn't consistent with the original assetstools but it only supported
+            //windows anyway, so this will only create issues if more than these three
+            //pop up in the future. also, the reason I don't just replace all "library"
+            //with "Resources" is so that when saving, I can change it back to the original
+            //(like how unity_builtin_extra goes back to "resources", not "library")
+            if (assetPath == "resources/unity_builtin_extra")
             {
-                assetPath = "Resources/" + assetPath.Substring(8);
+                assetPath = "Resources/unity_builtin_extra";
             }
+            else if (assetPath == "library/unity default resources")
+            {
+                assetPath = "Resources/unity default resources";
+            }
+            else if (assetPath == "library/unity editor resources")
+            {
+                assetPath = "Resources/unity editor resources";
+            }
+            //todo: the switchero was here for testing purposes, should be handled by application for full control
+            //if (assetPath.StartsWith("library/"))
+            //{
+            //    assetPath = "Resources/" + assetPath.Substring(8);
+            //}
         }
         public void Write(AssetsFileWriter writer)
         {
@@ -47,10 +67,22 @@ namespace AssetsTools.NET
             guid.Write(writer);
             writer.Write(type);
             string assetPathTemp = assetPath;
-            if (assetPathTemp.StartsWith("Resources\\") || assetPathTemp.StartsWith("Resources/"))
+            if (assetPath == "Resources/unity_builtin_extra")
             {
-                assetPathTemp = "library/" + assetPath.Substring(10);
+                assetPathTemp = "resources/unity_builtin_extra";
             }
+            else if (assetPath == "Resources/unity default resources")
+            {
+                assetPathTemp = "library/unity default resources";
+            }
+            else if (assetPath == "Resources/unity editor resources")
+            {
+                assetPathTemp = "library/unity editor resources";
+            }
+            //if (assetPathTemp.StartsWith("Resources\\") || assetPathTemp.StartsWith("Resources/"))
+            //{
+            //    assetPathTemp = "library/" + assetPath.Substring(10);
+            //}
             writer.WriteNullTerminated(assetPathTemp);
         }
     }

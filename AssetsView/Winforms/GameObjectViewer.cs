@@ -39,7 +39,11 @@ namespace AssetsView.Winforms
 
         private void GameObjectViewer_Load(object sender, EventArgs e)
         {
-            PInvoke.SetWindowTheme(goTree.Handle, "explorer", null);
+            //mono won't be able to do this so ignore it
+            if (Type.GetType("Mono.Runtime") == null)
+            {
+                PInvoke.SetWindowTheme(goTree.Handle, "explorer", null);
+            }
             valueGrid.PropertySort = PropertySort.Categorized;
             if (componentInfo == null)
             {

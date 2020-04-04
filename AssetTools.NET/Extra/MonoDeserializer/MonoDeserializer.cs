@@ -38,7 +38,7 @@ namespace AssetsTools.NET.Extra
             {
                 AssemblyResolver = resolver
             };
-            return AssemblyDefinition.ReadAssembly(path, readerParameters);
+            return AssemblyDefinition.ReadAssembly(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read), readerParameters);
         }
         public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfoEx info, string managedPath, bool cached = true)
         {
