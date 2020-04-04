@@ -76,9 +76,13 @@ namespace AssetsView.Winforms
 
                     string possibleVersion = "";
                     char curChar;
-                    while ((curChar = (char)reader.ReadByte()) != 0x00 && possibleVersion.Length < 100)
+                    while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
                     {
                         possibleVersion += curChar;
+                        if (possibleVersion.Length < 0xFF)
+                        {
+                            break;
+                        }
                     }
                     emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
                 }
@@ -144,6 +148,14 @@ namespace AssetsView.Winforms
                 inst.table.GenerateQuickLookupTree();
                 helper.UpdateDependencies();
                 helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+                if (helper.classFile == null)
+                {
+                    //may still not work but better than nothing I guess
+                    //in the future we should probably do a selector
+                    //like uabe does
+                    ClassDatabaseFile[] files = helper.classPackage.files;
+                    helper.classFile = files[files.Length - 1];
+                }
                 UpdateFileList();
                 currentFile = inst;
 

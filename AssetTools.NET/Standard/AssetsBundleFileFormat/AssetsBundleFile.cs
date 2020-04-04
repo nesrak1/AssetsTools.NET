@@ -213,10 +213,9 @@ namespace AssetsTools.NET
 
             reader.Position = offset + 0x14;
 
-            //ReadNullTerminated but stops after 0xFF length and handles bad chars
             string possibleVersion = "";
             char curChar;
-            while ((curChar = (char)reader.ReadByte()) != 0x00)
+            while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
             {
                 possibleVersion += curChar;
                 if (possibleVersion.Length > 0xFF)
