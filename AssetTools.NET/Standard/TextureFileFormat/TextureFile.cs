@@ -152,10 +152,10 @@ namespace AssetsTools.NET
             int width = m_Width;
             int height = m_Height;
             TextureFormat texFmt = (TextureFormat)m_TextureFormat;
-            return GetTextureDataFromStream(pictureData, texFmt, width, height);
+            return GetTextureDataFromBytes(pictureData, texFmt, width, height);
         }
 
-        public static byte[] GetTextureDataFromStream(byte[] data, TextureFormat texFmt, int width, int height)
+        public static byte[] GetTextureDataFromBytes(byte[] data, TextureFormat texFmt, int width, int height)
         {
             switch (texFmt)
             {

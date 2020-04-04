@@ -222,6 +222,8 @@ if (texDat != null && texDat.Length > 0)
 
 Note that the original AssetsTools uses RGBA output instead of BGRA output. In the future I'll probably add a flag to support choosing which order the output is in.
 
+If you're parsing the texture manually or have the bytes some other way, you can use TextureFile.GetTextureDataFromBytes to decode a texture from bytes, a texture format, and size without having to create a TextureFile manually.
+
 ## Hmms 🤔
 
 ### Why does AssetsView.NET or my program with AssetsTools.NET crash when reading a specific type
