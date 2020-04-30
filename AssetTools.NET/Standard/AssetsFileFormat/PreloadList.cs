@@ -26,7 +26,9 @@ namespace AssetsTools.NET
             for (int i = 0; i < len; i++)
             {
                 writer.Write(items[i].fileID);
+                writer.Align();
                 writer.Write(items[i].pathID);
+                writer.Align();
             }
         }
     }
