@@ -111,7 +111,7 @@ namespace AssetsView.Winforms
             int componentSize = components.GetValue().AsArray().size;
             for (int i = 0; i < componentSize; i++)
             {
-                AssetTypeValueField componentPtr = components[i].Get("component");
+                AssetTypeValueField componentPtr = components[i].GetLastChild();
                 if (ModifierKeys == Keys.Shift)
                 {
                     AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
@@ -250,7 +250,7 @@ namespace AssetsView.Winforms
                 helper.GetExtAsset(inst, field.Get("m_Component")
                                               .Get("Array")
                                               .Get(0)
-                                              .Get("component")).instance
+                                              .GetLastChild()).instance
                                               .GetBaseField()
                                               .Get("m_Children")
                                               .Get("Array");

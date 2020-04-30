@@ -53,6 +53,16 @@ namespace AssetsTools.NET.Extra
             return null;
         }
 
+        public static Type_0D FindTypeTreeTypeByScriptIndex(TypeTree typeTree, ushort scriptIndex)
+        {
+            foreach (Type_0D type in typeTree.unity5Types)
+            {
+                if (type.classId < 0 && type.scriptIndex == scriptIndex)
+                    return type;
+            }
+            return null;
+        }
+
         public static Type_0D FindTypeTreeTypeByName(TypeTree typeTree, string name)
         {
             foreach (Type_0D type in typeTree.unity5Types)
@@ -63,6 +73,14 @@ namespace AssetsTools.NET.Extra
             return null;
         }
 
+        public static ushort GetScriptIndex(AssetsFile file, AssetFileInfoEx info)
+        {
+            if (file.header.format < 0x10)
+                return info.scriptIndex;
+            else
+                return file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
+        }
+
         public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfoEx info)
         {
             ClassDatabaseType type = FindAssetClassByID(cldb, info.curFileType);
@@ -70,7 +88,7 @@ namespace AssetsTools.NET.Extra
             AssetsFileReader reader = file.reader;
 
             if (type.fields.Count == 0) return type.name.GetString(cldb);
-            if (type.fields[1].fieldName.GetString(cldb) == "m_Name")
+            if (type.fields.Count > 1 && type.fields[1].fieldName.GetString(cldb) == "m_Name")
             {
                 reader.Position = info.absoluteFilePos;
                 return reader.ReadCountStringInt32();
@@ -79,7 +97,8 @@ namespace AssetsTools.NET.Extra
             {
                 reader.Position = info.absoluteFilePos;
                 int size = reader.ReadInt32();
-                reader.Position += size * 12;
+                int componentSize = file.header.format > 0x10 ? 0xC : 0x10;
+                reader.Position += size * componentSize;
                 reader.Position += 4;
                 return reader.ReadCountStringInt32();
             }
@@ -110,7 +129,8 @@ namespace AssetsTools.NET.Extra
             {
                 reader.Position = info.absoluteFilePos;
                 int size = reader.ReadInt32();
-                reader.Position += size * 12;
+                int componentSize = file.header.format > 0x10 ? 0xC : 0x10;
+                reader.Position += size * componentSize;
                 reader.Position += 4;
                 return reader.ReadCountStringInt32();
             }

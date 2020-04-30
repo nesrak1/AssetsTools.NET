@@ -13,7 +13,11 @@ namespace AssetsTools.NET
             items = new List<AssetPPtr>();
             for (int i = 0; i < len; i++)
             {
-                items.Add(new AssetPPtr(reader.ReadInt32(), reader.ReadInt64()));
+                int fileId = reader.ReadInt32();
+                reader.Align();
+                long pathId = reader.ReadInt64();
+                reader.Align();
+                items.Add(new AssetPPtr(fileId, pathId));
             }
         }
         public void Write(AssetsFileWriter writer)

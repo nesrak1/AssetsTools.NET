@@ -182,35 +182,41 @@ namespace AssetsTools.NET.Extra
 
         public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
-            ushort scriptIndex = file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
+            ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
             uint fixedId = AssetHelper.FixAudioID(info.curFileType);
 
             bool hasTypeTree = file.typeTree.hasTypeTree;
-            AssetTypeTemplateField baseField = null;
-            if (useTemplateFieldCache)
+            AssetTypeTemplateField baseField;
+            if (useTemplateFieldCache && templateFieldCache.ContainsKey(fixedId))
             {
-                if (templateFieldCache.ContainsKey(fixedId))
-                {
-                    baseField = templateFieldCache[fixedId];
-                }
-                else
-                {
-                    baseField = new AssetTypeTemplateField();
-                    if (hasTypeTree && !forceFromCldb)
-                        baseField.From0D(file.typeTree.unity5Types.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
-                    else
-                        baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
-
-                    templateFieldCache[fixedId] = baseField;
-                }
+                baseField = templateFieldCache[fixedId];
             }
             else
             {
                 baseField = new AssetTypeTemplateField();
                 if (hasTypeTree && !forceFromCldb)
-                    baseField.From0D(file.typeTree.unity5Types.First(t => (t.classId == fixedId || t.classId == info.curFileType) && t.scriptIndex == scriptIndex), 0);
+                {
+                    if (file.header.format < 0x10)
+                    {
+                        if (scriptIndex == 0xFFFF)
+                            baseField.From0D(AssetHelper.FindTypeTreeTypeByID(file.typeTree, fixedId), 0);
+                        else
+                            baseField.From0D(AssetHelper.FindTypeTreeTypeByScriptIndex(file.typeTree, scriptIndex), 0);
+                    }
+                    else
+                    {
+                        baseField.From0D(AssetHelper.FindTypeTreeTypeByID(file.typeTree, fixedId), 0);
+                    }
+                }
                 else
+                {
                     baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
+                }
+
+                if (useTemplateFieldCache)
+                {
+                    templateFieldCache[fixedId] = baseField;
+                }
             }
 
             return new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
@@ -219,7 +225,7 @@ namespace AssetsTools.NET.Extra
         public AssetTypeValueField GetMonoBaseFieldCached(AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
         {
             AssetsFile file = inst.file;
-            ushort scriptIndex = file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
+            ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
             if (scriptIndex != 0xFFFF && inst.templateFieldCache.ContainsKey(scriptIndex))
             {
                 AssetTypeTemplateField baseTemplateField = inst.templateFieldCache[scriptIndex];

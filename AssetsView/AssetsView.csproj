@@ -72,7 +72,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssetHelpers\AssetInfo.cs" />
     <Compile Include="AssetHelpers\AssetSorter.cs" />
     <Compile Include="Structs\AssetDetails.cs" />
     <Compile Include="Structs\AssetIcon.cs" />

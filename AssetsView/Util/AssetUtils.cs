@@ -27,5 +27,13 @@ namespace AssetsView.Util
             }
             return true;
         }
+
+        //used as sort of a hack to handle both second and component
+        //in m_Component which both have the pptr as the last field
+        //(pre 5.5 has a first and second while post 5.5 has component)
+        public static AssetTypeValueField GetLastChild(this AssetTypeValueField atvf)
+        {
+            return atvf[atvf.childrenCount - 1];
+        }
     }
 }

@@ -31,7 +31,13 @@ namespace AssetsTools.NET
                 assetFileInfoSet.absoluteFilePos = file.header.firstFileOffset + assetFileInfoSet.curFileOffset;
                 if (file.header.format < 0x10)
                 {
-                    assetFileInfoSet.curFileType = (uint)assetFileInfoSet.curFileTypeOrIndex;
+                    if (assetFileInfoSet.curFileTypeOrIndex < 0)
+                    {
+                        assetFileInfoSet.curFileType = 0x72;
+                    } else
+                    {
+                        assetFileInfoSet.curFileType = (uint)assetFileInfoSet.curFileTypeOrIndex;
+                    }
                 } else
                 {
                     assetFileInfoSet.curFileType = (uint)file.typeTree.unity5Types[assetFileInfoSet.curFileTypeOrIndex].classId;

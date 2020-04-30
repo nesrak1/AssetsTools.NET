@@ -46,7 +46,8 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField baseField = new AssetTypeTemplateField();
             baseField.FromClassDatabase(am.classFile, AssetHelper.FindAssetClassByID(am.classFile, info.curFileType), 0);
             AssetTypeInstance mainAti = new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
-            if (file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex != 0xFFFF)
+            ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
+            if (scriptIndex != 0xFFFF)
             {
                 AssetTypeInstance scriptAti = am.GetExtAsset(inst, mainAti.GetBaseField().Get("m_Script")).instance;
                 string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();

@@ -25,11 +25,12 @@ namespace AssetsTools.NET
             size += 12;
             if (version < 0x10) size += 2;
             if (version <= 0x10) size += 2;
-            if (0x0F <= version && version <= 0x10) size += 4;
+            if (0x0F <= version && version <= 0x10) size += 1;
             return size;
         }
         public void Read(uint version, AssetsFileReader reader)
         {
+            reader.Align();
             if (version >= 0x0E)
             {
                 index = reader.ReadInt64();
@@ -52,11 +53,11 @@ namespace AssetsTools.NET
             if (0x0F <= version && version <= 0x10)
             {
                 unknown1 = reader.ReadByte();
-                reader.ReadBytes(3);
             }
         }
         public void Write(uint version, AssetsFileWriter writer)
         {
+            writer.Align();
             if (version >= 0x0E)
             {
                 writer.Write(index);
@@ -79,7 +80,6 @@ namespace AssetsTools.NET
             if (0x0F <= version && version <= 0x10)
             {
                 writer.Write(unknown1);
-                writer.Write(new byte[] { 0x00, 0x00, 0x00 });
             }
         }
     }

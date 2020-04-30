@@ -224,7 +224,7 @@ namespace AssetsView.Winforms
                         if (assetType == null)
                             continue;
                         string assetTypeName = assetType.name.GetString(helper.classFile);
-                        string assetName = AssetInfo.GetAssetNameFast(assetInfo, helper.classFile, assetType, assetExt.file);
+                        string assetName = AssetHelper.GetAssetNameFast(assetExt.file.file, helper.classFile, assetInfo);
                         if (path.Contains("/"))
                         {
                             if (path.Substring(path.LastIndexOf('/') + 1) == assetName.ToLower())
@@ -264,7 +264,7 @@ namespace AssetsView.Winforms
                 string typeName = type.name.GetString(helper.classFile);
                 if (typeName != "GameObject" && isLevel)
                     continue;
-                string name = AssetInfo.GetAssetNameFast(info, helper.classFile, type, mainFile);
+                string name = AssetHelper.GetAssetNameFast(mainFile.file, helper.classFile, info);
                 if (name == "")
                 {
                     name = "[Unnamed]";
@@ -483,7 +483,7 @@ namespace AssetsView.Winforms
             {
                 AssetTypeValueField baseField = helper.GetATI(correctAti.file, info).GetBaseField();
 
-                AssetTypeValueField transformPtr = baseField["m_Component"]["Array"][0]["component"];
+                AssetTypeValueField transformPtr = baseField["m_Component"]["Array"][0].GetLastChild();
                 AssetTypeValueField transform = helper.GetExtAsset(correctAti, transformPtr).instance.GetBaseField();
                 baseField = GetRootTransform(helper, currentFile, transform);
                 AssetTypeValueField gameObjectPtr = baseField["m_GameObject"];

@@ -34,9 +34,19 @@ namespace AssetsTools.NET
             
             AssetCount = reader.ReadUInt32();
             reader.Align();
-            AssetTablePos = Convert.ToUInt32(reader.BaseStream.Position);
-            
-            reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * AssetCount;
+            AssetTablePos = (uint)reader.BaseStream.Position;
+
+            int assetInfoSize = AssetFileInfo.GetSize(header.format);
+            if (0x0F <= header.format && header.format <= 0x10)
+            {
+                //for these two versions, the asset info is not aligned
+                //for the last entry, so we have to do some weird stuff
+                reader.BaseStream.Position += ((assetInfoSize + 3) >> 2 << 2) * (AssetCount - 1) + assetInfoSize;
+            }
+            else
+            {
+                reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * AssetCount;
+            }
             if (header.format > 0x0B)
             {
                 preloadTable = new PreloadList();

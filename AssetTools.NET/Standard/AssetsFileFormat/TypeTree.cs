@@ -18,7 +18,10 @@ namespace AssetsTools.NET
         {
             unityVersion = reader.ReadNullTerminated();
             this.version = reader.ReadUInt32();
-            hasTypeTree = reader.ReadBoolean();
+            if (version >= 0x0D)
+            {
+                hasTypeTree = reader.ReadBoolean();
+            }
             fieldCount = reader.ReadInt32();
             unity5Types = new List<Type_0D>();
             for (int i = 0; i < fieldCount; i++)
@@ -36,7 +39,10 @@ namespace AssetsTools.NET
         {
             writer.WriteNullTerminated(unityVersion);
             writer.Write(this.version);
-            writer.Write(hasTypeTree);
+            if (version >= 0x0D)
+            {
+                writer.Write(hasTypeTree);
+            }
             fieldCount = unity5Types.Count;
             writer.Write(fieldCount);
             for (int i = 0; i < fieldCount; i++)
