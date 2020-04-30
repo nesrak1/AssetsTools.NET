@@ -60,7 +60,7 @@ namespace AssetsTools.NET
         }
         public override void Write(string val)
         {
-            base.Write(Encoding.ASCII.GetBytes(val));
+            base.Write(Encoding.UTF8.GetBytes(val));
         }
         public void WriteUInt24(uint val)
         {

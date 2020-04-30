@@ -2,7 +2,7 @@
 
 namespace AssetsTools.NET
 {
-    public struct TypeTree
+    public class TypeTree
     {
         public string unityVersion; //null-terminated; stored for .assets format > 6
         public uint version; //big endian; stored for .assets format > 6

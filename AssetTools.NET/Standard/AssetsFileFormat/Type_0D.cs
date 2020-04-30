@@ -3,7 +3,7 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
-    public struct Type_0D //everything big endian
+    public class Type_0D //everything big endian
     {
         //Starting with U5.5, all MonoBehaviour types have MonoBehaviour's classId (114)
         //Before, the different MonoBehaviours had different negative classIds, starting with -1

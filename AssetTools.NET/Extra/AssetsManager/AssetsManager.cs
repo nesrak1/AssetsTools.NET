@@ -183,14 +183,7 @@ namespace AssetsTools.NET.Extra
         public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
             ushort scriptIndex = file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
-            //unity is wack
-            uint fixedId = info.curFileType;
-            if (fixedId == 0xf1) //AudioMixerController
-                fixedId = 0xf0;  //AudioMixer
-            else if (fixedId == 0xf3) //AudioMixerGroupController
-                fixedId = 0x111;      //AudioMixerGroup
-            else if (fixedId == 0xf5) //AudioMixerSnapshotController
-                fixedId = 0x110;      //AudioMixerSnapshot
+            uint fixedId = AssetHelper.FixAudioID(info.curFileType);
 
             bool hasTypeTree = file.typeTree.hasTypeTree;
             AssetTypeTemplateField baseField = null;

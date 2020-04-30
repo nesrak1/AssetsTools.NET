@@ -2,7 +2,7 @@
 
 namespace AssetsTools.NET
 {
-    public struct TypeField_0D
+    public class TypeField_0D
     {
         public ushort version;                      //0x00
         public byte depth;                          //0x02 //specifies the amount of parents

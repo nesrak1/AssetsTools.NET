@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct TypeField_07 //everything big endian
+    public class TypeField_07 //everything big endian
     {
         public string type; //null-terminated
         public string name; //null-terminated

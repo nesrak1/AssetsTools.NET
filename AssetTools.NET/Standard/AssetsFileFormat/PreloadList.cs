@@ -2,7 +2,7 @@
 
 namespace AssetsTools.NET
 {
-    public struct PreloadList
+    public class PreloadList
     {
         public int len;
         public List<AssetPPtr> items;

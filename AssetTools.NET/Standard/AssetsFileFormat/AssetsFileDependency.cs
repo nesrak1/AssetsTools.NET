@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
-    public struct AssetsFileDependency
+    public class AssetsFileDependency
     {
         //version < 6 : no bufferedPath
         //version < 5 : no bufferedPath, guid, type

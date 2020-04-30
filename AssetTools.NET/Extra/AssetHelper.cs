@@ -11,19 +11,23 @@ namespace AssetsTools.NET.Extra
 {
     public static class AssetHelper
     {
+        public static uint FixAudioID(uint id)
+        {
+            if (id == 0xf1)      //AudioMixerController
+                id = 0xf0;       //AudioMixer
+            else if (id == 0xf3) //AudioMixerGroupController
+                id = 0x111;      //AudioMixerGroup
+            else if (id == 0xf5) //AudioMixerSnapshotController
+                id = 0x110;      //AudioMixerSnapshot
+            return id;
+        }
+
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, uint id)
         {
-            uint fixedId = id;
-            if (fixedId == 0xf1) //AudioMixerController
-                fixedId = 0xf0;  //AudioMixer
-            else if (fixedId == 0xf3) //AudioMixerGroupController
-                fixedId = 0x111;      //AudioMixerGroup
-            else if (fixedId == 0xf5) //AudioMixerSnapshotController
-                fixedId = 0x110;      //AudioMixerSnapshot
-
+            id = FixAudioID(id);
             foreach (ClassDatabaseType type in cldb.classes)
             {
-                if (type.classId == fixedId)
+                if (type.classId == id)
                     return type;
             }
             return null;
@@ -34,6 +38,26 @@ namespace AssetsTools.NET.Extra
             foreach (ClassDatabaseType type in cldb.classes)
             {
                 if (type.name.GetString(cldb) == name)
+                    return type;
+            }
+            return null;
+        }
+
+        public static Type_0D FindTypeTreeTypeByID(TypeTree typeTree, uint id)
+        {
+            foreach (Type_0D type in typeTree.unity5Types)
+            {
+                if (type.classId == id)
+                    return type;
+            }
+            return null;
+        }
+
+        public static Type_0D FindTypeTreeTypeByName(TypeTree typeTree, string name)
+        {
+            foreach (Type_0D type in typeTree.unity5Types)
+            {
+                if (type.typeFieldsEx[0].GetTypeString(type.stringTable) == name)
                     return type;
             }
             return null;

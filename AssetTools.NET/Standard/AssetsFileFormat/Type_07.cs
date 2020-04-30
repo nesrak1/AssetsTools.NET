@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct Type_07
+    public class Type_07
     {
         public int classId; //big endian
         public TypeField_07 @base;

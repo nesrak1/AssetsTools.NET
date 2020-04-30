@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
-    public struct AssetsFileDependencyList
+    public class AssetsFileDependencyList
     {
         public int dependencyCount;
         public List<AssetsFileDependency> dependencies;

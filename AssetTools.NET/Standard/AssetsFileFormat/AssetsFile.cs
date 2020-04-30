@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace AssetsTools.NET
 {
@@ -27,7 +28,7 @@ namespace AssetsTools.NET
             
             header = new AssetsFileHeader();
             header.Read(reader);
-            
+
             typeTree = new TypeTree();
             typeTree.Read(reader, header.format);
             
@@ -41,7 +42,7 @@ namespace AssetsTools.NET
                 preloadTable = new PreloadList();
                 preloadTable.Read(reader);
             }
-            
+
             dependencies = new AssetsFileDependencyList();
             dependencies.Read(reader);
         }
@@ -177,13 +178,13 @@ namespace AssetsTools.NET
             dependencies.Write(writer);
 
             //temporary fix for secondarytypecount and friends
-            if (header.format >= 14)
+            if (header.format >= 0x14)
             {
                 writer.Write(0); //secondaryTypeCount
-                writer.Write((byte)0); //unknownString length
+                //writer.Write((byte)0); //unknownString length
             }
 
-            uint metadataSize = (uint)writer.Position - 0x14;
+            uint metadataSize = (uint)(writer.Position - header.GetSizeBytes());
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             while (writer.Position < 0x1000/*header.offs_firstFile*/)
@@ -191,7 +192,10 @@ namespace AssetsTools.NET
                 writer.Write((byte)0x00);
             }
 
-            writer.Align16();
+            if (writer.Position % 16 == 0)
+                writer.Position += 16;
+            else
+                writer.Align16();
 
             uint offs_firstFile = (uint)writer.Position;
 

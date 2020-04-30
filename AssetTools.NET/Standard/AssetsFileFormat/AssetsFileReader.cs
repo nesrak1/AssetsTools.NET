@@ -98,7 +98,7 @@ namespace AssetsTools.NET
         }
         public string ReadStringLength(int len)
         {
-            return Encoding.ASCII.GetString(ReadBytes(len));
+            return Encoding.UTF8.GetString(ReadBytes(len));
         }
         public string ReadNullTerminated()
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
-    public struct AssetFileList
+    public class AssetFileList
     {
         public uint sizeFiles;                      //0x00 //little-endian
         public AssetFileInfo[] fileInfs;            //0x04
