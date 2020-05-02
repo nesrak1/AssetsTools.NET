@@ -394,6 +394,19 @@ namespace AssetsView.Winforms
                 dgv.ClearSelection();
                 dgv.CurrentCell = c;
                 c.Selected = true;
+
+                var selRow = dgv.Rows[e.RowIndex];
+                string typeName = (string)selRow.Cells[2].Value;
+                if (typeName == "Folder")
+                {
+                    viewTextureToolStripMenuItem.Visible = false;
+                }
+                else
+                {
+                    AssetFileInfoEx info = currentFile.table.GetAssetInfo((long)selRow.Cells[3].Value);
+                    viewTextureToolStripMenuItem.Visible = info.curFileType == 0x1C;
+                }
+
                 Point p = dgv.PointToClient(Cursor.Position);
                 contextMenuStrip.Show(dgv, p);
             }
@@ -432,6 +445,21 @@ namespace AssetsView.Winforms
                     );
                     viewer.ShowDialog();
                 }
+            }
+        }
+
+        private void viewTextureToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentFile == null)
+                return;
+            if (assetList.SelectedCells.Count > 0)
+            {
+                var selRow = assetList.SelectedRows[0];
+                AssetFileInfoEx info = currentFile.table.GetAssetInfo((long)selRow.Cells[3].Value);
+                AssetTypeValueField baseField = helper.GetATI(currentFile.file, info).GetBaseField();
+
+                TextureViewer texView = new TextureViewer(currentFile, baseField);
+                texView.ShowDialog();
             }
         }
 

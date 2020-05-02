@@ -33,6 +33,9 @@ namespace AssetsView.Winforms
         //folders
         public AssetInfoViewer(string name, string resourcesPath)
         {
+            InitializeComponent();
+            properties.Items.Clear();
+
             AddProperty("Name", name);
             AddProperty("Type", "Folder");
             if (resourcesPath != string.Empty)

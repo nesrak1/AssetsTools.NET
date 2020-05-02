@@ -1,4 +1,5 @@
 ﻿using AssetsTools.NET.Extra;
+using System;
 using System.IO;
 
 namespace AssetsTools.NET
@@ -133,13 +134,41 @@ namespace AssetsTools.NET
             return texture;
         }
 
+        //default setting for assetstools
+        //usually you have to cd to the assets file
         public byte[] GetTextureData()
+        {
+            return GetTextureData(Directory.GetCurrentDirectory());
+        }
+
+        //new functions since I didn't like the way assetstools handled it
+        public byte[] GetTextureData(AssetsFileInstance inst)
+        {
+            return GetTextureData(Path.GetDirectoryName(inst.path));
+        }
+
+        public byte[] GetTextureData(AssetsFile file)
+        {
+            string path = null;
+            if (file.readerPar is FileStream fs)
+            {
+                path = Path.GetDirectoryName(fs.Name);
+            }
+            return GetTextureData(path);
+        }
+
+        public byte[] GetTextureData(string rootPath)
         {
             if (m_StreamData.size != 0 && m_StreamData.path != string.Empty)
             {
-                if (File.Exists(m_StreamData.path))
+                string fixedStreamPath = m_StreamData.path;
+                if (!Path.IsPathRooted(fixedStreamPath) && rootPath != null)
                 {
-                    Stream stream = File.OpenRead(m_StreamData.path);
+                    fixedStreamPath = Path.Combine(rootPath, fixedStreamPath);
+                }
+                if (File.Exists(fixedStreamPath))
+                {
+                    Stream stream = File.OpenRead(fixedStreamPath);
                     stream.Position = m_StreamData.offset;
                     pictureData = new byte[m_StreamData.size];
                     stream.Read(pictureData, 0, (int)m_StreamData.size);
@@ -183,6 +212,8 @@ namespace AssetsTools.NET
                     return DXTDecoders.ReadDXT5(data, width, height);
                 case TextureFormat.BC7:
                     return BC7Decoder.ReadBC7(data, width, height);
+                case TextureFormat.ETC_RGB4:
+                    return ETCDecoders.ReadETC(data, width, height);
                 default:
                     return null;
             }

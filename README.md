@@ -202,6 +202,9 @@ Supported formats:
 * DXT1
 * DXT5
 * BC7
+* ETC1
+* ETC2
+* ETC2 RGBA
 
 In the future I'll be adding more formats but these should be good for most games.
 
@@ -210,7 +213,9 @@ The output of these are in BGRA which makes it easy to use Format32bppArgb with 
 ```cs
 var atvf = am.GetATI(inst.file, texInf).GetBaseField();
 var tf = TextureFile.ReadTextureFile(atvf);
-var texDat = tf.GetTextureData();
+var texDat = tf.GetTextureData(inst); //giving the instance will find .resS files in the same directory
+                                      //you can change this to a path if the .resS is somewhere else
+									  //if you have the resS in memory instead, set the pictureData bytes
 if (texDat != null && texDat.Length > 0)
 {
     var canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
@@ -232,7 +237,7 @@ Most likely a minor version update changed a field or two and broke the reader. 
 
 ### Does AssetsTools.NET work for versions below Unity 5.5
 
-Unity versions 5.0-5.4 are not supported right now, unless you can help out and add it.
+Unity versions 5.0-5.4 are in testing at the moment. If you have a problem with reading/writing drop an issue so we can fix it.
 
 ### Does the library have a way to extract assets
 

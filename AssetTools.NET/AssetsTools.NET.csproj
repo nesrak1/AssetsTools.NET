@@ -63,7 +63,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -99,6 +98,8 @@
     <Compile Include="Extra\TextureDecoders\BPTCTables.cs" />
     <Compile Include="Extra\TextureDecoders\DivisionTables.cs" />
     <Compile Include="Extra\TextureDecoders\DXTDecoders.cs" />
+    <Compile Include="Extra\TextureDecoders\ETCDecoders.cs" />
+    <Compile Include="Extra\TextureDecoders\ETCTables.cs" />
     <Compile Include="Extra\TextureDecoders\RGBADecoders.cs" />
     <Compile Include="Extra\MonoDeserializer\MonoDeserializer.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleBlockAndDirectoryList06.cs" />
