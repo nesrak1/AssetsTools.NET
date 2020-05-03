@@ -31,6 +31,7 @@ namespace AssetsTools.NET.Extra
             using (MemoryStream ms = new MemoryStream())
             using (AssetsFileWriter w = new AssetsFileWriter(ms))
             {
+                w.bigEndian = false;
                 instance.Write(w);
                 data = ms.ToArray();
             }
@@ -127,6 +128,7 @@ namespace AssetsTools.NET.Extra
             using (MemoryStream ms = new MemoryStream())
             using (AssetsFileWriter w = new AssetsFileWriter(ms))
             {
+                w.bigEndian = false;
                 valueField.Write(w);
                 data = ms.ToArray();
             }
