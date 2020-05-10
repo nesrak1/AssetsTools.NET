@@ -214,6 +214,8 @@ namespace AssetsTools.NET
                     return BC7Decoder.ReadBC7(data, width, height);
                 case TextureFormat.ETC_RGB4:
                     return ETCDecoders.ReadETC(data, width, height);
+                case TextureFormat.ETC2_RGB4:
+                    return ETCDecoders.ReadETC(data, width, height, true);
                 default:
                     return null;
             }
