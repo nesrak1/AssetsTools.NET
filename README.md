@@ -204,7 +204,6 @@ Supported formats:
 * BC7
 * ETC1
 * ETC2
-* ETC2 RGBA
 
 In the future I'll be adding more formats but these should be good for most games.
 
