@@ -112,14 +112,14 @@ namespace AssetsTools.NET
         }
         public void WriteCountString(string text)
         {
-            if (text.Length > 0xFF)
+            if (Encoding.UTF8.GetByteCount(text) > 0xFF)
                 new Exception("String is longer than 255! Use the Int32 variant instead!");
-            Write((byte)text.Length);
+            Write((byte)Encoding.UTF8.GetByteCount(text));
             Write(text);
         }
         public void WriteCountStringInt32(string text)
         {
-            Write(text.Length);
+            Write(Encoding.UTF8.GetByteCount(text));
             Write(text);
         }
         public long Position
@@ -127,5 +127,6 @@ namespace AssetsTools.NET
             get { return BaseStream.Position; }
             set { BaseStream.Position = value; }
         }
+
     }
 }
