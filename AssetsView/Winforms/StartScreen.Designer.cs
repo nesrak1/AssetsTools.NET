@@ -59,9 +59,9 @@
             this.upDirectory = new System.Windows.Forms.Button();
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.viewTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
-            this.viewTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -80,7 +80,7 @@
             this.assetTree.Location = new System.Drawing.Point(0, 0);
             this.assetTree.Margin = new System.Windows.Forms.Padding(2);
             this.assetTree.Name = "assetTree";
-            this.assetTree.Size = new System.Drawing.Size(287, 386);
+            this.assetTree.Size = new System.Drawing.Size(287, 385);
             this.assetTree.TabIndex = 0;
             this.assetTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.AssetTree_NodeMouseDoubleClick);
             // 
@@ -212,11 +212,9 @@
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 23);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 24);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(2);
             this.splitContainer1.Name = "splitContainer1";
             // 
@@ -230,7 +228,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.goDirectory);
             this.splitContainer1.Panel2.Controls.Add(this.pathBox);
             this.splitContainer1.Panel2.Controls.Add(this.upDirectory);
-            this.splitContainer1.Size = new System.Drawing.Size(700, 386);
+            this.splitContainer1.Size = new System.Drawing.Size(700, 385);
             this.splitContainer1.SplitterDistance = 287;
             this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 2;
@@ -259,7 +257,7 @@
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(412, 358);
+            this.assetList.Size = new System.Drawing.Size(408, 357);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
@@ -307,7 +305,7 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(375, 2);
+            this.goDirectory.Location = new System.Drawing.Point(372, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
             this.goDirectory.Size = new System.Drawing.Size(36, 25);
@@ -325,7 +323,7 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(329, 25);
+            this.pathBox.Size = new System.Drawing.Size(326, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
@@ -361,7 +359,15 @@
             this.viewTextureToolStripMenuItem,
             this.propertiesToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(181, 70);
+            this.contextMenuStrip.Size = new System.Drawing.Size(141, 48);
+            // 
+            // viewTextureToolStripMenuItem
+            // 
+            this.viewTextureToolStripMenuItem.Name = "viewTextureToolStripMenuItem";
+            this.viewTextureToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.viewTextureToolStripMenuItem.Text = "View Texture";
+            this.viewTextureToolStripMenuItem.Visible = false;
+            this.viewTextureToolStripMenuItem.Click += new System.EventHandler(this.viewTextureToolStripMenuItem_Click);
             // 
             // propertiesToolStripMenuItem
             // 
@@ -380,14 +386,6 @@
             this.dataGridViewImageColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.dataGridViewImageColumn1.Width = 30;
-            // 
-            // viewTextureToolStripMenuItem
-            // 
-            this.viewTextureToolStripMenuItem.Name = "viewTextureToolStripMenuItem";
-            this.viewTextureToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.viewTextureToolStripMenuItem.Text = "View Texture";
-            this.viewTextureToolStripMenuItem.Visible = false;
-            this.viewTextureToolStripMenuItem.Click += new System.EventHandler(this.viewTextureToolStripMenuItem_Click);
             // 
             // StartScreen
             // 

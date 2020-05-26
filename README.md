@@ -252,7 +252,7 @@ Create a github issue and I will try to get back to you when I can.
 
 # AssetsView
 
-AssetsView is a viewer for assets files. Rather than being target toward extracting assets, AssetsView can view the raw data of assets. It improves on UABE by being easier to navigate with gameobject tree views and much more.
+AssetsView is a viewer for assets files. Rather than being targeted toward extracting assets, AssetsView can view the raw data of assets. It improves on UABE by being easier to navigate with gameobject tree views and much more.
 
 ![AssetsView](https://user-images.githubusercontent.com/12544505/73774729-1f823380-474a-11ea-8e14-ce89691e63df.png)
 

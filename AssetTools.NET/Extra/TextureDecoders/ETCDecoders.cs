@@ -91,7 +91,7 @@ namespace AssetsTools.NET.Extra
                     }
 
                     //etc1
-                    if (!etc2 || etc2 && (b3 & 2) == 0 || etcMode == 0)
+                    if (!etc2 || (etc2 && (b3 & 2) == 0) || etcMode == 0)
                     {
                         //differential mode
                         if ((b3 & 2) > 0)
