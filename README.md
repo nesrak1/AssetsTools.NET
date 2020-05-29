@@ -91,7 +91,9 @@ am.LoadClassPackage("classdata.tpk");
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 ```
 
-If you only want to load one class, you can use `Options -> Edit Type Package` in UABE's main window, click a version, and click export.
+###### NOTE: You can find a decompressed classdata.tpk from UABE in the zip in the releases section. To decompress the tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same file as UABE, uncheck `Compress the file (LZMA)`, and click OK.
+
+If you only want one class database (ie, you for sure only need a specific version of unity), you can use `Options -> Edit Type Package` in UABE's main window, click a version, and click export.
 
 ###### NOTE: You may want to open the exported file in a hex editor to make sure the version is what you want it to be. UABE's classdata.tpk file can have some versions listed as the wrong version (for example, exporting a `U2019.1.0f2` database and the file actually being a `2018.4.5f1` database.)
 
@@ -152,6 +154,8 @@ To modify a assets file, edit the values with `Set(object value)`, get the bytes
 ```cs
 //example for a GameObject
 var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 var inst = am.LoadAssetsFile("resources.assets", true);
 var inf = inst.table.GetAssetInfo("MyBoringAsset");
 var baseField = am.GetATI(inst.file, inf).GetBaseField();
@@ -214,7 +218,7 @@ var atvf = am.GetATI(inst.file, texInf).GetBaseField();
 var tf = TextureFile.ReadTextureFile(atvf);
 var texDat = tf.GetTextureData(inst); //giving the instance will find .resS files in the same directory
                                       //you can change this to a path if the .resS is somewhere else
-									  //if you have the resS in memory instead, set the pictureData bytes
+                                      //if you have the resS in memory instead, set the pictureData bytes
 if (texDat != null && texDat.Length > 0)
 {
     var canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,

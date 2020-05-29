@@ -14,8 +14,10 @@ namespace AssetsView.Winforms
         Bitmap image;
 
         bool loaded;
-        int x, y, width, height;
+        float x, y;
+        int width, height;
         int lx, ly;
+        int mx, my;
         float sc;
         bool mouseDown;
 
@@ -35,15 +37,21 @@ namespace AssetsView.Winforms
                     Marshal.UnsafeAddrOfPinnedArrayElement(texDat, 0));
                 image.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
-                x = -image.Width / 2;
-                y = -image.Height / 2;
+                x = 0;
+                y = 0;
                 width = image.Width;
                 height = image.Height;
                 sc = 1f;
                 mouseDown = false;
 
                 DoubleBuffered = true;
-                ClientSize = new Size(width, height);
+                
+                Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
+                int waWidth = workingArea.Width;
+                int waHeight = workingArea.Height;
+                int cliDiffWidth = Size.Width - ClientSize.Width;
+                int cliDiffHeight = Size.Height - ClientSize.Height;
+                ClientSize = new Size(Math.Min(width, waWidth - cliDiffWidth), Math.Min(height, waHeight - cliDiffHeight));
 
                 loaded = true;
             }
@@ -51,7 +59,18 @@ namespace AssetsView.Winforms
 
         private void TextureViewer_MouseWheel(object sender, MouseEventArgs e)
         {
+            float oldSc = sc;
             sc *= 1 + (float)e.Delta / 1200;
+
+            float oldImageX = mx / oldSc;
+            float oldImageY = my / oldSc;
+
+            float newImageX = mx / sc;
+            float newImageY = my / sc;
+
+            x = newImageX - oldImageX + x;
+            y = newImageY - oldImageY + y;
+
             Refresh();
         }
 
@@ -62,7 +81,13 @@ namespace AssetsView.Winforms
             {
                 int drawWidth = (int)(width * sc);
                 int drawHeight = (int)(height * sc);
-                g.DrawImage(image, x + (drawWidth / 2), y + (drawHeight / 2), drawWidth, drawHeight);
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                Matrix oldTfm = g.Transform;
+                g.ScaleTransform(sc, sc);
+                g.TranslateTransform(x, y);
+                g.DrawImage(image, 0, 0);//(int)x, (int)y);//, drawWidth, drawHeight);
+                //for the resizey thing on the bottom right (for some reason is affected by this)
+                g.Transform = oldTfm;
             }
             else
             {
@@ -94,10 +119,12 @@ namespace AssetsView.Winforms
 
         private void TextureViewer_MouseMove(object sender, MouseEventArgs e)
         {
+            mx = e.X;
+            my = e.Y;
             if (mouseDown)
             {
-                x += e.X - lx;
-                y += e.Y - ly;
+                x += (e.X - lx) / sc;
+                y += (e.Y - ly) / sc;
                 lx = e.X;
                 ly = e.Y;
                 Refresh();

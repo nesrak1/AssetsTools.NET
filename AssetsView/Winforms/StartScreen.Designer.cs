@@ -39,7 +39,6 @@
             this.updateDependenciesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewCurrentAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewSelectedAssetInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.globalSearchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.globalSearchInfoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
@@ -139,8 +138,7 @@
             // infoToolStripMenuItem
             // 
             this.infoToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.viewCurrentAssetInfoToolStripMenuItem,
-            this.viewSelectedAssetInfoToolStripMenuItem});
+            this.viewCurrentAssetInfoToolStripMenuItem});
             this.infoToolStripMenuItem.Name = "infoToolStripMenuItem";
             this.infoToolStripMenuItem.Size = new System.Drawing.Size(40, 22);
             this.infoToolStripMenuItem.Text = "Info";
@@ -148,15 +146,9 @@
             // viewCurrentAssetInfoToolStripMenuItem
             // 
             this.viewCurrentAssetInfoToolStripMenuItem.Name = "viewCurrentAssetInfoToolStripMenuItem";
-            this.viewCurrentAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.viewCurrentAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(223, 22);
             this.viewCurrentAssetInfoToolStripMenuItem.Text = "View Current Assets File Info";
             this.viewCurrentAssetInfoToolStripMenuItem.Click += new System.EventHandler(this.ViewCurrentAssetInfoToolStripMenuItem_Click);
-            // 
-            // viewSelectedAssetInfoToolStripMenuItem
-            // 
-            this.viewSelectedAssetInfoToolStripMenuItem.Name = "viewSelectedAssetInfoToolStripMenuItem";
-            this.viewSelectedAssetInfoToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
-            this.viewSelectedAssetInfoToolStripMenuItem.Text = "View Selected Assets File Info";
             // 
             // globalSearchToolStripMenuItem
             // 
@@ -257,7 +249,7 @@
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(408, 357);
+            this.assetList.Size = new System.Drawing.Size(409, 357);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
@@ -305,7 +297,7 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(372, 2);
+            this.goDirectory.Location = new System.Drawing.Point(373, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
             this.goDirectory.Size = new System.Drawing.Size(36, 25);
@@ -323,7 +315,7 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(326, 25);
+            this.pathBox.Size = new System.Drawing.Size(327, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
@@ -433,7 +425,6 @@
         private System.Windows.Forms.ToolStripMenuItem clearFilesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem infoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewCurrentAssetInfoToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem viewSelectedAssetInfoToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
