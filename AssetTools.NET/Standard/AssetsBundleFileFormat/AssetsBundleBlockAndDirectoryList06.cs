@@ -1,12 +1,12 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetBundleBlockAndDirectoryList06
+    public class AssetBundleBlockAndDirectoryList06
     {
         public ulong checksumLow;
         public ulong checksumHigh;
-        public uint blockCount;
+        public int blockCount;
         public AssetBundleBlockInfo06[] blockInf;
-        public uint directoryCount;
+        public int directoryCount;
         public AssetBundleDirectoryInfo06[] dirInf;
 
         ///void Free();
@@ -15,18 +15,20 @@
             reader.Position = filePos;
             checksumLow = reader.ReadUInt64();
             checksumHigh = reader.ReadUInt64();
-            blockCount = reader.ReadUInt32();
+            blockCount = reader.ReadInt32();
             blockInf = new AssetBundleBlockInfo06[blockCount];
             for (int i = 0; i < blockCount; i++)
             {
+                blockInf[i] = new AssetBundleBlockInfo06();
                 blockInf[i].decompressedSize = reader.ReadUInt32();
                 blockInf[i].compressedSize = reader.ReadUInt32();
                 blockInf[i].flags = reader.ReadUInt16();
             }
-            directoryCount = reader.ReadUInt32();
+            directoryCount = reader.ReadInt32();
             dirInf = new AssetBundleDirectoryInfo06[directoryCount];
             for (int i = 0; i < directoryCount; i++)
             {
+                dirInf[i] = new AssetBundleDirectoryInfo06();
                 dirInf[i].offset = reader.ReadInt64();
                 dirInf[i].decompressedSize = reader.ReadInt64();
                 dirInf[i].flags = reader.ReadUInt32();
@@ -38,6 +40,7 @@
         {
             writer.Write(checksumHigh);
             writer.Write(checksumLow);
+            blockCount = blockInf.Length;
             writer.Write(blockCount);
             for (int i = 0; i < blockCount; i++)
             {
@@ -45,6 +48,7 @@
                 writer.Write(blockInf[i].compressedSize);
                 writer.Write(blockInf[i].flags);
             }
+            directoryCount = dirInf.Length;
             writer.Write(directoryCount);
             for (int i = 0; i < directoryCount; i++)
             {

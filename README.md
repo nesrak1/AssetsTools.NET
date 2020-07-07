@@ -91,15 +91,13 @@ am.LoadClassPackage("classdata.tpk");
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 ```
 
-###### NOTE: You can find a decompressed classdata.tpk from UABE in the zip in the releases section. To decompress the tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same file as UABE, uncheck `Compress the file (LZMA)`, and click OK.
-
-If you only want one class database (ie, you for sure only need a specific version of unity), you can use `Options -> Edit Type Package` in UABE's main window, click a version, and click export.
-
-###### NOTE: You may want to open the exported file in a hex editor to make sure the version is what you want it to be. UABE's classdata.tpk file can have some versions listed as the wrong version (for example, exporting a `U2019.1.0f2` database and the file actually being a `2018.4.5f1` database.)
+Or if you know you're using a specific version, you can use class databases instead.
 
 ```cs
 am.LoadClassDatabase("2018.3.0f2.dat");
 ```
+
+You can find more info about how to get these from UABE at the bottom (extracting classdata.tpk and cldb.dat)
 
 With a loaded class database, you can finally use `GetATI(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])`:
 
@@ -155,18 +153,20 @@ To modify a assets file, edit the values with `Set(object value)`, get the bytes
 //example for a GameObject
 var am = new AssetsManager();
 am.LoadClassPackage("classdata.tpk");
-am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+
 var inst = am.LoadAssetsFile("resources.assets", true);
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+
 var inf = inst.table.GetAssetInfo("MyBoringAsset");
 var baseField = am.GetATI(inst.file, inf).GetBaseField();
 baseField.Get("m_Name")
-         .GetValue()
-         .Set("MyCoolAsset");
+		 .GetValue()
+		 .Set("MyCoolAsset");
 var newGoBytes = baseField.WriteToByteArray();
 //AssetsReplacerFromMemory's monoScriptIndex should always be 0xFFFF unless it's a MonoBehaviour
-var repl = new AssetsReplacerFromMemory(0, inf.index, inf.curFileType, 0xFFFF, newGoBytes);
+var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
 var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
-inst.file.Write(writer, new AssetsReplacer[] { repl });
+inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 ```
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
@@ -231,6 +231,14 @@ if (texDat != null && texDat.Length > 0)
 Note that the original AssetsTools uses RGBA output instead of BGRA output. In the future I'll probably add a flag to support choosing which order the output is in.
 
 If you're parsing the texture manually or have the bytes some other way, you can use TextureFile.GetTextureDataFromBytes to decode a texture from bytes, a texture format, and size without having to create a TextureFile manually.
+
+# Extracting classdata.tpk and cldb.dat
+
+You can find a decompressed classdata.tpk from UABE in the zip in the releases section.
+
+To get the classdata.tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same file as UABE, uncheck `Compress the file (LZMA)`, and click OK.
+
+To get a cldb.dat, export a class database from the `Edit Type Package` dialog. Make sure you do not export from the uncompressed tpk as the output will be garbage. Once you've exported the database, go to `Options -> Edit Type Database`, uncheck `Compress the file (LZMA)`, and click OK, and click OK again.
 
 ## Hmms 🤔
 

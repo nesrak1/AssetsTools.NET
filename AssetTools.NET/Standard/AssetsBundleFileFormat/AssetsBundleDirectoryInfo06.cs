@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetBundleDirectoryInfo06
+    public class AssetBundleDirectoryInfo06
     {
         public long offset;
         public long decompressedSize;

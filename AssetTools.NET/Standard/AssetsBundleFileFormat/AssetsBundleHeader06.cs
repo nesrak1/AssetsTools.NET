@@ -1,7 +1,7 @@
 ﻿namespace AssetsTools.NET
 {
     //Unity 5.3+
-    public struct AssetBundleHeader06
+    public class AssetBundleHeader06
     {
         //no alignment in this struct!
         public string signature; //0-terminated; UnityFS, UnityRaw, UnityWeb or UnityArchive
@@ -76,5 +76,6 @@
                 ret += compressedSize;
             return ret;
         }
+        public byte GetCompressionType() { return (byte)(flags & 0x3F); }
     }
 }

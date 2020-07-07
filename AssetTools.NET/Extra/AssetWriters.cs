@@ -10,13 +10,6 @@ namespace AssetsTools.NET.Extra
     //If the original API ever adds these methods into their classes, these will be moved back
     public static class AssetWriters
     {
-        //AssetsBundleFile
-        public static void Write(this AssetBundleFile file, AssetsFileWriter writer/*AssetsFile assetsFile, AssetsReplacer[] replacers*/)
-        {
-            file.bundleHeader6.Write(writer);
-            file.bundleInf6.Write(writer);
-            //assetsFile.Write(writer, writer.Position, replacers, 0);
-        }
         //AssetTypeInstance
         public static void Write(this AssetTypeInstance instance, AssetsFileWriter writer)
         {

@@ -18,9 +18,9 @@ namespace AssetsTools.NET
         public int GetSizeBytes()
         {
             if (format < 9)
-                return 0x11;
+                return 0x10;
             else
-                return 0x13;
+                return 0x14;
         }
         public void Read(AssetsFileReader reader)
         {
@@ -28,19 +28,9 @@ namespace AssetsTools.NET
             fileSize = reader.ReadUInt32();
             format = reader.ReadUInt32();
             firstFileOffset = reader.ReadUInt32();
-            if (format < 9)
-            {
-                endianness = reader.ReadByte();
-            }
-            else
-            {
-                endianness = 0;
-            }
+            endianness = reader.ReadByte(); //todo "fileSize - metadataSize" for v<9 but I have no files to test on
             reader.bigEndian = endianness == 1 ? true : false;
-            if (format >= 9)
-            {
-                unknown = reader.ReadBytes(3);
-            }
+            unknown = reader.ReadBytes(3);
             reader.Align();
         }
         //does NOT write the endianness byte for format < 9!

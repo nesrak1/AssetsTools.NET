@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetsBundleOffsetPair
+    public class AssetsBundleOffsetPair
     {
         public uint compressed;
         public uint uncompressed;

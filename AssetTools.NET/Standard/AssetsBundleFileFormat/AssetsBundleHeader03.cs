@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetBundleHeader03
+    public class AssetBundleHeader03
     {
         public string signature; //0-terminated; UnityWeb or UnityRaw
         public uint fileVersion; //big-endian; 3 : Unity 3.5 and 4;

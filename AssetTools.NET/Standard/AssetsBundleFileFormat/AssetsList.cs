@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetsList
+    public class AssetsList
     {
         public uint pos;
         public uint count;

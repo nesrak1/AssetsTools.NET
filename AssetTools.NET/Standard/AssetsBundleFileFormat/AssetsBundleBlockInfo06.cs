@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetBundleBlockInfo06
+    public class AssetBundleBlockInfo06
     {
         public uint decompressedSize;
         public uint compressedSize;

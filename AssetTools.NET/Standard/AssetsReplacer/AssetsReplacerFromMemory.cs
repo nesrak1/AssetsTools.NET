@@ -5,34 +5,35 @@ namespace AssetsTools.NET
 {
     public class AssetsReplacerFromMemory : AssetsReplacer
     {
-        public AssetsReplacerFromMemory(int fileID, long pathID, int classID, ushort monoScriptIndex, byte[] buffer/*, cbFreeMemoryResource freeResourceCallback*/)
+        private readonly int fileId;
+        private readonly long pathId;
+        private readonly int classId;
+        private readonly ushort monoScriptIndex;
+        private readonly byte[] buffer;
+
+        public AssetsReplacerFromMemory(int fileId, long pathId, int classId, ushort monoScriptIndex, byte[] buffer/*, cbFreeMemoryResource freeResourceCallback*/)
         {
-            this.fileID = fileID;
-            this.pathID = pathID;
-            this.classID = classID;
+            this.fileId = fileId;
+            this.pathId = pathId;
+            this.classId = classId;
             this.monoScriptIndex = monoScriptIndex;
             this.buffer = buffer;
         }
-        private int fileID;
-        private long pathID;
-        private int classID;
-        private ushort monoScriptIndex;
-        private byte[] buffer;
         public override AssetsReplacementType GetReplacementType()
         {
-            return AssetsReplacementType.AssetsReplacement_AddOrModify;
+            return AssetsReplacementType.AddOrModify;
         }
         public override int GetFileID()
         {
-            return fileID;
+            return fileId;
         }
         public override long GetPathID()
         {
-            return pathID;
+            return pathId;
         }
         public override int GetClassID()
         {
-            return classID;
+            return classId;
         }
         public override ushort GetMonoScriptID()
         {

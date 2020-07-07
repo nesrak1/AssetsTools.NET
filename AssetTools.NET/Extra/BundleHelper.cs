@@ -85,5 +85,20 @@ namespace AssetsTools.NET.Extra
             }
             return files;
         }
+        public static AssetBundleFile UnpackBundle(AssetBundleFile file, bool freeOriginalStream = true)
+        {
+            MemoryStream ms = new MemoryStream();
+            file.Unpack(file.reader, new AssetsFileWriter(ms));
+            ms.Position = 0;
+
+            AssetBundleFile newFile = new AssetBundleFile();
+            newFile.Read(new AssetsFileReader(ms), false);
+
+            if (freeOriginalStream)
+            {
+                file.reader.Close();
+            }
+            return newFile;
+        }
     }
 }

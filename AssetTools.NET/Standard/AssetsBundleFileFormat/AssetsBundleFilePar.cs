@@ -2,7 +2,7 @@
 
 namespace AssetsTools.NET
 {
-    public struct AssetsBundleFilePar
+    public class AssetsBundleFilePar
     {
         public AssetBundleFile file;
 

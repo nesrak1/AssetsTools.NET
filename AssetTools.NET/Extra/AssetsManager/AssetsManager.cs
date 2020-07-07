@@ -58,13 +58,13 @@ namespace AssetsTools.NET.Extra
                 LoadDeps(instance, Path.GetDirectoryName(stream.Name));
             return instance;
         }
-        public BundleFileInstance LoadBundleFile(FileStream stream)
+        public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
         {
             BundleFileInstance instance;
             int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
             if (index == -1)
             {
-                instance = new BundleFileInstance(stream, "");
+                instance = new BundleFileInstance(stream, "", unpackIfPacked);
                 bundles.Add(instance);
             }
             else
@@ -77,9 +77,9 @@ namespace AssetsTools.NET.Extra
         {
             return LoadAssetsFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), loadDeps, root);
         }
-        public BundleFileInstance LoadBundleFile(string path)
+        public BundleFileInstance LoadBundleFile(string path, bool unpackIfPacked = true)
         {
-            return LoadBundleFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return LoadBundleFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), unpackIfPacked);
         }
         
         private void UpdateDependency(AssetsFileInstance ofFile)

@@ -1,8 +1,11 @@
 ﻿using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using AssetsView.Util;
+using Plurally;
 using System;
+//using System.Data.Entity.Design.PluralizationServices;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -18,6 +21,7 @@ namespace AssetsView.Winforms
         private long selectedIndex;
         private long selectedComponentIndex;
         private bool firstTimeMBMessage;
+        private Pluralizer plurServ; //for arrays
         public GameObjectViewer(AssetsManager helper, AssetsFileInstance inst, AssetTypeValueField baseField, long selectedIndex, long selectedComponentIndex = long.MaxValue)
         {
             InitializeComponent();
@@ -44,6 +48,9 @@ namespace AssetsView.Winforms
             {
                 PInvoke.SetWindowTheme(goTree.Handle, "explorer", null);
             }
+            //plurServ = PluralizationService.CreateService(new CultureInfo("en-US")); //assuming most of the time the fields are english
+            plurServ = new Pluralizer(new CultureInfo("en-US"));
+
             valueGrid.PropertySort = PropertySort.Categorized;
             if (componentInfo == null)
             {
@@ -162,17 +169,30 @@ namespace AssetsView.Winforms
                 }
             }
             string category = new string('\t', size - index) + className;
-            RecursiveTreeLoad(targetBaseField, root, info, category, 0);
+            RecursiveTreeLoad(targetBaseField, root, info, category);
         }
 
-        private void RecursiveTreeLoad(AssetTypeValueField atvf, PGProperty node, AssetFileInfoEx info, string category, int depth)
+        private void RecursiveTreeLoad(AssetTypeValueField atvf, PGProperty node, AssetFileInfoEx info, string category, bool arrayChildren = false)
         {
             if (atvf.childrenCount == 0)
                 return;
-            foreach (AssetTypeValueField atvfc in atvf.children)
+
+            string arraySingular = string.Empty;
+            if (arrayChildren && atvf.childrenCount > 0)
+                arraySingular = plurServ.Singularize(atvf.children[0].templateField.name);
+
+            for (int i = 0; i < atvf.childrenCount; i++)
             {
+                AssetTypeValueField atvfc = atvf.children[i];
                 if (atvfc == null)
                     return;
+
+                string key;
+                if (!arrayChildren)
+                    key = atvfc.GetName();
+                else
+                    key = $"{arraySingular}[{i}]";
+
                 EnumValueTypes evt;
                 if (atvfc.GetValue() != null)
                 {
@@ -182,21 +202,21 @@ namespace AssetsView.Winforms
                         if (1 <= (int)evt && (int)evt <= 12)
                         {
                             string value = atvfc.GetValue().AsString();
-                            PGProperty prop = new PGProperty(atvfc.GetName(), value);
+                            PGProperty prop = new PGProperty(key, value);
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
-                            RecursiveTreeLoad(atvfc, prop, info, category, depth + 1);
+                            RecursiveTreeLoad(atvfc, prop, info, category);
                         }
                         else if (evt == EnumValueTypes.ValueType_Array ||
                                  evt == EnumValueTypes.ValueType_ByteArray)
                         {
                             PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.childrenCount}]");
-                            PGProperty prop = new PGProperty(atvfc.GetName(), childProps, $"[size: {atvfc.childrenCount}]");
+                            PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.childrenCount}]");
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
-                            RecursiveTreeLoad(atvfc, childProps, info, category, depth + 1);
+                            RecursiveTreeLoad(atvfc, childProps, info, category, true);
                         }
                     }
                 }
@@ -227,11 +247,11 @@ namespace AssetsView.Winforms
                     {
                         childProps = new PGProperty("child", "");
                     }
-                    PGProperty prop = new PGProperty(atvfc.GetName(), childProps);
+                    PGProperty prop = new PGProperty(key, childProps);
                     prop.category = category;
                     SetSelectedStateIfSelected(info, prop);
                     node.Add(prop);
-                    RecursiveTreeLoad(atvfc, childProps, info, category, depth + 1);
+                    RecursiveTreeLoad(atvfc, childProps, info, category);
                 }
             }
         }

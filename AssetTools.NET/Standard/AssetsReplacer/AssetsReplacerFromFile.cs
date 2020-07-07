@@ -5,38 +5,39 @@ namespace AssetsTools.NET
 {
     public class AssetsReplacerFromFile : AssetsReplacer
     {
-        public AssetsReplacerFromFile(int fileID, long pathID, int classID, ushort monoScriptIndex, FileStream stream, long offset, long size)
+        private readonly int fileId;
+        private readonly long pathId;
+        private readonly int classId;
+        private readonly ushort monoScriptIndex;
+        private readonly FileStream stream;
+        private readonly long offset;
+        private readonly long size;
+
+        public AssetsReplacerFromFile(int fileId, long pathId, int classId, ushort monoScriptIndex, FileStream stream, long offset, long size)
         {
-            this.fileID = fileID;
-            this.pathID = pathID;
-            this.classID = classID;
+            this.fileId = fileId;
+            this.pathId = pathId;
+            this.classId = classId;
             this.monoScriptIndex = monoScriptIndex;
             this.stream = stream;
             this.offset = offset;
             this.size = size;
         }
-        private int fileID;
-        private long pathID;
-        private int classID;
-        private ushort monoScriptIndex;
-        private FileStream stream;
-        private long offset;
-        private long size;
         public override AssetsReplacementType GetReplacementType()
         {
-            return AssetsReplacementType.AssetsReplacement_AddOrModify;
+            return AssetsReplacementType.AddOrModify;
         }
         public override int GetFileID()
         {
-            return fileID;
+            return fileId;
         }
         public override long GetPathID()
         {
-            return pathID;
+            return pathId;
         }
         public override int GetClassID()
         {
-            return classID;
+            return classId;
         }
         public override ushort GetMonoScriptID()
         {
@@ -48,7 +49,6 @@ namespace AssetsTools.NET
         }
         public override long Write(AssetsFileWriter writer)
         {
-            stream.Position = (int)offset;
             byte[] assetData = new byte[size];
             stream.Read(assetData, (int)offset, (int)size);
             writer.Write(assetData);

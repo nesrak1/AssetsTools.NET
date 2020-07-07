@@ -61,6 +61,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity.Design" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -73,6 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetHelpers\AssetSorter.cs" />
+    <Compile Include="Plurally\Localization\ILocalization.cs" />
+    <Compile Include="Plurally\Localization\LocaleEN.cs" />
+    <Compile Include="Plurally\Pluralizer.cs" />
     <Compile Include="Structs\AssetDetails.cs" />
     <Compile Include="Structs\AssetIcon.cs" />
     <Compile Include="Structs\AssetNodeDetails.cs" />

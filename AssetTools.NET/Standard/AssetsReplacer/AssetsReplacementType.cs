@@ -2,7 +2,10 @@
 {
     public enum AssetsReplacementType
     {
-        AssetsReplacement_AddOrModify,
-        AssetsReplacement_Remove
+        AddOrModify,
+        Remove,
+        //deprecated
+        AssetsReplacement_AddOrModify = 0,
+        AssetsReplacement_Remove = 1
     }
 }

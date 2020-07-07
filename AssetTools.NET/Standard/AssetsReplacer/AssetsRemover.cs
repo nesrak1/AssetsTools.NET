@@ -5,6 +5,11 @@ namespace AssetsTools.NET
 {
     public class AssetsRemover : AssetsReplacer
     {
+        private readonly int fileID;
+        private readonly long pathID;
+        private readonly int classID;
+        private readonly ushort monoScriptIndex;
+
         public AssetsRemover(int fileID, long pathID, int classID, ushort monoScriptIndex = 0xFFFF)
         {
             this.fileID = fileID;
@@ -12,13 +17,9 @@ namespace AssetsTools.NET
             this.classID = classID;
             this.monoScriptIndex = monoScriptIndex;
         }
-        private int fileID;
-        private long pathID;
-        private int classID;
-        private ushort monoScriptIndex;
         public override AssetsReplacementType GetReplacementType()
         {
-            return AssetsReplacementType.AssetsReplacement_Remove;
+            return AssetsReplacementType.Remove;
         }
         public override int GetFileID()
         {

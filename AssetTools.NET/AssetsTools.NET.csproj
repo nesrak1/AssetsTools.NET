@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extra\AssetHelper.cs" />
+    <Compile Include="Extra\AssetID.cs" />
     <Compile Include="Extra\AssetsManager\BundleFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsManager.cs" />
@@ -112,6 +113,13 @@
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleHeader06.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleOffsetPair.cs" />
     <Compile Include="Standard\AssetsBundleFileFormat\AssetsList.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleRemover.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleRenamer.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleReplacerFromAssets.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleReplacerFromMemory.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleReplacerFromFile.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleReplacementType.cs" />
+    <Compile Include="Standard\BundleReplacer\BundleReplacer.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetFileInfo.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetFileList.cs" />
     <Compile Include="Standard\AssetsFileFormat\AssetPPtr.cs" />

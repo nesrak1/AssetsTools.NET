@@ -175,31 +175,6 @@ namespace AssetsView.Winforms
             return false;
         }
 
-        private class AssetID
-        {
-            public string fileName;
-            public long pathID;
-            public AssetID(string fileName, long pathID)
-            {
-                this.fileName = fileName;
-                this.pathID = pathID;
-            }
-            public override bool Equals(object obj)
-            {
-                if (!(obj is AssetID))
-                    return false;
-                AssetID cobj = (AssetID)obj;
-                return cobj.fileName == fileName && cobj.pathID == pathID;
-            }
-            public override int GetHashCode()
-            {
-                int hash = 17;
-                hash = hash * 23 + fileName.GetHashCode();
-                hash = hash * 23 + pathID.GetHashCode();
-                return hash;
-            }
-        }
-
         private class ScriptInfo
         {
             public string assemblyName;

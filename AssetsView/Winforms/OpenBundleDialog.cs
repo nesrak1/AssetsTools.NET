@@ -25,7 +25,7 @@ namespace AssetsView.Winforms
             InitializeComponent();
             this.filePath = filePath;
             fileName = Path.GetFileName(filePath);
-            inst = helper.LoadBundleFile(filePath);
+            inst = helper.LoadBundleFile(filePath, false);
             file = inst.file;
             uint compressionMethod = file.bundleHeader6.flags & 0x3F;
             if (compressionMethod == 0)

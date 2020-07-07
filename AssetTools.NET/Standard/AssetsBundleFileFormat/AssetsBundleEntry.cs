@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetsBundleEntry
+    public class AssetsBundleEntry
     {
         public uint offset;
         public uint length;
