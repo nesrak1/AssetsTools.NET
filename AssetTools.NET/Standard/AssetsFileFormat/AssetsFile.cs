@@ -193,7 +193,7 @@ namespace AssetsTools.NET
                 //writer.Write((byte)0); //unknownString length
             }
 
-            uint metadataSize = (uint)(writer.Position - header.GetSizeBytes());
+            uint metadataSize = (uint)(writer.Position - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             while (writer.Position < 0x1000/*header.offs_firstFile*/)

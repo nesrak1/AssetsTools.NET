@@ -160,8 +160,8 @@ am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 var inf = inst.table.GetAssetInfo("MyBoringAsset");
 var baseField = am.GetATI(inst.file, inf).GetBaseField();
 baseField.Get("m_Name")
-		 .GetValue()
-		 .Set("MyCoolAsset");
+         .GetValue()
+         .Set("MyCoolAsset");
 var newGoBytes = baseField.WriteToByteArray();
 //AssetsReplacerFromMemory's monoScriptIndex should always be 0xFFFF unless it's a MonoBehaviour
 var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
