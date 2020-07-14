@@ -6,7 +6,13 @@
         public long decompressedSize;
         public uint flags;
         public string name;
-        ///public ulong GetAbsolutePos(AssetsBundleHeader06 header)
-        ///public ulong GetAbsolutePos(AssetsBundleFile file)
+        public long GetAbsolutePos(AssetBundleHeader06 header)
+        {
+            return header.GetFileDataOffset() + offset;
+        }
+        public long GetAbsolutePos(AssetBundleFile file)
+        {
+            return file.bundleHeader6.GetFileDataOffset() + offset;
+        }
     }
 }

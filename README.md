@@ -4,13 +4,13 @@ A .net library for reading and modifying unity assets and bundles based off of t
 
 Jump to a tool:
 
-[![AssetsTools](https://user-images.githubusercontent.com/12544505/73600757-7c97a280-451a-11ea-934b-afd392cc2bcc.png)](#assetstools)
-[![AssetsView](https://user-images.githubusercontent.com/12544505/73600640-e57e1b00-4518-11ea-8aab-e8664947f435.png)](#assetsview)
+![AssetsTools](https://user-images.githubusercontent.com/12544505/73600757-7c97a280-451a-11ea-934b-afd392cc2bcc.png)](#assetstools)
+![AssetsView](https://user-images.githubusercontent.com/12544505/73600640-e57e1b00-4518-11ea-8aab-e8664947f435.png)](#assetsview)
 
 # AssetsTools
 
-[![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET)
-[![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases)
+![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET)
+![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases)
 
 ## Terminology
 
@@ -145,36 +145,6 @@ var startMenuBf = MonoDeserializer.GetMonoBaseField(am, inst, startMenu.info, ma
 
 You can also use `AssetsManager.GetMonoBaseFieldCached` to cache types that take long to load, however, with the speed improvements `MonoDeserializer` has now, it may not be needed.
 
-### Assets file writing
-
-To modify a assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
-
-```cs
-//example for a GameObject
-var am = new AssetsManager();
-am.LoadClassPackage("classdata.tpk");
-
-var inst = am.LoadAssetsFile("resources.assets", true);
-am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-
-var inf = inst.table.GetAssetInfo("MyBoringAsset");
-var baseField = am.GetATI(inst.file, inf).GetBaseField();
-baseField.Get("m_Name")
-		 .GetValue()
-		 .Set("MyCoolAsset");
-var newGoBytes = baseField.WriteToByteArray();
-//AssetsReplacerFromMemory's monoScriptIndex should always be 0xFFFF unless it's a MonoBehaviour
-var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
-var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
-inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
-```
-
-Once you write changes to a file, you will need to reopen the file to see the changes.
-
-### Info on type trees
-
-The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. AssetsManager will try to read from the type tree if one exists, but if you still want to override this for whatever reason, the `forceFromCldb` in methods such as `GetExtAsset` can be used to do so.
-
 ### Loading bundle files
 
 Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
@@ -187,6 +157,62 @@ var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name in
 ```
 
 If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
+
+### Assets file writing
+
+To modify an assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
+
+```cs
+//example for a GameObject
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+
+var inst = am.LoadAssetsFile("resources.assets", true);
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+
+var inf = inst.table.GetAssetInfo("MyBoringAsset");
+var baseField = am.GetATI(inst.file, inf).GetBaseField();
+baseField.Get("m_Name")
+         .GetValue()
+         .Set("MyCoolAsset");
+var newGoBytes = baseField.WriteToByteArray();
+//AssetsReplacerFromMemory's monoScriptIndex should always be 0xFFFF unless it's a MonoBehaviour
+var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
+var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
+inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+```
+
+Once you write changes to a file, you will need to reopen the file to see the changes.
+
+### Bundle file writing
+
+Bundle modification is very similar to assets files writing but with a few changes. Instead of replacing by an index, replacers replace by the file (entry) name. You can also choose to rename the entry when you replace it. If there are multiple entries of the same name, set the `bundleListIndex` param to the index (0 for first, 1 for second, etc.) Additionally, you can create AssetsReplacers and use them with `BundleReplacerFromAssets` to skip the step of writing the asset to memory/file yourself.
+
+```cs
+var am = new AssetsManager();
+var replacers = new List<BundleReplacer>();
+
+var bunInst = am.LoadBundleFile("boringBundle.unity3d");
+var bun = bunInst.file;
+
+var entryFileName = "coolFile.dat";
+var entryName = "CoolFile";
+
+//in the case of a replace, you would use the first param, oldName, to select
+//which entry you want to modify, and newName to choose a new name. if you
+//don't want to rename that entry, or in the case of this example, you want to
+//add a new entry, you can make oldName and newName the same. if you don't want
+//to repeat the variable name twice just use null on newName.
+replacers.Add(new BundleReplacerFromFile(entryName, null, false, File.OpenRead(entryFileName), 0, -1));
+
+var newBunFileName = "coolBundle.unity3d";
+bun.Write(new AssetsFileWriter(File.OpenWrite(newBunFileName)), replacers);
+writer.Close();
+```
+
+### Info on type trees
+
+The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. AssetsManager will try to read from the type tree if one exists, but if you still want to override this for whatever reason, the `forceFromCldb` in methods such as `GetExtAsset` can be used to do so.
 
 ### Loading textures
 
@@ -216,9 +242,12 @@ The output of these are in BGRA which makes it easy to use Format32bppArgb with 
 ```cs
 var atvf = am.GetATI(inst.file, texInf).GetBaseField();
 var tf = TextureFile.ReadTextureFile(atvf);
-var texDat = tf.GetTextureData(inst); //giving the instance will find .resS files in the same directory
-                                      //you can change this to a path if the .resS is somewhere else
-                                      //if you have the resS in memory instead, set the pictureData bytes
+
+//giving the instance will find .resS files in the same directory
+//you can change this to a path if the .resS is somewhere else
+//if you have the resS in memory instead, set the pictureData bytes
+var texDat = tf.GetTextureData(inst);
+
 if (texDat != null && texDat.Length > 0)
 {
     var canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
