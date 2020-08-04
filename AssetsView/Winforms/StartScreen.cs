@@ -108,6 +108,7 @@ namespace AssetsView.Winforms
             if (openFile.selection > -1)
             {
                 AssetBundleFile bundleFile = openFile.file;
+                BundleFileInstance bundleInst = openFile.inst;
                 List<byte[]> files = BundleHelper.LoadAllAssetsDataFromBundle(bundleFile);
                 if (files.Count > 0)
                 {
@@ -117,12 +118,15 @@ namespace AssetsView.Winforms
                         {
                             MemoryStream stream = new MemoryStream(files[i]);
                             string name = bundleFile.bundleInf6.dirInf[i].name;
-                            helper.LoadAssetsFile(stream, name, openFile.selection == 1);
+                            AssetsFileInstance inst = helper.LoadAssetsFile(stream, name, openFile.selection == 1);
+                            inst.parentBundle = bundleInst;
                         }
                     }
                     MemoryStream mainStream = new MemoryStream(files[0]);
                     string mainName = bundleFile.bundleInf6.dirInf[0].name;
-                    LoadMainAssetsFile(helper.LoadAssetsFile(mainStream, mainName, openFile.selection == 1));
+                    AssetsFileInstance mainInst = helper.LoadAssetsFile(mainStream, mainName, openFile.selection == 1);
+                    mainInst.parentBundle = bundleInst;
+                    LoadMainAssetsFile(mainInst);
                 }
                 else
                 {

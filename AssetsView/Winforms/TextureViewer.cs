@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -27,6 +28,39 @@ namespace AssetsView.Winforms
 
             loaded = false;
             TextureFile tf = TextureFile.ReadTextureFile(baseField);
+
+            //bundle resS
+            TextureFile.StreamingInfo streamInfo = tf.m_StreamData;
+            if (streamInfo.path.StartsWith("archive:/") && inst.parentBundle != null)
+            {
+                string searchPath = streamInfo.path.Substring(9);
+                searchPath = Path.GetFileName(searchPath);
+
+                AssetBundleFile bundle = inst.parentBundle.file;
+
+                AssetsFileReader reader = bundle.reader;
+                AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
+                bool foundFile = false;
+                for (int i = 0; i < dirInf.Length; i++)
+                {
+                    AssetBundleDirectoryInfo06 info = dirInf[i];
+                    if (info.name == searchPath)
+                    {
+                        reader.Position = bundle.bundleHeader6.GetFileDataOffset() + info.offset + streamInfo.offset;
+                        tf.pictureData = reader.ReadBytes((int)streamInfo.size);
+                        tf.m_StreamData.offset = 0;
+                        tf.m_StreamData.size = 0;
+                        tf.m_StreamData.path = "";
+                        foundFile = true;
+                        break;
+                    }
+                }
+                if (!foundFile)
+                {
+                    MessageBox.Show("resS was detected but no file was found in bundle");
+                }
+            }
+
             byte[] texDat = tf.GetTextureData(inst);
             if (texDat != null && texDat.Length > 0)
             {
@@ -79,13 +113,11 @@ namespace AssetsView.Winforms
             Graphics g = e.Graphics;
             if (loaded)
             {
-                int drawWidth = (int)(width * sc);
-                int drawHeight = (int)(height * sc);
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
                 Matrix oldTfm = g.Transform;
                 g.ScaleTransform(sc, sc);
                 g.TranslateTransform(x, y);
-                g.DrawImage(image, 0, 0);//(int)x, (int)y);//, drawWidth, drawHeight);
+                g.DrawImage(image, 0, 0);
                 //for the resizey thing on the bottom right (for some reason is affected by this)
                 g.Transform = oldTfm;
             }

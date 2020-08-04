@@ -53,10 +53,20 @@
                 //if (!strcmp(this->signature, "UnityWeb") || !strcmp(this->signature, "UnityRaw"))
                 //	return 9;
                 long ret = minPlayerVersion.Length + fileEngineVersion.Length + 0x1A;
-                if ((flags & 0x100) != 0)
-                    return ret + 0x0A;
+                if (fileVersion >= 7)
+                {
+                    if ((flags & 0x100) != 0)
+                        return ((ret + 0x0A) + 15) >> 4 << 4;
+                    else
+                        return ((ret + signature.Length + 1) + 15) >> 4 << 4;
+                }
                 else
-                    return ret + signature.Length + 1;
+                {
+                    if ((flags & 0x100) != 0)
+                        return ret + 0x0A;
+                    else
+                        return ret + signature.Length + 1;
+                }
             }
         }
         public long GetFileDataOffset()
@@ -72,10 +82,15 @@
                 else
                     ret += signature.Length + 1;
             }
+            if (fileVersion >= 7)
+                ret = (ret + 15) >> 4 << 4;
             if ((flags & 0x80) == 0)
                 ret += compressedSize;
             return ret;
         }
-        public byte GetCompressionType() { return (byte)(flags & 0x3F); }
+        public byte GetCompressionType()
+        {
+            return (byte)(flags & 0x3F);
+        }
     }
 }

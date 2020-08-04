@@ -14,6 +14,7 @@ namespace AssetsTools.NET.Extra
         public AssetsFile file;
         public AssetsFileTable table;
         public List<AssetsFileInstance> dependencies = new List<AssetsFileInstance>();
+        public BundleFileInstance parentBundle = null;
         //for monobehaviours
         public Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
 

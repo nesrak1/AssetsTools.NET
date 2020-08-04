@@ -29,11 +29,15 @@ namespace AssetsTools.NET
             this.reader = reader;
             reader.ReadNullTerminated();
             uint version = reader.ReadUInt32();
-            if (version == 6)
+            if (version == 6 || version == 7)
             {
                 reader.Position = 0;
                 bundleHeader6 = new AssetBundleHeader06();
                 bundleHeader6.Read(reader);
+                if (bundleHeader6.fileVersion >= 7)
+                {
+                    reader.Align16();
+                }
                 if (bundleHeader6.signature == "UnityFS")
                 {
                     bundleInf6 = new AssetBundleBlockAndDirectoryList06();
@@ -73,6 +77,11 @@ namespace AssetsTools.NET
         public bool Write(AssetsFileWriter writer, List<BundleReplacer> replacers, ClassDatabaseFile typeMeta = null)
         {
             bundleHeader6.Write(writer);
+
+            if (bundleHeader6.fileVersion >= 7)
+            {
+                writer.Align16();
+            }
 
             AssetBundleBlockAndDirectoryList06 newBundleInf6 = new AssetBundleBlockAndDirectoryList06()
             {
@@ -260,7 +269,7 @@ namespace AssetsTools.NET
                 MemoryStream blocksInfoStream;
                 AssetsFileReader memReader;
                 int compressedSize = (int)bundleHeader6.compressedSize;
-                switch (bundleHeader6.flags & 0x3F)
+                switch (bundleHeader6.GetCompressionType())
                 {
                     case 1:
                         using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
@@ -283,10 +292,11 @@ namespace AssetsTools.NET
                         blocksInfoStream = null;
                         break;
                 }
-                if ((bundleHeader6.flags & 0x3F) != 0)
+                if (bundleHeader6.GetCompressionType() != 0)
                 {
                     using (memReader = new AssetsFileReader(blocksInfoStream))
                     {
+                        memReader.Position = 0;
                         bundleInf6.Read(0, memReader);
                     }
                 }
@@ -296,7 +306,7 @@ namespace AssetsTools.NET
                 {
                     AssetBundleBlockInfo06 info = bundleInf6.blockInf[i];
                     byte[] data = reader.ReadBytes((int)info.compressedSize);
-                    switch (info.flags & 0x3F)
+                    switch (info.GetCompressionType())
                     {
                         case 0:
                             blocksData[i] = data;
@@ -366,6 +376,10 @@ namespace AssetsTools.NET
                     };
                 }
                 newBundleHeader6.Write(writer);
+                if (newBundleHeader6.fileVersion >= 7)
+                {
+                    writer.Align16();
+                }
                 newBundleInf6.Write(writer);
                 for (int i = 0; i < newBundleInf6.blockCount; i++)
                 {

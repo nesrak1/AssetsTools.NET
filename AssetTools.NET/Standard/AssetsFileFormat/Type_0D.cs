@@ -29,6 +29,9 @@ namespace AssetsTools.NET
         public uint stringTableLen; //if (TypeTree.enabled) //0x18 or 0x28
         public string stringTable;
 
+        public int dependenciesCount;
+        public int[] dependencies;
+
         public void Read(bool hasTypeTree, AssetsFileReader reader, uint version)
         {
             classId = reader.ReadInt32();
@@ -57,6 +60,15 @@ namespace AssetsTools.NET
                     typeFieldsEx[i] = typefield0d;
                 }
                 stringTable = Encoding.UTF8.GetString(reader.ReadBytes((int)stringTableLen));
+            }
+            if (version >= 0x15)
+            {
+                dependenciesCount = reader.ReadInt32();
+                dependencies = new int[dependenciesCount];
+                for (int i = 0; i < dependenciesCount; i++)
+                {
+                    dependencies[i] = reader.ReadInt32();
+                }
             }
         }
         public void Write(bool hasTypeTree, AssetsFileWriter writer, uint version)
