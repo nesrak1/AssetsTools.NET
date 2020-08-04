@@ -60,14 +60,14 @@ namespace AssetsTools.NET
                     typeFieldsEx[i] = typefield0d;
                 }
                 stringTable = Encoding.UTF8.GetString(reader.ReadBytes((int)stringTableLen));
-            }
-            if (version >= 0x15)
-            {
-                dependenciesCount = reader.ReadInt32();
-                dependencies = new int[dependenciesCount];
-                for (int i = 0; i < dependenciesCount; i++)
+                if (version >= 0x15)
                 {
-                    dependencies[i] = reader.ReadInt32();
+                    dependenciesCount = reader.ReadInt32();
+                    dependencies = new int[dependenciesCount];
+                    for (int i = 0; i < dependenciesCount; i++)
+                    {
+                        dependencies[i] = reader.ReadInt32();
+                    }
                 }
             }
         }
