@@ -134,7 +134,8 @@ namespace AssetsTools.NET
                 if (type != 0) valueField.value = new AssetTypeValue(type, null);
                 if (type == EnumValueTypes.ValueType_String)
                 {
-                    valueField.value.Set(reader.ReadCountStringInt32());
+                    int length = reader.ReadInt32();
+                    valueField.value.Set(reader.ReadBytes(length));
                     reader.Align();
                 }
                 else

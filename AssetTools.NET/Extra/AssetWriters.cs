@@ -100,7 +100,8 @@ namespace AssetsTools.NET.Extra
                             writer.Write(valueField.value.value.asDouble);
                             break;
                         case EnumValueTypes.ValueType_String:
-                            writer.WriteCountStringInt32(valueField.value.value.asString);
+                            writer.Write(valueField.value.value.asString.Length);
+                            writer.Write(valueField.value.value.asString);
                             writer.Align();
                             break;
                     }

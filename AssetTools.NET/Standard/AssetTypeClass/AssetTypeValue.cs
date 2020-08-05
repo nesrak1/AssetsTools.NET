@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -75,9 +76,9 @@ namespace AssetsTools.NET
                 get { return (double)value; }
                 set { this.value = value; }
             }
-            public string asString
+            public byte[] asString
             {
-                get { return (string)value; }
+                get { return (byte[])value; }
                 set { this.value = value; }
             }
         }
@@ -137,7 +138,12 @@ namespace AssetsTools.NET
                         value.asDouble = Convert.ToDouble(valueContainer);
                         break;
                     case EnumValueTypes.ValueType_String:
-                        value.asString = Convert.ToString(valueContainer);
+                        if (valueContainer is byte[] byteArr)
+                            value.asString = byteArr;
+                        else if (valueContainer is string str)
+                            value.asString = Encoding.UTF8.GetBytes(str);
+                        else
+                            value.asString = new byte[0];
                         break;
                     case EnumValueTypes.ValueType_Array:
                         value.asArray = (AssetTypeArray)valueContainer;
@@ -185,13 +191,17 @@ namespace AssetsTools.NET
                 case EnumValueTypes.ValueType_Double:
                     return value.asDouble.ToString();
                 case EnumValueTypes.ValueType_String:
-                    return value.asString;
+                    return Encoding.UTF8.GetString(value.asString);
                 case EnumValueTypes.ValueType_None:
                 case EnumValueTypes.ValueType_Array:
                 case EnumValueTypes.ValueType_ByteArray:
                 default:
                     return "";
             }
+        }
+        public byte[] AsStringBytes()
+        {
+            return (type == EnumValueTypes.ValueType_String) ? value.asString : null;
         }
         public bool AsBool()
         {
