@@ -103,7 +103,7 @@ namespace AssetsView.Winforms
                 }
                 catch (Exception ex)
                 {
-                    error = ex.Message;
+                    error = ex.ToString();
                 }
             };
             bw.RunWorkerCompleted += delegate

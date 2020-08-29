@@ -96,6 +96,14 @@ namespace AssetsTools.NET
                     typeFieldsEx[i].Write(writer, version);
                 }
                 writer.Write(stringTable);
+                if (version >= 0x15)
+                {
+                    writer.Write(dependenciesCount);
+                    for (int i = 0; i < dependenciesCount; i++)
+                    {
+                        writer.Write(dependencies[i]);
+                    }
+                }
             }
         }
         //?

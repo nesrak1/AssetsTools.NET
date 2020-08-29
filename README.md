@@ -147,7 +147,7 @@ You can also use `AssetsManager.GetMonoBaseFieldCached` to cache types that take
 
 ### Assets file writing
 
-To modify a assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
+To modify an assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
 
 ```cs
 //example for a GameObject
