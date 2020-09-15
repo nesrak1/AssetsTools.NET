@@ -39,16 +39,18 @@ namespace AssetsTools.NET.Extra
                 {
                     AssetTypeByteArray byteArray = valueField.value.value.asByteArray;
 
+                    byteArray.size = (uint)byteArray.data.Length;
                     writer.Write(byteArray.size);
                     writer.Write(byteArray.data);
                     if (valueField.templateField.align) writer.Align();
                 }
                 else
                 {
-                    int size = valueField.value.value.asArray.size;
+                    AssetTypeArray array = valueField.value.value.asArray;
 
-                    writer.Write(size);
-                    for (int i = 0; i < size; i++)
+                    array.size = valueField.childrenCount;
+                    writer.Write(array.size);
+                    for (int i = 0; i < array.size; i++)
                     {
                         valueField[i].Write(writer, depth + 1);
                     }
