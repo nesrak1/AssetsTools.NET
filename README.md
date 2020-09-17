@@ -12,6 +12,19 @@ Jump to a tool:
 [![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET)
 [![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases)
 
+## Table of contents
+
+* [Terminology](#terminology)
+* [Basic usage of AssetsTools.NET](#basic-usage-of-assetstoolsnet)
+* [Assets file reading](#assets-file-reading)
+* [Serialized data loading](#serialized-data-loading)
+* [MonoBehaviour loading](#monobehaviour-loading)
+* [Assets file writing](#assets-file-writing)
+* [Value building](#value-building)
+* [Loading bundle files](#loading-bundle-files)
+* [Loading textures](#loading-textures)
+* [Extracting classdata.tpk and cldb.dat](#extracting-classdatatpk-and-cldbdat)
+
 ## Terminology
 
 Programs/Libraries (since they all have similar names)
@@ -84,22 +97,24 @@ foreach (var inf in table.GetAssetsOfType(0x01))
 
 ### Serialized data loading
 
-Once you have the info for an asset, you can start to get the serialized data of it. For the library to understand what how to deserialize the fields, it needs a class database or a type tree. For assets files in built games, there isn't a type tree, so a class database is needed. UABE has class databases (dat files) stored in the class package file (classdata.tpk). If you are targeting multiple unity versions, you can use `AssetsManager`'s `LoadClassDatabaseFromPackage`:
+Once you have the info for an asset, you can start to get the serialized data of it. For the library to understand how to deserialize the fields, it needs a class database or a type tree. Class databases and type trees are basically the same thing, so they convert their fields into shared format, `AssetTypeTemplateField`s.
+
+Unity usually puts type trees in bundles, but for assets files in built games there isn't a type tree, so a class database is needed. UABE has class databases (dat files) stored in the class package file (classdata.tpk). If you are targeting multiple unity versions, you can use `AssetsManager`'s `LoadClassDatabaseFromPackage`:
 
 ```cs
 am.LoadClassPackage("classdata.tpk");
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 ```
 
-Or if you know you're using a specific version, you can use class databases instead.
+Or if you know you're using a specific version, you can use one specific class database instead.
 
 ```cs
 am.LoadClassDatabase("2018.3.0f2.dat");
 ```
 
-You can find more info about how to get these from UABE at the bottom (extracting classdata.tpk and cldb.dat)
+You can find [more info](#extracting-classdatatpk-and-cldbdat) about how to get these from UABE at the bottom.
 
-With a loaded class database, you can finally use `GetATI(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])`:
+With a loaded class database, you can finally use `GetATI(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])` to read the values from the asset:
 
 ```cs
 var inf = table.GetAssetInfo("Pineapple");
@@ -117,7 +132,7 @@ var m_Name = baseField.Get("m_Name")
 Console.WriteLine("gameobject's name is " + m_Name);
 ```
 
-The AssetTypeInstance only has one basefield, the field we opened. To view the data of another asset, you can use `GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf[, bool onlyGetInfo])`
+The AssetTypeInstance only has one basefield, the field we opened. To view the data of another asset referenced by this asset, you can use `GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf[, bool onlyGetInfo])`
 
 ```cs
 //example for a GameObject
@@ -132,7 +147,7 @@ Set `onlyGetInfo` if you only want the asset info without reading the serialized
 
 ### MonoBehaviour loading
 
-Reading MonoBehaviours are a little different because the information for deserialization is stored in assemblies in the Managed folder, rather than the type tree or the class database file.
+Reading MonoBehaviours are a little different because the information for deserialization is stored in assemblies in the Managed folder, rather than the class database file. (Bundles will usually have a type tree with MonoBehaviours)
 
 ```cs
 //example for a GameObject
@@ -171,9 +186,56 @@ inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
 
-### Info on type trees
+### Value building
 
-The type tree is essentially like a class database but inside of the assets file itself. They are usually found in editor assets files and bundle assets files. You can check if there is a real type tree with `file.typeTree.hasTypeTree`. AssetsManager will try to read from the type tree if one exists, but if you still want to override this for whatever reason, the `forceFromCldb` in methods such as `GetExtAsset` can be used to do so.
+(Not fully tested yet)
+
+With the above example, you can change the value of existing fields, but you can't add new fields (like to add to an array or create an asset from scratch.) To do that, you can use the `ValueBuilder` which let's you create blank `AssetTypeValueField`s from `AssetTypeTemplateField`s.
+
+#### Set array items
+
+```cs
+//example for a GameObject
+var componentArray = baseField.Get("m_Component").Get("Array");
+//create two blank pptr fields
+var transform = ValueBuilder.DefaultValueFieldFromArrayTemplate(componentArray);
+var rigidbody = ValueBuilder.DefaultValueFieldFromArrayTemplate(componentArray);
+transform.Get("m_FileID").GetValue().Set(0);
+transform.Get("m_PathID").GetValue().Set(123);
+rigidbody.Get("m_FileID").GetValue().Set(0);
+rigidbody.Get("m_PathID").GetValue().Set(456);
+AssetTypeValueField[] newChildren = new AssetTypeValueField[] 
+{
+    transform, rigidbody
+};
+componentArray.SetChildrenList(newChildren);
+//... do replacer stuff
+```
+
+If you need to add items instead of set, you'll have to use array concat (I know, a little annoying)
+
+```cs
+componentArray.SetChildrenList(componentArray.children.Concat(newChildren));
+```
+
+#### Create new asset from scratch
+
+```cs
+//example for TextAsset
+var templateField = new AssetTypeTemplateField();
+var cldbType = AssetHelper.FindAssetClassByName(am.classFile, "TextAsset");
+templateField.FromClassDatabase(am.classFile, cldbType, 0);
+var baseField = ValueBuilder.DefaultValueFieldFromTemplate(templateField);
+baseField.Get("m_Name").GetValue().Set("MyCoolTextAsset");
+baseField.Get("m_Script").GetValue().Set("I have some sick text");
+
+//or you can just use table.assetFileInfoCount + 2 but that doesn't always work
+var nextAssetId = table.assetFileInfo.Max(i => i.index) + 1;
+replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xffff, baseField.WriteToByteArray()));
+//... do other replacer stuff
+```
+
+Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
 
 ### Loading bundle files
 
@@ -232,13 +294,13 @@ Note that the original AssetsTools uses RGBA output instead of BGRA output. In t
 
 If you're parsing the texture manually or have the bytes some other way, you can use TextureFile.GetTextureDataFromBytes to decode a texture from bytes, a texture format, and size without having to create a TextureFile manually.
 
-# Extracting classdata.tpk and cldb.dat
+### Extracting classdata.tpk and cldb.dat
 
-You can find a decompressed classdata.tpk from UABE in the zip in the releases section.
+The easiest way to get a decompressed classdata.tpk is to download it from the zip in the releases section.
 
-To get the classdata.tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same file as UABE, uncheck `Compress the file (LZMA)`, and click OK.
+To get the classdata.tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same folder as UABE, uncheck `Compress the file (LZMA)`, and click OK.
 
-To get a cldb.dat, export a class database from the `Edit Type Package` dialog. Make sure you do not export from the uncompressed tpk as the output will be garbage. Once you've exported the database, go to `Options -> Edit Type Database`, uncheck `Compress the file (LZMA)`, and click OK, and click OK again.
+To get a cldb.dat, export a class database from the `Edit Type Package` dialog. Make sure you do not export from the uncompressed tpk, otherwise the output will be garbage. Once you've exported the database, go to `Options -> Edit Type Database`, uncheck `Compress the file (LZMA)`, and click OK, and click OK again.
 
 ## Hmms 🤔
 

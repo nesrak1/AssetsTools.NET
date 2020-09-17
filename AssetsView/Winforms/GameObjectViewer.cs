@@ -197,7 +197,7 @@ namespace AssetsView.Winforms
                 if (atvfc.GetValue() != null)
                 {
                     evt = atvfc.GetValue().GetValueType();
-                    if (evt != EnumValueTypes.ValueType_None)
+                    if (evt != EnumValueTypes.None)
                     {
                         if (1 <= (int)evt && (int)evt <= 12)
                         {
@@ -208,8 +208,8 @@ namespace AssetsView.Winforms
                             node.Add(prop);
                             RecursiveTreeLoad(atvfc, prop, info, category);
                         }
-                        else if (evt == EnumValueTypes.ValueType_Array ||
-                                 evt == EnumValueTypes.ValueType_ByteArray)
+                        else if (evt == EnumValueTypes.Array ||
+                                 evt == EnumValueTypes.ByteArray)
                         {
                             PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.childrenCount}]");
                             PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.childrenCount}]");

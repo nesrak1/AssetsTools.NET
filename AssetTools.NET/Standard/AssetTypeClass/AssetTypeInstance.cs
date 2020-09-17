@@ -4,7 +4,6 @@
     {
         public int baseFieldCount;
         public AssetTypeValueField[] baseFields;
-        public uint allocationCount; public uint allocationBufLen;
         public byte[] memoryToClear;
         public AssetTypeInstance(AssetTypeTemplateField[] baseFields, AssetsFileReader reader, long filePos)
         {
@@ -15,8 +14,7 @@
             for (int i = 0; i < baseFieldCount; i++)
             {
                 AssetTypeTemplateField templateBaseField = baseFields[i];
-                AssetTypeValueField atvf;
-                templateBaseField.MakeValue(reader, out atvf);
+                AssetTypeValueField atvf = templateBaseField.MakeValue(reader);
                 this.baseFields[i] = atvf;
             }
         }
@@ -28,7 +26,7 @@
         public static AssetTypeValueField GetDummyAssetTypeField()
         {
             AssetTypeValueField atvf = new AssetTypeValueField();
-            atvf.childrenCount = 0xFF;
+            atvf.childrenCount = -1;
             return atvf;
         }
 

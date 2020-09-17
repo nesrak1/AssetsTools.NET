@@ -157,14 +157,14 @@ namespace AssetsTools.NET.Extra
 
                 if (fieldType.IsEnum)
                 {
-                    field.valueType = EnumValueTypes.ValueType_Int32;
+                    field.valueType = EnumValueTypes.Int32;
                 }
                 else
                 {
                     field.valueType = AssetTypeValueField.GetValueTypeByTypeName(field.type);
                 }
                 field.align = TypeAligns(field.valueType);
-                field.hasValue = field.valueType != EnumValueTypes.ValueType_None;
+                field.hasValue = field.valueType != EnumValueTypes.None;
 
                 if (isArrayOrList)
                 {
@@ -282,11 +282,11 @@ namespace AssetsTools.NET.Extra
         }
         private bool TypeAligns(EnumValueTypes valueType)
         {
-            if (valueType.Equals(EnumValueTypes.ValueType_Bool) ||
-                valueType.Equals(EnumValueTypes.ValueType_Int8) ||
-                valueType.Equals(EnumValueTypes.ValueType_UInt8) ||
-                valueType.Equals(EnumValueTypes.ValueType_Int16) ||
-                valueType.Equals(EnumValueTypes.ValueType_UInt16))
+            if (valueType.Equals(EnumValueTypes.Bool) ||
+                valueType.Equals(EnumValueTypes.Int8) ||
+                valueType.Equals(EnumValueTypes.UInt8) ||
+                valueType.Equals(EnumValueTypes.Int16) ||
+                valueType.Equals(EnumValueTypes.UInt16))
                 return true;
             return false;
         }
@@ -295,7 +295,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField size = new AssetTypeTemplateField();
             size.name = "size";
             size.type = "int";
-            size.valueType = EnumValueTypes.ValueType_Int32;
+            size.valueType = EnumValueTypes.Int32;
             size.isArray = false;
             size.align = false;
             size.hasValue = true;
@@ -315,7 +315,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.name = string.Copy(field.name);
             array.type = "Array";
-            array.valueType = EnumValueTypes.ValueType_None;
+            array.valueType = EnumValueTypes.None;
             array.isArray = true;
             array.align = true;
             array.hasValue = false;
@@ -333,7 +333,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField size = new AssetTypeTemplateField();
             size.name = "size";
             size.type = "int";
-            size.valueType = EnumValueTypes.ValueType_Int32;
+            size.valueType = EnumValueTypes.Int32;
             size.isArray = false;
             size.align = false;
             size.hasValue = true;
@@ -343,7 +343,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField data = new AssetTypeTemplateField();
             data.name = "data";
             data.type = "char";
-            data.valueType = EnumValueTypes.ValueType_UInt8;
+            data.valueType = EnumValueTypes.UInt8;
             data.isArray = false;
             data.align = false;
             data.hasValue = true;
@@ -353,7 +353,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.name = "Array";
             array.type = "Array";
-            array.valueType = EnumValueTypes.ValueType_None;
+            array.valueType = EnumValueTypes.None;
             array.isArray = true;
             array.align = true;
             array.hasValue = false;
@@ -377,7 +377,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField fileID = new AssetTypeTemplateField();
             fileID.name = "m_FileID";
             fileID.type = "int";
-            fileID.valueType = EnumValueTypes.ValueType_Int32;
+            fileID.valueType = EnumValueTypes.Int32;
             fileID.isArray = false;
             fileID.align = false;
             fileID.hasValue = true;
@@ -389,12 +389,12 @@ namespace AssetsTools.NET.Extra
             if (format < 0x10)
             {
                 pathID.type = "int";
-                pathID.valueType = EnumValueTypes.ValueType_Int32;
+                pathID.valueType = EnumValueTypes.Int32;
             }
             else
             {
                 pathID.type = "SInt64";
-                pathID.valueType = EnumValueTypes.ValueType_Int64;
+                pathID.valueType = EnumValueTypes.Int64;
             }
             pathID.isArray = false;
             pathID.align = false;
@@ -446,80 +446,80 @@ namespace AssetsTools.NET.Extra
         private void SetGradient(AssetTypeTemplateField field)
         {
             field.childrenCount = 27;
-            AssetTypeTemplateField key0 = CreateTemplateField("key0", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key1 = CreateTemplateField("key1", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key2 = CreateTemplateField("key2", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key3 = CreateTemplateField("key3", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key4 = CreateTemplateField("key4", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key5 = CreateTemplateField("key5", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key6 = CreateTemplateField("key6", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField key7 = CreateTemplateField("key7", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
-            AssetTypeTemplateField ctime0 = CreateTemplateField("ctime0", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime1 = CreateTemplateField("ctime1", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime2 = CreateTemplateField("ctime2", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime3 = CreateTemplateField("ctime3", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime4 = CreateTemplateField("ctime4", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime5 = CreateTemplateField("ctime5", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime6 = CreateTemplateField("ctime6", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField ctime7 = CreateTemplateField("ctime7", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime0 = CreateTemplateField("atime0", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime1 = CreateTemplateField("atime1", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime2 = CreateTemplateField("atime2", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime3 = CreateTemplateField("atime3", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime4 = CreateTemplateField("atime4", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime5 = CreateTemplateField("atime5", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime6 = CreateTemplateField("atime6", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField atime7 = CreateTemplateField("atime7", "UInt16", EnumValueTypes.ValueType_UInt16);
-            AssetTypeTemplateField m_Mode = CreateTemplateField("m_Mode", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_NumColorKeys = CreateTemplateField("m_NumColorKeys", "UInt8", EnumValueTypes.ValueType_UInt8);
-            AssetTypeTemplateField m_NumAlphaKeys = CreateTemplateField("m_NumAlphaKeys", "UInt8", EnumValueTypes.ValueType_UInt8, false, true);
+            AssetTypeTemplateField key0 = CreateTemplateField("key0", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key1 = CreateTemplateField("key1", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key2 = CreateTemplateField("key2", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key3 = CreateTemplateField("key3", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key4 = CreateTemplateField("key4", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key5 = CreateTemplateField("key5", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key6 = CreateTemplateField("key6", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField key7 = CreateTemplateField("key7", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
+            AssetTypeTemplateField ctime0 = CreateTemplateField("ctime0", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime1 = CreateTemplateField("ctime1", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime2 = CreateTemplateField("ctime2", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime3 = CreateTemplateField("ctime3", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime4 = CreateTemplateField("ctime4", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime5 = CreateTemplateField("ctime5", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime6 = CreateTemplateField("ctime6", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField ctime7 = CreateTemplateField("ctime7", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime0 = CreateTemplateField("atime0", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime1 = CreateTemplateField("atime1", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime2 = CreateTemplateField("atime2", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime3 = CreateTemplateField("atime3", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime4 = CreateTemplateField("atime4", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime5 = CreateTemplateField("atime5", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime6 = CreateTemplateField("atime6", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField atime7 = CreateTemplateField("atime7", "UInt16", EnumValueTypes.UInt16);
+            AssetTypeTemplateField m_Mode = CreateTemplateField("m_Mode", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_NumColorKeys = CreateTemplateField("m_NumColorKeys", "UInt8", EnumValueTypes.UInt8);
+            AssetTypeTemplateField m_NumAlphaKeys = CreateTemplateField("m_NumAlphaKeys", "UInt8", EnumValueTypes.UInt8, false, true);
             field.children = new AssetTypeTemplateField[] {
                 key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_Mode, m_NumColorKeys, m_NumAlphaKeys
             };
         }
         private AssetTypeTemplateField[] RGBAf()
         {
-            AssetTypeTemplateField r = CreateTemplateField("r", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField g = CreateTemplateField("g", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField b = CreateTemplateField("b", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField a = CreateTemplateField("a", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField r = CreateTemplateField("r", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField g = CreateTemplateField("g", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField b = CreateTemplateField("b", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField a = CreateTemplateField("a", "float", EnumValueTypes.Float);
             return new AssetTypeTemplateField[] { r, g, b, a };
         }
         private void SetAnimationCurve(AssetTypeTemplateField field)
         {
             field.childrenCount = 4;
-            AssetTypeTemplateField time = CreateTemplateField("time", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField value = CreateTemplateField("value", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField inSlope = CreateTemplateField("inSlope", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField outSlope = CreateTemplateField("outSlope", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField time = CreateTemplateField("time", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField value = CreateTemplateField("value", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField inSlope = CreateTemplateField("inSlope", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField outSlope = CreateTemplateField("outSlope", "float", EnumValueTypes.Float);
             //new in 2019
-            AssetTypeTemplateField weightedMode = CreateTemplateField("weightedMode", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField inWeight = CreateTemplateField("inWeight", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField outWeight = CreateTemplateField("outWeight", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField weightedMode = CreateTemplateField("weightedMode", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField inWeight = CreateTemplateField("inWeight", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField outWeight = CreateTemplateField("outWeight", "float", EnumValueTypes.Float);
             /////////////
-            AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.Int32);
             AssetTypeTemplateField data;
             if (format >= 0x13)
             {
-                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.ValueType_None, 7, new AssetTypeTemplateField[] {
+                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.None, 7, new AssetTypeTemplateField[] {
                     time, value, inSlope, outSlope, weightedMode, inWeight, outWeight
                 });
             }
             else
             {
-                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.ValueType_None, 4, new AssetTypeTemplateField[] {
+                data = CreateTemplateField("data", "Keyframe", EnumValueTypes.None, 4, new AssetTypeTemplateField[] {
                     time, value, inSlope, outSlope
                 });
             }
-            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.ValueType_Array, true, false, 2, new AssetTypeTemplateField[] {
+            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.Array, true, false, 2, new AssetTypeTemplateField[] {
                 size, data
             });
-            AssetTypeTemplateField m_Curve = CreateTemplateField("m_Curve", "vector", EnumValueTypes.ValueType_None, 1, new AssetTypeTemplateField[] {
+            AssetTypeTemplateField m_Curve = CreateTemplateField("m_Curve", "vector", EnumValueTypes.None, 1, new AssetTypeTemplateField[] {
                 Array
             });
-            AssetTypeTemplateField m_PreInfinity = CreateTemplateField("m_PreInfinity", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_PostInfinity = CreateTemplateField("m_PostInfinity", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_RotationOrder = CreateTemplateField("m_RotationOrder", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_PreInfinity = CreateTemplateField("m_PreInfinity", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_PostInfinity = CreateTemplateField("m_PostInfinity", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_RotationOrder = CreateTemplateField("m_RotationOrder", "int", EnumValueTypes.Int32);
             field.children = new AssetTypeTemplateField[] {
                 m_Curve, m_PreInfinity, m_PostInfinity, m_RotationOrder
             };
@@ -527,7 +527,7 @@ namespace AssetsTools.NET.Extra
         private void SetBitField(AssetTypeTemplateField field)
         {
             field.childrenCount = 1;
-            AssetTypeTemplateField m_Bits = CreateTemplateField("m_Bits", "unsigned int", EnumValueTypes.ValueType_UInt32);
+            AssetTypeTemplateField m_Bits = CreateTemplateField("m_Bits", "unsigned int", EnumValueTypes.UInt32);
             field.children = new AssetTypeTemplateField[] {
                 m_Bits
             };
@@ -535,26 +535,26 @@ namespace AssetsTools.NET.Extra
         private void SetAABB(AssetTypeTemplateField field)
         {
             field.childrenCount = 2;
-            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", EnumValueTypes.ValueType_None, 3, Vec3f());
-            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3f", EnumValueTypes.ValueType_None, 3, Vec3f());
+            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", EnumValueTypes.None, 3, Vec3f());
+            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3f", EnumValueTypes.None, 3, Vec3f());
             field.children = new AssetTypeTemplateField[] {
                 m_Center, m_Extent
             };
         }
         private AssetTypeTemplateField[] Vec3f()
         {
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField z = CreateTemplateField("z", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField z = CreateTemplateField("z", "float", EnumValueTypes.Float);
             return new AssetTypeTemplateField[] { x, y, z };
         }
         private void SetRectf(AssetTypeTemplateField field)
         {
             field.childrenCount = 4;
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField width = CreateTemplateField("width", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField height = CreateTemplateField("height", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField width = CreateTemplateField("width", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField height = CreateTemplateField("height", "float", EnumValueTypes.Float);
             field.children = new AssetTypeTemplateField[] {
                 x, y, width, height
             };
@@ -562,7 +562,7 @@ namespace AssetsTools.NET.Extra
         private void SetGradientRGBAb(AssetTypeTemplateField field)
         {
             field.childrenCount = 1;
-            AssetTypeTemplateField rgba = CreateTemplateField("rgba", "unsigned int", EnumValueTypes.ValueType_UInt32);
+            AssetTypeTemplateField rgba = CreateTemplateField("rgba", "unsigned int", EnumValueTypes.UInt32);
             field.children = new AssetTypeTemplateField[] {
                 rgba
             };
@@ -571,69 +571,69 @@ namespace AssetsTools.NET.Extra
         private void SetGUIStyle(AssetTypeTemplateField field)
         {
             field.childrenCount = 26;
-            AssetTypeTemplateField m_Name = CreateTemplateField("m_Name", "string", EnumValueTypes.ValueType_String, 1, String());
-            AssetTypeTemplateField m_Normal = CreateTemplateField("m_Normal", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_Hover = CreateTemplateField("m_Hover", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_Active = CreateTemplateField("m_Active", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_Focused = CreateTemplateField("m_Focused", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_OnNormal = CreateTemplateField("m_OnNormal", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_OnHover = CreateTemplateField("m_OnHover", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_OnActive = CreateTemplateField("m_OnActive", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_OnFocused = CreateTemplateField("m_OnFocused", "GUIStyleState", EnumValueTypes.ValueType_None, 2, GUIStyleState());
-            AssetTypeTemplateField m_Border = CreateTemplateField("m_Border", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
-            AssetTypeTemplateField m_Margin = CreateTemplateField("m_Margin", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
-            AssetTypeTemplateField m_Padding = CreateTemplateField("m_Padding", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
-            AssetTypeTemplateField m_Overflow = CreateTemplateField("m_Overflow", "RectOffset", EnumValueTypes.ValueType_None, 4, RectOffset());
-            AssetTypeTemplateField m_Font = CreateTemplateField("m_Font", "PPtr<Font>", EnumValueTypes.ValueType_None, 2, PPtr());
-            AssetTypeTemplateField m_FontSize = CreateTemplateField("m_FontSize", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_FontStyle = CreateTemplateField("m_FontStyle", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_Alignment = CreateTemplateField("m_Alignment", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_WordWrap = CreateTemplateField("m_WordWrap", "bool", EnumValueTypes.ValueType_Bool);
-            AssetTypeTemplateField m_RichText = CreateTemplateField("m_RichText", "bool", EnumValueTypes.ValueType_Bool, false, true);
-            AssetTypeTemplateField m_TextClipping = CreateTemplateField("m_TextClipping", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_ImagePosition = CreateTemplateField("m_ImagePosition", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_ContentOffset = CreateTemplateField("m_ContentOffset", "Vector2f", EnumValueTypes.ValueType_None, 2, Vec2f());
-            AssetTypeTemplateField m_FixedWidth = CreateTemplateField("m_FixedWidth", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField m_FixedHeight = CreateTemplateField("m_FixedHeight", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField m_StretchWidth = CreateTemplateField("m_StretchWidth", "bool", EnumValueTypes.ValueType_Bool);
-            AssetTypeTemplateField m_StretchHeight = CreateTemplateField("m_StretchHeight", "bool", EnumValueTypes.ValueType_Bool, false, true);
+            AssetTypeTemplateField m_Name = CreateTemplateField("m_Name", "string", EnumValueTypes.String, 1, String());
+            AssetTypeTemplateField m_Normal = CreateTemplateField("m_Normal", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Hover = CreateTemplateField("m_Hover", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Active = CreateTemplateField("m_Active", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Focused = CreateTemplateField("m_Focused", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnNormal = CreateTemplateField("m_OnNormal", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnHover = CreateTemplateField("m_OnHover", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnActive = CreateTemplateField("m_OnActive", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_OnFocused = CreateTemplateField("m_OnFocused", "GUIStyleState", EnumValueTypes.None, 2, GUIStyleState());
+            AssetTypeTemplateField m_Border = CreateTemplateField("m_Border", "RectOffset", EnumValueTypes.None, 4, RectOffset());
+            AssetTypeTemplateField m_Margin = CreateTemplateField("m_Margin", "RectOffset", EnumValueTypes.None, 4, RectOffset());
+            AssetTypeTemplateField m_Padding = CreateTemplateField("m_Padding", "RectOffset", EnumValueTypes.None, 4, RectOffset());
+            AssetTypeTemplateField m_Overflow = CreateTemplateField("m_Overflow", "RectOffset", EnumValueTypes.None, 4, RectOffset());
+            AssetTypeTemplateField m_Font = CreateTemplateField("m_Font", "PPtr<Font>", EnumValueTypes.None, 2, PPtr());
+            AssetTypeTemplateField m_FontSize = CreateTemplateField("m_FontSize", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_FontStyle = CreateTemplateField("m_FontStyle", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Alignment = CreateTemplateField("m_Alignment", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_WordWrap = CreateTemplateField("m_WordWrap", "bool", EnumValueTypes.Bool);
+            AssetTypeTemplateField m_RichText = CreateTemplateField("m_RichText", "bool", EnumValueTypes.Bool, false, true);
+            AssetTypeTemplateField m_TextClipping = CreateTemplateField("m_TextClipping", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_ImagePosition = CreateTemplateField("m_ImagePosition", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_ContentOffset = CreateTemplateField("m_ContentOffset", "Vector2f", EnumValueTypes.None, 2, Vec2f());
+            AssetTypeTemplateField m_FixedWidth = CreateTemplateField("m_FixedWidth", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField m_FixedHeight = CreateTemplateField("m_FixedHeight", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField m_StretchWidth = CreateTemplateField("m_StretchWidth", "bool", EnumValueTypes.Bool);
+            AssetTypeTemplateField m_StretchHeight = CreateTemplateField("m_StretchHeight", "bool", EnumValueTypes.Bool, false, true);
             field.children = new AssetTypeTemplateField[] {
                 m_Name, m_Normal, m_Hover, m_Active, m_Focused, m_OnNormal, m_OnHover, m_OnActive, m_OnFocused, m_Border, m_Margin, m_Padding, m_Overflow, m_Font, m_FontSize, m_FontStyle, m_Alignment, m_WordWrap, m_RichText, m_TextClipping, m_ImagePosition, m_ContentOffset, m_FixedWidth, m_FixedHeight, m_StretchWidth, m_StretchHeight
             };
         }
         private AssetTypeTemplateField[] String()
         {
-            AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField data = CreateTemplateField("char", "data", EnumValueTypes.ValueType_UInt8);
-            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.ValueType_Array, true, true, 2, new AssetTypeTemplateField[] {
+            AssetTypeTemplateField size = CreateTemplateField("size", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField data = CreateTemplateField("char", "data", EnumValueTypes.UInt8);
+            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", EnumValueTypes.Array, true, true, 2, new AssetTypeTemplateField[] {
                 size, data
             });
             return new AssetTypeTemplateField[] { Array };
         }
         private AssetTypeTemplateField[] GUIStyleState()
         {
-            AssetTypeTemplateField m_Background = CreateTemplateField("m_Background", "PPtr<Texture2D>", EnumValueTypes.ValueType_None, 2, PPtr());
-            AssetTypeTemplateField m_TextColor = CreateTemplateField("m_TextColor", "ColorRGBA", EnumValueTypes.ValueType_None, 4, RGBAf());
+            AssetTypeTemplateField m_Background = CreateTemplateField("m_Background", "PPtr<Texture2D>", EnumValueTypes.None, 2, PPtr());
+            AssetTypeTemplateField m_TextColor = CreateTemplateField("m_TextColor", "ColorRGBA", EnumValueTypes.None, 4, RGBAf());
             return new AssetTypeTemplateField[] { m_Background, m_TextColor };
         }
         private AssetTypeTemplateField[] RectOffset()
         {
-            AssetTypeTemplateField m_Left = CreateTemplateField("m_Left", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_Right = CreateTemplateField("m_Right", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_Top = CreateTemplateField("m_Top", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_Bottom = CreateTemplateField("m_Bottom", "int", EnumValueTypes.ValueType_Int32);
+            AssetTypeTemplateField m_Left = CreateTemplateField("m_Left", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Right = CreateTemplateField("m_Right", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Top = CreateTemplateField("m_Top", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Bottom = CreateTemplateField("m_Bottom", "int", EnumValueTypes.Int32);
             return new AssetTypeTemplateField[] { m_Left, m_Right, m_Top, m_Bottom };
         }
         private AssetTypeTemplateField[] PPtr()
         {
-            AssetTypeTemplateField m_FileID = CreateTemplateField("m_FileID", "int", EnumValueTypes.ValueType_Int32);
-            AssetTypeTemplateField m_PathID = CreateTemplateField("m_PathID", "SInt64", EnumValueTypes.ValueType_Int64);
+            AssetTypeTemplateField m_FileID = CreateTemplateField("m_FileID", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_PathID = CreateTemplateField("m_PathID", "SInt64", EnumValueTypes.Int64);
             return new AssetTypeTemplateField[] { m_FileID, m_PathID };
         }
         private AssetTypeTemplateField[] Vec2f()
         {
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.ValueType_Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.ValueType_Float);
+            AssetTypeTemplateField x = CreateTemplateField("x", "float", EnumValueTypes.Float);
+            AssetTypeTemplateField y = CreateTemplateField("y", "float", EnumValueTypes.Float);
             return new AssetTypeTemplateField[] { x, y };
         }
 
@@ -657,7 +657,7 @@ namespace AssetsTools.NET.Extra
             field.valueType = valueType;
             field.isArray = isArray;
             field.align = align;
-            field.hasValue = valueType != EnumValueTypes.ValueType_None;
+            field.hasValue = valueType != EnumValueTypes.None;
             field.childrenCount = childrenCount;
             field.children = children;
             

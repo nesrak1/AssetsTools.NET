@@ -74,6 +74,7 @@
     <Compile Include="Extra\AssetsManager\BundleFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsManager.cs" />
+    <Compile Include="Extra\ValueBuilder.cs" />
     <Compile Include="Extra\AssetWriters.cs" />
     <Compile Include="Extra\BundleHelper.cs" />
     <Compile Include="Extra\CldbTypeTreeConverters\C2T5.cs" />

@@ -18,13 +18,13 @@ namespace AssetsTools.NET.Extra
                 instance.baseFields[i].Write(writer);
             }
         }
-        public static byte[] WriteToByteArray(this AssetTypeInstance instance)
+        public static byte[] WriteToByteArray(this AssetTypeInstance instance, bool bigEndian = false)
         {
             byte[] data;
             using (MemoryStream ms = new MemoryStream())
             using (AssetsFileWriter w = new AssetsFileWriter(ms))
             {
-                w.bigEndian = false;
+                w.bigEndian = bigEndian;
                 instance.Write(w);
                 data = ms.ToArray();
             }
@@ -35,7 +35,7 @@ namespace AssetsTools.NET.Extra
         {
             if (valueField.templateField.isArray)
             {
-                if (valueField.templateField.valueType == EnumValueTypes.ValueType_ByteArray)
+                if (valueField.templateField.valueType == EnumValueTypes.ByteArray)
                 {
                     AssetTypeByteArray byteArray = valueField.value.value.asByteArray;
 
@@ -63,45 +63,45 @@ namespace AssetsTools.NET.Extra
                 {
                     switch (valueField.templateField.valueType)
                     {
-                        case EnumValueTypes.ValueType_Int8:
+                        case EnumValueTypes.Int8:
                             writer.Write(valueField.value.value.asInt8);
                             if (valueField.templateField.align) writer.Align();
                             break;
-                        case EnumValueTypes.ValueType_UInt8:
+                        case EnumValueTypes.UInt8:
                             writer.Write(valueField.value.value.asUInt8);
                             if (valueField.templateField.align) writer.Align();
                             break;
-                        case EnumValueTypes.ValueType_Bool:
+                        case EnumValueTypes.Bool:
                             writer.Write(valueField.value.value.asBool);
                             if (valueField.templateField.align) writer.Align();
                             break;
-                        case EnumValueTypes.ValueType_Int16:
+                        case EnumValueTypes.Int16:
                             writer.Write(valueField.value.value.asInt16);
                             if (valueField.templateField.align) writer.Align();
                             break;
-                        case EnumValueTypes.ValueType_UInt16:
+                        case EnumValueTypes.UInt16:
                             writer.Write(valueField.value.value.asUInt16);
                             if (valueField.templateField.align) writer.Align();
                             break;
-                        case EnumValueTypes.ValueType_Int32:
+                        case EnumValueTypes.Int32:
                             writer.Write(valueField.value.value.asInt32);
                             break;
-                        case EnumValueTypes.ValueType_UInt32:
+                        case EnumValueTypes.UInt32:
                             writer.Write(valueField.value.value.asUInt32);
                             break;
-                        case EnumValueTypes.ValueType_Int64:
+                        case EnumValueTypes.Int64:
                             writer.Write(valueField.value.value.asInt64);
                             break;
-                        case EnumValueTypes.ValueType_UInt64:
+                        case EnumValueTypes.UInt64:
                             writer.Write(valueField.value.value.asUInt64);
                             break;
-                        case EnumValueTypes.ValueType_Float:
+                        case EnumValueTypes.Float:
                             writer.Write(valueField.value.value.asFloat);
                             break;
-                        case EnumValueTypes.ValueType_Double:
+                        case EnumValueTypes.Double:
                             writer.Write(valueField.value.value.asDouble);
                             break;
-                        case EnumValueTypes.ValueType_String:
+                        case EnumValueTypes.String:
                             writer.Write(valueField.value.value.asString.Length);
                             writer.Write(valueField.value.value.asString);
                             writer.Align();
@@ -118,13 +118,13 @@ namespace AssetsTools.NET.Extra
                 }
             }
         }
-        public static byte[] WriteToByteArray(this AssetTypeValueField valueField)
+        public static byte[] WriteToByteArray(this AssetTypeValueField valueField, bool bigEndian = false)
         {
             byte[] data;
             using (MemoryStream ms = new MemoryStream())
             using (AssetsFileWriter w = new AssetsFileWriter(ms))
             {
-                w.bigEndian = false;
+                w.bigEndian = bigEndian;
                 valueField.Write(w);
                 data = ms.ToArray();
             }

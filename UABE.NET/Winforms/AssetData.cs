@@ -62,13 +62,13 @@ namespace UABE.NET.Winforms
                 {
                     EnumValueTypes evt = atvfc.GetValue().GetValueType();
                     string str = "";
-                    if (evt == EnumValueTypes.ValueType_String) str = "\"";
+                    if (evt == EnumValueTypes.String) str = "\"";
                     if (1 <= (int)evt && (int)evt <= 12)
                     {
                         value = " = " + str + atvfc.GetValue().AsString() + str;
                     }
-                    if (evt == EnumValueTypes.ValueType_Array ||
-                        evt == EnumValueTypes.ValueType_ByteArray)
+                    if (evt == EnumValueTypes.Array ||
+                        evt == EnumValueTypes.ByteArray)
                     {
                         value = $" (size {atvfc.childrenCount})";
                     }

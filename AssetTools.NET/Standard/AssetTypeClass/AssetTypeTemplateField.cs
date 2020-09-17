@@ -25,7 +25,7 @@ namespace AssetsTools.NET
             valueType = AssetTypeValueField.GetValueTypeByTypeName(type);
             isArray = field.isArray == 1 ? true : false;
             align = (field.flags & 0x4000) != 0x00 ? true : false;
-            hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
+            hasValue = (valueType == EnumValueTypes.None) ? false : true;
 
             List<int> childrenIndexes = new List<int>();
             int thisDepth = u5Type.typeFieldsEx[fieldIndex].depth;
@@ -60,7 +60,7 @@ namespace AssetsTools.NET
             valueType = AssetTypeValueField.GetValueTypeByTypeName(this.type);
             isArray = field.isArray == 1 ? true : false;
             align = (field.flags2 & 0x4000) != 0x00 ? true : false;
-            hasValue = (valueType == EnumValueTypes.ValueType_None) ? false : true;
+            hasValue = (valueType == EnumValueTypes.None) ? false : true;
 
             List<int> childrenIndexes = new List<int>();
             int thisDepth = type.fields[(int)fieldIndex].depth;
@@ -88,11 +88,12 @@ namespace AssetsTools.NET
             return true;
         }
         ///public bool From07(TypeField_07 typeField)
-        public void MakeValue(AssetsFileReader reader, out AssetTypeValueField valueField)
+        public AssetTypeValueField MakeValue(AssetsFileReader reader)
         {
-            valueField = new AssetTypeValueField();
+            AssetTypeValueField valueField = new AssetTypeValueField();
             valueField.templateField = this;
             valueField = ReadType(reader, valueField);
+            return valueField;
         }
 
         public AssetTypeValueField ReadType(AssetsFileReader reader, AssetTypeValueField valueField)
@@ -102,8 +103,8 @@ namespace AssetsTools.NET
                 if (valueField.templateField.childrenCount == 2)
                 {
                     EnumValueTypes sizeType = valueField.templateField.children[0].valueType;
-                    if (sizeType == EnumValueTypes.ValueType_Int32 ||
-                        sizeType == EnumValueTypes.ValueType_UInt32)
+                    if (sizeType == EnumValueTypes.Int32 ||
+                        sizeType == EnumValueTypes.UInt32)
                     {
                         valueField.childrenCount = reader.ReadInt32();
                         valueField.children = new AssetTypeValueField[valueField.childrenCount];
@@ -116,7 +117,7 @@ namespace AssetsTools.NET
                         if (valueField.templateField.align) reader.Align();
                         AssetTypeArray ata = new AssetTypeArray();
                         ata.size = valueField.childrenCount;
-                        valueField.value = new AssetTypeValue(EnumValueTypes.ValueType_Array, ata);
+                        valueField.value = new AssetTypeValue(EnumValueTypes.Array, ata);
                     }
                     else
                     {
@@ -132,7 +133,7 @@ namespace AssetsTools.NET
             {
                 EnumValueTypes type = valueField.templateField.valueType;
                 if (type != 0) valueField.value = new AssetTypeValue(type, null);
-                if (type == EnumValueTypes.ValueType_String)
+                if (type == EnumValueTypes.String)
                 {
                     int length = reader.ReadInt32();
                     valueField.value.Set(reader.ReadBytes(length));
@@ -146,39 +147,39 @@ namespace AssetsTools.NET
                         valueField.children = new AssetTypeValueField[0];
                         switch (valueField.templateField.valueType)
                         {
-                            case EnumValueTypes.ValueType_Int8:
+                            case EnumValueTypes.Int8:
                                 valueField.value.Set(reader.ReadSByte());
                                 if (valueField.templateField.align) reader.Align();
                                 break;
-                            case EnumValueTypes.ValueType_UInt8:
-                            case EnumValueTypes.ValueType_Bool:
+                            case EnumValueTypes.UInt8:
+                            case EnumValueTypes.Bool:
                                 valueField.value.Set(reader.ReadByte());
                                 if (valueField.templateField.align) reader.Align();
                                 break;
-                            case EnumValueTypes.ValueType_Int16:
+                            case EnumValueTypes.Int16:
                                 valueField.value.Set(reader.ReadInt16());
                                 if (valueField.templateField.align) reader.Align();
                                 break;
-                            case EnumValueTypes.ValueType_UInt16:
+                            case EnumValueTypes.UInt16:
                                 valueField.value.Set(reader.ReadUInt16());
                                 if (valueField.templateField.align) reader.Align();
                                 break;
-                            case EnumValueTypes.ValueType_Int32:
+                            case EnumValueTypes.Int32:
                                 valueField.value.Set(reader.ReadInt32());
                                 break;
-                            case EnumValueTypes.ValueType_UInt32:
+                            case EnumValueTypes.UInt32:
                                 valueField.value.Set(reader.ReadUInt32());
                                 break;
-                            case EnumValueTypes.ValueType_Int64:
+                            case EnumValueTypes.Int64:
                                 valueField.value.Set(reader.ReadInt64());
                                 break;
-                            case EnumValueTypes.ValueType_UInt64:
+                            case EnumValueTypes.UInt64:
                                 valueField.value.Set(reader.ReadUInt64());
                                 break;
-                            case EnumValueTypes.ValueType_Float:
+                            case EnumValueTypes.Float:
                                 valueField.value.Set(reader.ReadSingle());
                                 break;
-                            case EnumValueTypes.ValueType_Double:
+                            case EnumValueTypes.Double:
                                 valueField.value.Set(reader.ReadDouble());
                                 break;
                         }

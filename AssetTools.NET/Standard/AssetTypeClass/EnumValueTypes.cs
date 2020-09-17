@@ -2,7 +2,23 @@
 {
     public enum EnumValueTypes
     {
-        ValueType_None,
+        None,
+        Bool,
+        Int8,
+        UInt8,
+        Int16,
+        UInt16,
+        Int32,
+        UInt32,
+        Int64,
+        UInt64,
+        Float,
+        Double,
+        String,
+        Array,
+        ByteArray,
+        //deprecated
+        ValueType_None = 0,
         ValueType_Bool,
         ValueType_Int8,
         ValueType_UInt8,

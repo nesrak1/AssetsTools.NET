@@ -56,7 +56,7 @@
 
         public bool IsDummy()
         {
-            return childrenCount == 0xFF;
+            return childrenCount == -1;
         }
 
         ///public ulong GetByteSize(ulong filePos = 0);
@@ -67,46 +67,46 @@
             switch (type)
             {
                 case "string":
-                    return EnumValueTypes.ValueType_String;
+                    return EnumValueTypes.String;
                 case "sint8":
                 case "sbyte":
-                    return EnumValueTypes.ValueType_Int8;
+                    return EnumValueTypes.Int8;
                 case "uint8":
                 case "char":
                 case "byte":
-                    return EnumValueTypes.ValueType_UInt8;
+                    return EnumValueTypes.UInt8;
                 case "sint16":
                 case "short":
-                    return EnumValueTypes.ValueType_Int16;
+                    return EnumValueTypes.Int16;
                 case "uint16":
                 case "unsigned short":
                 case "ushort":
-                    return EnumValueTypes.ValueType_UInt16;
+                    return EnumValueTypes.UInt16;
                 case "sint32":
                 case "int":
-                    return EnumValueTypes.ValueType_Int32;
+                    return EnumValueTypes.Int32;
                 case "type*":
-                    return EnumValueTypes.ValueType_Int32;
+                    return EnumValueTypes.Int32;
                 case "uint32":
                 case "unsigned int":
                 case "uint":
-                    return EnumValueTypes.ValueType_UInt32;
+                    return EnumValueTypes.UInt32;
                 case "sint64":
                 case "long":
-                    return EnumValueTypes.ValueType_Int64;
+                    return EnumValueTypes.Int64;
                 case "uint64":
                 case "unsigned long":
                 case "ulong":
-                    return EnumValueTypes.ValueType_UInt64;
+                    return EnumValueTypes.UInt64;
                 case "single":
                 case "float":
-                    return EnumValueTypes.ValueType_Float;
+                    return EnumValueTypes.Float;
                 case "double":
-                    return EnumValueTypes.ValueType_Double;
+                    return EnumValueTypes.Double;
                 case "bool":
-                    return EnumValueTypes.ValueType_Bool;
+                    return EnumValueTypes.Bool;
                 default:
-                    return EnumValueTypes.ValueType_None;
+                    return EnumValueTypes.None;
             }
         }
     }

@@ -5,7 +5,6 @@ namespace AssetsTools.NET
 {
     public class AssetTypeValue
     {
-        //bool freeValue;
         public EnumValueTypes type;
 
         public struct ValueTypes
@@ -84,10 +83,6 @@ namespace AssetsTools.NET
         }
         public ValueTypes value = new ValueTypes();
 
-        //Creates an AssetTypeValue.
-        //type : the value type which valueContainer stores
-        //valueContainer : the buffer for the value type
-        //freeIfPointer : should the value get freed if value type is Array/String
         public AssetTypeValue(EnumValueTypes type, object valueContainer)
         {
             this.type = type;
@@ -104,40 +99,40 @@ namespace AssetsTools.NET
             {
                 switch (type)
                 {
-                    case EnumValueTypes.ValueType_Bool:
+                    case EnumValueTypes.Bool:
                         value.asBool = Convert.ToByte(valueContainer) == 1 ? true : false;
                         break;
-                    case EnumValueTypes.ValueType_Int8:
+                    case EnumValueTypes.Int8:
                         value.asInt8 = Convert.ToSByte(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_UInt8:
+                    case EnumValueTypes.UInt8:
                         value.asUInt8 = Convert.ToByte(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_Int16:
+                    case EnumValueTypes.Int16:
                         value.asInt16 = Convert.ToInt16(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_UInt16:
+                    case EnumValueTypes.UInt16:
                         value.asUInt16 = Convert.ToUInt16(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_Int32:
+                    case EnumValueTypes.Int32:
                         value.asInt32 = Convert.ToInt32(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_UInt32:
+                    case EnumValueTypes.UInt32:
                         value.asUInt32 = Convert.ToUInt32(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_Int64:
+                    case EnumValueTypes.Int64:
                         value.asInt64 = Convert.ToInt64(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_UInt64:
+                    case EnumValueTypes.UInt64:
                         value.asUInt64 = Convert.ToUInt64(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_Float:
+                    case EnumValueTypes.Float:
                         value.asFloat = Convert.ToSingle(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_Double:
+                    case EnumValueTypes.Double:
                         value.asDouble = Convert.ToDouble(valueContainer);
                         break;
-                    case EnumValueTypes.ValueType_String:
+                    case EnumValueTypes.String:
                         if (valueContainer is byte[] byteArr)
                             value.asString = byteArr;
                         else if (valueContainer is string str)
@@ -145,10 +140,10 @@ namespace AssetsTools.NET
                         else
                             value.asString = new byte[0];
                         break;
-                    case EnumValueTypes.ValueType_Array:
+                    case EnumValueTypes.Array:
                         value.asArray = (AssetTypeArray)valueContainer;
                         break;
-                    case EnumValueTypes.ValueType_ByteArray:
+                    case EnumValueTypes.ByteArray:
                         value.asByteArray = (AssetTypeByteArray)valueContainer;
                         break;
                     default:
@@ -158,77 +153,77 @@ namespace AssetsTools.NET
         }
         public AssetTypeArray AsArray()
         {
-            return (type == EnumValueTypes.ValueType_Array) ? value.asArray : new AssetTypeArray() { size = 0xFFFF };
+            return (type == EnumValueTypes.Array) ? value.asArray : new AssetTypeArray() { size = 0xFFFF };
         }
         public AssetTypeByteArray AsByteArray()
         {
-            return (type == EnumValueTypes.ValueType_ByteArray) ? value.asByteArray : new AssetTypeByteArray() { size = 0xFFFF };
+            return (type == EnumValueTypes.ByteArray) ? value.asByteArray : new AssetTypeByteArray() { size = 0xFFFF };
         }
         public string AsString()
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Bool:
+                case EnumValueTypes.Bool:
                     return value.asBool ? "true" : "false";
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return value.asInt8.ToString();
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return value.asUInt8.ToString();
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return value.asInt16.ToString();
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return value.asUInt16.ToString();
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return value.asInt32.ToString();
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return value.asUInt32.ToString();
-                case EnumValueTypes.ValueType_Int64:
+                case EnumValueTypes.Int64:
                     return value.asInt64.ToString();
-                case EnumValueTypes.ValueType_UInt64:
+                case EnumValueTypes.UInt64:
                     return value.asUInt64.ToString();
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return value.asFloat.ToString();
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return value.asDouble.ToString();
-                case EnumValueTypes.ValueType_String:
+                case EnumValueTypes.String:
                     return Encoding.UTF8.GetString(value.asString);
-                case EnumValueTypes.ValueType_None:
-                case EnumValueTypes.ValueType_Array:
-                case EnumValueTypes.ValueType_ByteArray:
+                case EnumValueTypes.None:
+                case EnumValueTypes.Array:
+                case EnumValueTypes.ByteArray:
                 default:
                     return "";
             }
         }
         public byte[] AsStringBytes()
         {
-            return (type == EnumValueTypes.ValueType_String) ? value.asString : null;
+            return (type == EnumValueTypes.String) ? value.asString : null;
         }
         public bool AsBool()
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
-                case EnumValueTypes.ValueType_Double:
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.Float:
+                case EnumValueTypes.Double:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return false;
                 //new casts
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return value.asInt8 == 1;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return value.asInt16 == 1;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return value.asInt32 == 1;
-                case EnumValueTypes.ValueType_Int64:
+                case EnumValueTypes.Int64:
                     return value.asInt64 == 1;
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return value.asUInt8 == 1;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return value.asUInt16 == 1;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return value.asUInt32 == 1;
-                case EnumValueTypes.ValueType_UInt64:
+                case EnumValueTypes.UInt64:
                     return value.asUInt64 == 1;
                 default:
                     return value.asBool;
@@ -238,28 +233,28 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return (int)value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return (int)value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (int)value.asInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (int)value.asInt16;
-                case EnumValueTypes.ValueType_Int64:
+                case EnumValueTypes.Int64:
                     return (int)value.asInt64;
                 //new casts
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (int)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (int)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return (int)value.asUInt32;
-                case EnumValueTypes.ValueType_UInt64:
+                case EnumValueTypes.UInt64:
                     return (int)value.asUInt64;
                 default:
                     return value.asInt32;
@@ -269,28 +264,28 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return (uint)value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return (uint)value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (uint)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (uint)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt64:
+                case EnumValueTypes.UInt64:
                     return (uint)value.asUInt64;
                 //new casts
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (uint)value.asUInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (uint)value.asUInt16;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return (uint)value.asUInt32;
-                case EnumValueTypes.ValueType_Int64:
+                case EnumValueTypes.Int64:
                     return (uint)value.asUInt64;
                 default:
                     return value.asUInt32;
@@ -300,28 +295,28 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return (long)value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return (long)value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (long)value.asInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (long)value.asInt16;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return (long)value.asInt32;
                 //new casts
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (long)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (long)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return (long)value.asUInt32;
-                case EnumValueTypes.ValueType_UInt64:
+                case EnumValueTypes.UInt64:
                     return (long)value.asUInt64;
                 default:
                     return value.asInt64;
@@ -331,28 +326,28 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return (ulong)value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return (ulong)value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (ulong)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (ulong)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return (ulong)value.asUInt32;
                 //new casts
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (ulong)value.asUInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (ulong)value.asUInt16;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return (ulong)value.asUInt32;
-                case EnumValueTypes.ValueType_Int64:
+                case EnumValueTypes.Int64:
                     return (ulong)value.asUInt64;
                 default:
                     return value.asUInt64;
@@ -362,26 +357,26 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return (float)value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (float)value.asInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (float)value.asInt16;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return (float)value.asInt32;
                 //new casts
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (float)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (float)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return (float)value.asUInt32;
                 default:
                     return (float)value.asUInt64;
@@ -391,26 +386,26 @@ namespace AssetsTools.NET
         {
             switch (type)
             {
-                case EnumValueTypes.ValueType_Float:
+                case EnumValueTypes.Float:
                     return (double)value.asFloat;
-                case EnumValueTypes.ValueType_Double:
+                case EnumValueTypes.Double:
                     return value.asDouble;
-                case EnumValueTypes.ValueType_String:
-                case EnumValueTypes.ValueType_ByteArray:
-                case EnumValueTypes.ValueType_Array:
+                case EnumValueTypes.String:
+                case EnumValueTypes.ByteArray:
+                case EnumValueTypes.Array:
                     return 0;
-                case EnumValueTypes.ValueType_Int8:
+                case EnumValueTypes.Int8:
                     return (double)value.asInt8;
-                case EnumValueTypes.ValueType_Int16:
+                case EnumValueTypes.Int16:
                     return (double)value.asInt16;
-                case EnumValueTypes.ValueType_Int32:
+                case EnumValueTypes.Int32:
                     return (double)value.asInt32;
                 //new casts
-                case EnumValueTypes.ValueType_UInt8:
+                case EnumValueTypes.UInt8:
                     return (double)value.asUInt8;
-                case EnumValueTypes.ValueType_UInt16:
+                case EnumValueTypes.UInt16:
                     return (double)value.asUInt16;
-                case EnumValueTypes.ValueType_UInt32:
+                case EnumValueTypes.UInt32:
                     return (double)value.asUInt32;
                 default:
                     return (double)value.asUInt64;
