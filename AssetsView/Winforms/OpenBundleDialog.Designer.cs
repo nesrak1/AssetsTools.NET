@@ -44,9 +44,10 @@
             // status
             // 
             this.status.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.status.Location = new System.Drawing.Point(12, 9);
+            this.status.Location = new System.Drawing.Point(8, 6);
+            this.status.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.status.Name = "status";
-            this.status.Size = new System.Drawing.Size(762, 40);
+            this.status.Size = new System.Drawing.Size(508, 26);
             this.status.TabIndex = 0;
             this.status.Text = "Opening bundle file...";
             this.status.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -58,11 +59,12 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Controls.Add(this.fileAndDependencies, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.justThisFile, 0, 0);
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(12, 52);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(8, 34);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 1;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(762, 69);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(508, 45);
             this.tableLayoutPanel1.TabIndex = 1;
             // 
             // fileAndDependencies
@@ -72,9 +74,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.fileAndDependencies.Enabled = false;
             this.fileAndDependencies.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fileAndDependencies.Location = new System.Drawing.Point(384, 3);
+            this.fileAndDependencies.Location = new System.Drawing.Point(256, 2);
+            this.fileAndDependencies.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.fileAndDependencies.Name = "fileAndDependencies";
-            this.fileAndDependencies.Size = new System.Drawing.Size(375, 63);
+            this.fileAndDependencies.Size = new System.Drawing.Size(250, 41);
             this.fileAndDependencies.TabIndex = 1;
             this.fileAndDependencies.Text = "Open this file and dependencies";
             this.fileAndDependencies.UseVisualStyleBackColor = true;
@@ -87,9 +90,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.justThisFile.Enabled = false;
             this.justThisFile.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.justThisFile.Location = new System.Drawing.Point(3, 3);
+            this.justThisFile.Location = new System.Drawing.Point(2, 2);
+            this.justThisFile.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.justThisFile.Name = "justThisFile";
-            this.justThisFile.Size = new System.Drawing.Size(375, 63);
+            this.justThisFile.Size = new System.Drawing.Size(250, 41);
             this.justThisFile.TabIndex = 0;
             this.justThisFile.Text = "Open just this file";
             this.justThisFile.UseVisualStyleBackColor = true;
@@ -104,11 +108,12 @@
             this.tableLayoutPanel2.Controls.Add(this.decompressBundleInMemory, 1, 0);
             this.tableLayoutPanel2.Controls.Add(this.decompressBundle, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.compressBundle, 2, 0);
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(12, 127);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(8, 83);
+            this.tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tableLayoutPanel2.Size = new System.Drawing.Size(762, 69);
+            this.tableLayoutPanel2.Size = new System.Drawing.Size(508, 45);
             this.tableLayoutPanel2.TabIndex = 1;
             // 
             // decompressBundleInMemory
@@ -118,9 +123,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.decompressBundleInMemory.Enabled = false;
             this.decompressBundleInMemory.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.decompressBundleInMemory.Location = new System.Drawing.Point(257, 3);
+            this.decompressBundleInMemory.Location = new System.Drawing.Point(171, 2);
+            this.decompressBundleInMemory.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.decompressBundleInMemory.Name = "decompressBundleInMemory";
-            this.decompressBundleInMemory.Size = new System.Drawing.Size(248, 63);
+            this.decompressBundleInMemory.Size = new System.Drawing.Size(165, 41);
             this.decompressBundleInMemory.TabIndex = 1;
             this.decompressBundleInMemory.Text = "Decompress to memory";
             this.decompressBundleInMemory.UseVisualStyleBackColor = true;
@@ -133,9 +139,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.decompressBundle.Enabled = false;
             this.decompressBundle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.decompressBundle.Location = new System.Drawing.Point(3, 3);
+            this.decompressBundle.Location = new System.Drawing.Point(2, 2);
+            this.decompressBundle.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.decompressBundle.Name = "decompressBundle";
-            this.decompressBundle.Size = new System.Drawing.Size(248, 63);
+            this.decompressBundle.Size = new System.Drawing.Size(165, 41);
             this.decompressBundle.TabIndex = 0;
             this.decompressBundle.Text = "Decompress to file";
             this.decompressBundle.UseVisualStyleBackColor = true;
@@ -148,9 +155,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.compressBundle.Enabled = false;
             this.compressBundle.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.compressBundle.Location = new System.Drawing.Point(511, 3);
+            this.compressBundle.Location = new System.Drawing.Point(340, 2);
+            this.compressBundle.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.compressBundle.Name = "compressBundle";
-            this.compressBundle.Size = new System.Drawing.Size(248, 63);
+            this.compressBundle.Size = new System.Drawing.Size(166, 41);
             this.compressBundle.TabIndex = 1;
             this.compressBundle.Text = "Compress to file";
             this.compressBundle.UseVisualStyleBackColor = true;
@@ -158,14 +166,15 @@
             // 
             // OpenBundleDialog
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(786, 208);
+            this.ClientSize = new System.Drawing.Size(524, 135);
             this.Controls.Add(this.tableLayoutPanel2);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Controls.Add(this.status);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.MaximizeBox = false;
             this.Name = "OpenBundleDialog";
             this.Text = "Opening bundle file...";

@@ -111,6 +111,12 @@
     <Compile Include="Winforms\AssetsFileInfoViewer.Designer.cs">
       <DependentUpon>AssetsFileInfoViewer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Winforms\ClassDatabaseEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\ClassDatabaseEditor.Designer.cs">
+      <DependentUpon>ClassDatabaseEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\GameObjectViewer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -170,6 +176,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\AssetsFileInfoViewer.resx">
       <DependentUpon>AssetsFileInfoViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\ClassDatabaseEditor.resx">
+      <DependentUpon>ClassDatabaseEditor.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Winforms\GameObjectViewer.resx">
       <DependentUpon>GameObjectViewer.cs</DependentUpon>
