@@ -4,15 +4,15 @@ namespace AssetsTools.NET
 {
     public class TypeField_0D
     {
-        public ushort version;                      //0x00
-        public byte depth;                          //0x02 //specifies the amount of parents
-        public byte isArray;                        //0x03
-        public uint typeStringOffset;               //0x04 //-the hardcoded table is offset by 0x80000000
-        public uint nameStringOffset;               //0x08 //-same here
-        public int size;                            //0x0C //size in bytes; if not static (if it contains an array), set to -1
-        public uint index;                          //0x10
-        public uint flags;                          //0x14
-        public byte[] unknown;                      //0x18
+        public ushort version;
+        public byte depth;
+        public byte isArray;
+        public uint typeStringOffset;
+        public uint nameStringOffset;
+        public int size;
+        public uint index;
+        public uint flags;
+        public byte[] unknown;
         public void Read(AssetsFileReader reader, uint format)
         {
             version = reader.ReadUInt16();

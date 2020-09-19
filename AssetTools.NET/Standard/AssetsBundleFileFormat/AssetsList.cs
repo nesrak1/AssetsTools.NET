@@ -6,7 +6,6 @@
         public uint count;
         public AssetsBundleEntry[] entries;
         public uint allocatedCount;
-        //AssetsBundleEntry entries[0];
         ///public void Free();
         ///public bool Read(AssetsFileReader reader, LPARAM readerPar, QWORD &curFilePos, AssetsFileVerifyLogger errorLogger = NULL);
         ///public bool Write(AssetsFileWriter writer, LPARAM writerPar, QWORD &curFilePos, AssetsFileVerifyLogger errorLogger = NULL);

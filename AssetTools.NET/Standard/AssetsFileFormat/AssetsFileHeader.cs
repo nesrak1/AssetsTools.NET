@@ -7,13 +7,12 @@ namespace AssetsTools.NET
 {
     public class AssetsFileHeader
     {
-        public uint metadataSize;                   //0x00
-        public uint fileSize;                       //0x04 //big-endian
-        public uint format;                         //0x08
-        public uint firstFileOffset;                //0x0C //big-endian
-        //0 == little-endian (default, haven't seen anything else); 1 == big-endian, in theory
-        public uint endianness;                     //0x10, for format < 9 at (fileSize - metadataSize), right before TypeTree
-        public byte[] unknown;                      //0x11, for format >= 9
+        public uint metadataSize;
+        public long fileSize;
+        public uint format;
+        public long firstFileOffset;
+        public uint endianness;
+        public byte[] unknown;
 
         public int GetSizeBytes()
         {
@@ -29,21 +28,49 @@ namespace AssetsTools.NET
             format = reader.ReadUInt32();
             firstFileOffset = reader.ReadUInt32();
             endianness = reader.ReadByte(); //todo "fileSize - metadataSize" for v<9 but I have no files to test on
-            reader.bigEndian = endianness == 1 ? true : false;
             unknown = reader.ReadBytes(3);
             reader.Align();
+            if (format >= 0x16)
+            {
+                metadataSize = reader.ReadUInt32();
+                fileSize = reader.ReadInt64();
+                firstFileOffset = reader.ReadInt64();
+                reader.Position += 8;
+            }
+            reader.bigEndian = endianness == 1;
         }
-        //does NOT write the endianness byte for format < 9!
         public void Write(AssetsFileWriter writer)
         {
             writer.bigEndian = true;
-            writer.Write(metadataSize);
-            writer.Write(fileSize);
+            if (format >= 0x16)
+            {
+                writer.Write(0);
+                writer.Write(0);
+            }
+            else
+            {
+                writer.Write(metadataSize);
+                writer.Write((uint)fileSize);
+            }
             writer.Write(format);
-            writer.Write(firstFileOffset);
+            if (format >= 0x16)
+            {
+                writer.Write(0);
+            }
+            else
+            {
+                writer.Write((uint)firstFileOffset);
+            }
             writer.Write((byte)endianness);
             writer.bigEndian = endianness == 1 ? true : false;
             writer.Write(unknown);
+            if (format >= 0x16)
+            {
+                writer.Write(metadataSize);
+                writer.Write(fileSize);
+                writer.Write(firstFileOffset);
+                writer.Write((long)0);
+            }
         }
     }
 }

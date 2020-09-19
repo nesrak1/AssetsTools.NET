@@ -1,20 +1,14 @@
 ﻿namespace AssetsTools.NET
 {
-    //Unity 5.3+
     public class AssetBundleHeader06
     {
-        //no alignment in this struct!
-        public string signature; //0-terminated; UnityFS, UnityRaw, UnityWeb or UnityArchive
-        public uint fileVersion; //big-endian, = 6
-        public string minPlayerVersion; //0-terminated; 5.x.x
-        public string fileEngineVersion; //0-terminated; exact unity engine version
+        public string signature;
+        public uint fileVersion;
+        public string minPlayerVersion;
+        public string fileEngineVersion;
         public long totalFileSize;
-        //sizes for the blocks info :
         public uint compressedSize;
         public uint decompressedSize;
-        //(flags & 0x3F) is the compression mode (0 = none; 1 = LZMA; 2-3 = LZ4)
-        //(flags & 0x40) says whether the bundle has directory info
-        //(flags & 0x80) says whether the block and directory list is at the end
         public uint flags;
 
         ///public bool ReadInitial(AssetsFileReader reader, LPARAM lPar, AssetsFileVerifyLogger errorLogger = NULL);

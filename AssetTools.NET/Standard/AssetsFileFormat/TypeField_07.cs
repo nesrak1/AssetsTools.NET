@@ -1,9 +1,9 @@
 ﻿namespace AssetsTools.NET
 {
-    public class TypeField_07 //everything big endian
+    public class TypeField_07
     {
-        public string type; //null-terminated
-        public string name; //null-terminated
+        public string type;
+        public string name;
         public uint size;
         public uint index;
         public uint arrayFlag;

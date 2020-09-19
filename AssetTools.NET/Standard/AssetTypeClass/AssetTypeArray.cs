@@ -3,6 +3,5 @@
     public struct AssetTypeArray
     {
         public int size;
-        //AssetTypeValueField *dataField;
     }
 }

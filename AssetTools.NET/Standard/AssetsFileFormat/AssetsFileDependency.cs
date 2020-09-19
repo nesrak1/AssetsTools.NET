@@ -7,12 +7,10 @@ namespace AssetsTools.NET
 {
     public class AssetsFileDependency
     {
-        //version < 6 : no bufferedPath
-        //version < 5 : no bufferedPath, guid, type
         public struct GUID128
         {
-            public long mostSignificant; //64-127 //big-endian
-            public long leastSignificant; //0-63  //big-endian
+            public long mostSignificant;
+            public long leastSignificant;
             public void Read(AssetsFileReader reader)
             {
                 mostSignificant = reader.ReadInt64();
@@ -24,10 +22,10 @@ namespace AssetsTools.NET
                 writer.Write(leastSignificant);
             }
         }
-        public string bufferedPath; //for buffered (type=1)
+        public string bufferedPath;
         public GUID128 guid;
         public int type;
-        public string assetPath; //path to the .assets file
+        public string assetPath;
         public string originalAssetPath;
         public void Read(AssetsFileReader reader)
         {

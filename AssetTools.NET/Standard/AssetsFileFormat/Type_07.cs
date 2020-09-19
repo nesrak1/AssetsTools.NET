@@ -2,7 +2,7 @@
 {
     public class Type_07
     {
-        public int classId; //big endian
+        public int classId;
         public TypeField_07 @base;
 
         ///public ulong Read(bool hasTypeTree, ulong absFilePos, AssetsFileReader reader, FileStream readerPar, uint version, uint typeVersion, bool bigEndian);

@@ -4,15 +4,15 @@ namespace AssetsTools.NET
 {
     public class TypeTree
     {
-        public string unityVersion; //null-terminated; stored for .assets format > 6
-        public uint version; //big endian; stored for .assets format > 6
-        public bool hasTypeTree; //stored for .assets format >= 13; Unity 5 only stores some metadata if it's set to false
-        public int fieldCount; //big endian;
+        public string unityVersion;
+        public uint version;
+        public bool hasTypeTree;
+        public int fieldCount;
 
         public List<Type_0D> unity5Types;
         public List<Type_07> unity4Types; //todo, unity 4 types not implemented yet
 
-        public uint dwUnknown; //actually belongs to the asset list; stored for .assets format < 14
+        public uint dwUnknown;
 
         public void Read(AssetsFileReader reader, uint version)
         {

@@ -7,8 +7,8 @@ namespace AssetsTools.NET
 {
     public class AssetFileList
     {
-        public uint sizeFiles;                      //0x00 //little-endian
-        public AssetFileInfo[] fileInfs;            //0x04
+        public uint sizeFiles;
+        public AssetFileInfo[] fileInfs;
 
         public uint GetSizeBytes(uint version)
         {

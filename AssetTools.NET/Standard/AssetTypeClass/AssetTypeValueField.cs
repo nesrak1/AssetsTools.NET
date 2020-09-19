@@ -19,7 +19,6 @@
 
         //ASSETSTOOLS_API void Clear();
 
-        //get a child field by its name
         public AssetTypeValueField this[string name]
         {
             get
@@ -35,7 +34,7 @@
             }
             set { }
         }
-        //get a child field by its index
+
         public AssetTypeValueField this[int index]
         {
             get { return children[index]; }

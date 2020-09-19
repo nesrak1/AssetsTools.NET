@@ -56,8 +56,6 @@ namespace AssetsTools.NET
             dependencies.Read(reader);
         }
 
-        //set fileID to -1 if all replacers are for this .assets file but don't have the fileID set to the same one
-        //typeMeta is used to add the type information (hash and type fields) for format >= 0x10 if necessary
         public void Write(AssetsFileWriter writer, ulong filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
             header.Write(writer);
@@ -206,7 +204,7 @@ namespace AssetsTools.NET
             else
                 writer.Align16();
 
-            uint offs_firstFile = (uint)writer.Position;
+            long offs_firstFile = writer.Position;
 
             for (int i = 0; i < assetInfos.Count; i++)
             {
@@ -247,7 +245,7 @@ namespace AssetsTools.NET
 
             writer.Position = 0;
             header.metadataSize = metadataSize;
-            header.fileSize = (uint)fileSizeMarker;
+            header.fileSize = fileSizeMarker;
             header.Write(writer);
         }
 

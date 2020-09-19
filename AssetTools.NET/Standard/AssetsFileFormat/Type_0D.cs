@@ -3,30 +3,26 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
-    public class Type_0D //everything big endian
+    public class Type_0D
     {
-        //Starting with U5.5, all MonoBehaviour types have MonoBehaviour's classId (114)
-        //Before, the different MonoBehaviours had different negative classIds, starting with -1
-        public int classId; //0x00
+        public int classId;
 
-        public byte unknown16_1; //format >= 0x10, wild guess : bool "has MonoBehaviour type id" (usually 0)
-        public ushort scriptIndex; //format >= 0x11 U5.5+, index to the MonoManager  0xFFFF)
+        public byte unknown16_1;
+        public ushort scriptIndex;
 
-        //Script ID (md4 hash)
-        public uint scriptHash1; //if classId < 0 //0x04
-        public uint scriptHash2; //if classId < 0 //0x08
-        public uint scriptHash3; //if classId < 0 //0x0C
-        public uint scriptHash4; //if classId < 0 //0x10
+        public uint scriptHash1;
+        public uint scriptHash2;
+        public uint scriptHash3;
+        public uint scriptHash4;
 
-        //Type hash / properties hash (md4)
-        public uint typeHash1; //0x04 or 0x14
-        public uint typeHash2; //0x08 or 0x18
-        public uint typeHash3; //0x0C or 0x1C
-        public uint typeHash4; //0x10 or 0x20
-        public uint typeFieldsExCount; //if (TypeTree.enabled) //0x14 or 0x24
+        public uint typeHash1;
+        public uint typeHash2;
+        public uint typeHash3;
+        public uint typeHash4;
+        public uint typeFieldsExCount;
         public TypeField_0D[] typeFieldsEx;
 
-        public uint stringTableLen; //if (TypeTree.enabled) //0x18 or 0x28
+        public uint stringTableLen;
         public string stringTable;
 
         public int dependenciesCount;
@@ -106,7 +102,7 @@ namespace AssetsTools.NET
                 }
             }
         }
-        //?
+
         public static readonly string strTable = "AABB\0AnimationClip\0AnimationCurve\0AnimationState\0Array\0Base\0BitField\0bitset\0bool\0char\0ColorRGBA\0Component\0data\0deque\0double\0dynamic_array\0FastPropertyName\0first\0float\0Font\0GameObject\0Generic Mono\0GradientNEW\0GUID\0GUIStyle\0int\0list\0long long\0map\0Matrix4x4f\0MdFour\0MonoBehaviour\0MonoScript\0m_ByteSize\0m_Curve\0m_EditorClassIdentifier\0m_EditorHideFlags\0m_Enabled\0m_ExtensionPtr\0m_GameObject\0m_Index\0m_IsArray\0m_IsStatic\0m_MetaFlag\0m_Name\0m_ObjectHideFlags\0m_PrefabInternal\0m_PrefabParentObject\0m_Script\0m_StaticEditorFlags\0m_Type\0m_Version\0Object\0pair\0PPtr<Component>\0PPtr<GameObject>\0PPtr<Material>\0PPtr<MonoBehaviour>\0PPtr<MonoScript>\0PPtr<Object>\0PPtr<Prefab>\0PPtr<Sprite>\0PPtr<TextAsset>\0PPtr<Texture>\0PPtr<Texture2D>\0PPtr<Transform>\0Prefab\0Quaternionf\0Rectf\0RectInt\0RectOffset\0second\0set\0short\0size\0SInt16\0SInt32\0SInt64\0SInt8\0staticvector\0string\0TextAsset\0TextMesh\0Texture\0Texture2D\0Transform\0TypelessData\0UInt16\0UInt32\0UInt64\0UInt8\0unsigned int\0unsigned long long\0unsigned short\0vector\0Vector2f\0Vector3f\0Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0int2_storage\0int3_storage\0BoundsInt\0m_CorrespondingSourceObject\0m_PrefabInstance\0m_PrefabAsset";
     }
 }
