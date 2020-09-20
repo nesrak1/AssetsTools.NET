@@ -114,12 +114,12 @@ am.LoadClassDatabase("2018.3.0f2.dat");
 
 You can find [more info](#extracting-classdatatpk-and-cldbdat) about how to get these from UABE at the bottom.
 
-With a loaded class database, you can finally use `GetATI(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])` to read the values from the asset:
+With a loaded class database, you can finally use `GetTypeInstance(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])` to read the values from the asset:
 
 ```cs
 var inf = table.GetAssetInfo("Pineapple");
 //AssetTypeInstance isn't too useful, so we go directly into the base field
-var baseField = am.GetATI(inst.file, inf).GetBaseField();
+var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
 ```
 
 The base field is the first field of a serialized asset. From there, you can use `Get(string name)`, `Get(int index)`, or `[int index]` to get child fields. You can use `GetValue()` to get the value of the field and `AsXXX()` to convert it to a .net type.
@@ -173,7 +173,7 @@ var inst = am.LoadAssetsFile("resources.assets", true);
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 
 var inf = inst.table.GetAssetInfo("MyBoringAsset");
-var baseField = am.GetATI(inst.file, inf).GetBaseField();
+var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
 baseField.Get("m_Name")
          .GetValue()
          .Set("MyCoolAsset");
@@ -276,7 +276,7 @@ In the future I'll be adding more formats but these should be good for most game
 The output of these are in BGRA which makes it easy to use Format32bppArgb with System.Drawing's bitmaps. Here's a quick and dirty way to implement that:
 
 ```cs
-var atvf = am.GetATI(inst.file, texInf).GetBaseField();
+var atvf = am.GetTypeInstance(inst.file, texInf).GetBaseField();
 var tf = TextureFile.ReadTextureFile(atvf);
 var texDat = tf.GetTextureData(inst); //giving the instance will find .resS files in the same directory
                                       //you can change this to a path if the .resS is somewhere else

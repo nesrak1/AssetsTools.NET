@@ -156,7 +156,7 @@ namespace AssetsTools.NET.Extra
                 AssetsFileInstance dep = relativeTo.dependencies[fileId - 1];
                 ext.info = dep.table.GetAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(dep.file, ext.info, forceFromCldb);
+                    ext.instance = GetTypeInstance(dep.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
                 ext.file = dep;
@@ -165,7 +165,7 @@ namespace AssetsTools.NET.Extra
             {
                 ext.info = relativeTo.table.GetAssetInfo(pathId);
                 if (!onlyGetInfo)
-                    ext.instance = GetATI(relativeTo.file, ext.info, forceFromCldb);
+                    ext.instance = GetTypeInstance(relativeTo.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
                 ext.file = relativeTo;
@@ -180,7 +180,25 @@ namespace AssetsTools.NET.Extra
             return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, forceFromCldb);
         }
 
+        public AssetTypeInstance GetTypeInstance(AssetsFileInstance inst, AssetFileInfoEx info, bool forceFromCldb = false)
+        {
+            return GetTypeInstance(inst.file, info, forceFromCldb);
+        }
+
+        public AssetTypeInstance GetTypeInstance(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
+        {
+            return new AssetTypeInstance(GetTemplateBaseField(file, info, forceFromCldb), file.reader, info.absoluteFilePos);
+        }
+
+        //this method was renamed for consistency/clarity
+        //because it's used so much, I don't want to deprecate it right away
+        //so I'll keep the old method here for a while
         public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
+        {
+            return GetTypeInstance(file, info, forceFromCldb);
+        }
+
+        public AssetTypeTemplateField GetTemplateBaseField(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
             ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
             uint fixedId = AssetHelper.FixAudioID(info.curFileType);
@@ -219,7 +237,7 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
-            return new AssetTypeInstance(baseField, file.reader, info.absoluteFilePos);
+            return baseField;
         }
 
         public AssetTypeValueField GetMonoBaseFieldCached(AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
