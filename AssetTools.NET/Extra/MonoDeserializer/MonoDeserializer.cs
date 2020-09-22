@@ -386,7 +386,7 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeTemplateField pathID = new AssetTypeTemplateField();
             pathID.name = "m_PathID";
-            if (format < 0x10)
+            if (format < 0x0E)
             {
                 pathID.type = "int";
                 pathID.valueType = EnumValueTypes.Int32;
