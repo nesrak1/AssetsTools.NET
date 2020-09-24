@@ -31,7 +31,7 @@ namespace AssetsView.Winforms
 
             //bundle resS
             TextureFile.StreamingInfo streamInfo = tf.m_StreamData;
-            if (streamInfo.path.StartsWith("archive:/") && inst.parentBundle != null)
+            if (streamInfo.path != null && streamInfo.path.StartsWith("archive:/") && inst.parentBundle != null)
             {
                 string searchPath = streamInfo.path.Substring(9);
                 searchPath = Path.GetFileName(searchPath);

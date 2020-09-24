@@ -38,7 +38,7 @@ namespace AssetsTools.NET.Extra
             for (int i = 0; i < len; i += 4)
             {
                 t = bytes[i];
-                bytes[i] = bytes[i + 1];
+                bytes[i] = bytes[i + 3];
                 bytes[i + 3] = t;
                 t = bytes[i + 1];
                 bytes[i + 1] = bytes[i + 2];

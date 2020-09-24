@@ -463,7 +463,7 @@ namespace AssetsView.Winforms
                 AssetTypeValueField baseField = helper.GetTypeInstance(currentFile.file, info).GetBaseField();
 
                 TextureViewer texView = new TextureViewer(currentFile, baseField);
-                texView.ShowDialog();
+                texView.Show();
             }
         }
 
