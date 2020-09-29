@@ -115,11 +115,18 @@ namespace AssetsTools.NET
                 texture.m_ColorSpace = tempField.GetValue().AsInt();
 
             AssetTypeValueField imageData = baseField.Get("image data");
-            int imageDataSize = imageData.GetValue().AsArray().size;
-            texture.pictureData = new byte[imageDataSize];
-            for (int i = 0; i < imageDataSize; i++)
+            if (imageData.templateField.valueType == EnumValueTypes.ByteArray)
             {
-                texture.pictureData[i] = (byte)imageData[i].GetValue().AsInt();
+                texture.pictureData = imageData.GetValue().AsByteArray().data;
+            }
+            else
+            {
+                int imageDataSize = imageData.GetValue().AsArray().size;
+                texture.pictureData = new byte[imageDataSize];
+                for (int i = 0; i < imageDataSize; i++)
+                {
+                    texture.pictureData[i] = (byte)imageData[i].GetValue().AsInt();
+                }
             }
 
             AssetTypeValueField streamData;

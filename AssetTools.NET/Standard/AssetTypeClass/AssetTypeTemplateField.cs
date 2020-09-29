@@ -106,18 +106,33 @@ namespace AssetsTools.NET
                     if (sizeType == EnumValueTypes.Int32 ||
                         sizeType == EnumValueTypes.UInt32)
                     {
-                        valueField.childrenCount = reader.ReadInt32();
-                        valueField.children = new AssetTypeValueField[valueField.childrenCount];
-                        for (int i = 0; i < valueField.childrenCount; i++)
+                        if (valueField.templateField.valueType == EnumValueTypes.ByteArray)
                         {
-                            valueField.children[i] = new AssetTypeValueField();
-                            valueField.children[i].templateField = valueField.templateField.children[1];
-                            valueField.children[i] = ReadType(reader, valueField.children[i]);
+                            valueField.childrenCount = 0;
+                            valueField.children = new AssetTypeValueField[0];
+                            int size = reader.ReadInt32();
+                            byte[] data = reader.ReadBytes(size);
+                            if (valueField.templateField.align) reader.Align();
+                            AssetTypeByteArray atba = new AssetTypeByteArray();
+                            atba.size = (uint)size;
+                            atba.data = data;
+                            valueField.value = new AssetTypeValue(EnumValueTypes.ByteArray, atba);
                         }
-                        if (valueField.templateField.align) reader.Align();
-                        AssetTypeArray ata = new AssetTypeArray();
-                        ata.size = valueField.childrenCount;
-                        valueField.value = new AssetTypeValue(EnumValueTypes.Array, ata);
+                        else
+                        {
+                            valueField.childrenCount = reader.ReadInt32();
+                            valueField.children = new AssetTypeValueField[valueField.childrenCount];
+                            for (int i = 0; i < valueField.childrenCount; i++)
+                            {
+                                valueField.children[i] = new AssetTypeValueField();
+                                valueField.children[i].templateField = valueField.templateField.children[1];
+                                valueField.children[i] = ReadType(reader, valueField.children[i]);
+                            }
+                            if (valueField.templateField.align) reader.Align();
+                            AssetTypeArray ata = new AssetTypeArray();
+                            ata.size = valueField.childrenCount;
+                            valueField.value = new AssetTypeValue(EnumValueTypes.Array, ata);
+                        }
                     }
                     else
                     {
