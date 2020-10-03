@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using AssetsTools.NET.Extra.Decompressors.LZ4;
+using SevenZip.Compression.LZMA;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace AssetsTools.NET
 {
@@ -16,22 +20,55 @@ namespace AssetsTools.NET
             header = new ClassDatabaseFileHeader();
             header.Read(reader);
             if (header.header != "cldb" ||
-                !(header.fileVersion >= 3 || header.fileVersion == 1) ||
-                header.compressionType != 0)
+                (header.fileVersion != 4 && header.fileVersion != 3 && header.fileVersion != 1))
             {
                 valid = false;
                 return valid;
             }
             classes = new List<ClassDatabaseType>();
+
             long classTablePos = reader.Position;
-            reader.BaseStream.Position = header.stringTablePos;
-            stringTable = reader.ReadBytes((int)header.stringTableLen);
-            reader.Position = classTablePos;
-            uint size = reader.ReadUInt32();
+            AssetsFileReader newReader = reader;
+            if (header.compressionType != 0)
+            {
+                classTablePos = 0;
+                MemoryStream ms;
+                if (header.compressionType == 1) //lz4
+                {
+                    byte[] uncompressedBytes = new byte[header.uncompressedSize];
+                    using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes((int)header.compressedSize)))
+                    {
+                        Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs);
+                        decoder.Read(uncompressedBytes, 0, (int)header.uncompressedSize);
+                        decoder.Dispose();
+                    }
+                    ms = new MemoryStream(uncompressedBytes);
+                }
+                else if (header.compressionType == 2) //lzma
+                {
+                    using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes((int)header.compressedSize)))
+                    {
+                        ms = SevenZipHelper.StreamDecompress(tempMs);
+                    }
+                }
+                else
+                {
+                    valid = false;
+                    return valid;
+                }
+
+                newReader = new AssetsFileReader(ms);
+                newReader.bigEndian = false;
+            }
+
+            newReader.Position = header.stringTablePos;
+            stringTable = newReader.ReadBytes((int)header.stringTableLen);
+            newReader.Position = classTablePos;
+            uint size = newReader.ReadUInt32();
             for (int i = 0; i < size; i++)
             {
                 ClassDatabaseType cdt = new ClassDatabaseType();
-                cdt.Read(reader, header.fileVersion, header.flags);
+                cdt.Read(newReader, header.fileVersion, header.flags);
                 classes.Add(cdt);
             }
             valid = true;

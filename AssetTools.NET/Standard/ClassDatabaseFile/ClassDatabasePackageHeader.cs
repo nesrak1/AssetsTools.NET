@@ -20,7 +20,10 @@ namespace AssetsTools.NET
             stringTableOffset = reader.ReadUInt32();
             stringTableLenUncompressed = reader.ReadUInt32();
             stringTableLenCompressed = reader.ReadUInt32();
-            fileBlockSize = reader.ReadUInt32();
+            if (fileVersion == 1)
+                fileBlockSize = reader.ReadUInt32();
+            else
+                fileBlockSize = 0;
             fileCount = reader.ReadUInt32();
             files = new List<ClassDatabaseFileRef>();
             for (int i = 0; i < fileCount; i++)
