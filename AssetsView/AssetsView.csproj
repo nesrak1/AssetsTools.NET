@@ -74,9 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssetHelpers\AssetSorter.cs" />
-    <Compile Include="Plurally\Localization\ILocalization.cs" />
-    <Compile Include="Plurally\Localization\LocaleEN.cs" />
-    <Compile Include="Plurally\Pluralizer.cs" />
     <Compile Include="Structs\AssetDetails.cs" />
     <Compile Include="Structs\AssetIcon.cs" />
     <Compile Include="Structs\AssetNodeDetails.cs" />
@@ -85,6 +82,7 @@
     <Compile Include="Structs\FSDirectory.cs" />
     <Compile Include="Structs\FSObject.cs" />
     <Compile Include="Structs\PGProperty.cs" />
+    <Compile Include="Structs\PPtrMap.cs" />
     <Compile Include="Structs\SceneDetails.cs" />
     <Compile Include="Util\AssetUtils.cs" />
     <Compile Include="Util\CustomClass.cs" />
@@ -153,6 +151,12 @@
     <Compile Include="Winforms\OpenBundleDialog.Designer.cs">
       <DependentUpon>OpenBundleDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Winforms\PPtrScanner.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\PPtrScanner.Designer.cs">
+      <DependentUpon>PPtrScanner.cs</DependentUpon>
+    </Compile>
     <Compile Include="Winforms\StartScreen.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -167,6 +171,12 @@
     </Compile>
     <Compile Include="Winforms\TextureViewer.Designer.cs">
       <DependentUpon>TextureViewer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Winforms\XRefsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Winforms\XRefsDialog.Designer.cs">
+      <DependentUpon>XRefsDialog.cs</DependentUpon>
     </Compile>
     <EmbeddedResource Include="Winforms\AboutScreen.resx">
       <DependentUpon>AboutScreen.cs</DependentUpon>
@@ -198,6 +208,9 @@
     <EmbeddedResource Include="Winforms\OpenBundleDialog.resx">
       <DependentUpon>OpenBundleDialog.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\PPtrScanner.resx">
+      <DependentUpon>PPtrScanner.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Winforms\StartScreen.resx">
       <DependentUpon>StartScreen.cs</DependentUpon>
     </EmbeddedResource>
@@ -213,6 +226,9 @@
     </Compile>
     <EmbeddedResource Include="Winforms\TextureViewer.resx">
       <DependentUpon>TextureViewer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Winforms\XRefsDialog.resx">
+      <DependentUpon>XRefsDialog.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="Properties\Settings.settings">

@@ -112,14 +112,14 @@ namespace AssetsTools.NET
         }
         public static string ReadNullTerminatedArray(byte[] bytes, uint pos)
         {
-            string output = "";
+            StringBuilder output = new StringBuilder();
             char curChar;
             while ((curChar = (char)bytes[pos]) != 0x00)
             {
-                output += curChar;
+                output.Append(curChar);
                 pos++;
             }
-            return output;
+            return output.ToString();
         }
         public string ReadCountString()
         {

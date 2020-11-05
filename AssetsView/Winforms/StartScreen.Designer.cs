@@ -61,6 +61,8 @@
             this.viewTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
+            this.xRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pptrToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -156,7 +158,8 @@
             this.globalSearchInfoToolStripMenuItem,
             this.toolStripSeparator2,
             this.assetDataToolStripMenuItem,
-            this.monoBehaviourToolStripMenuItem});
+            this.monoBehaviourToolStripMenuItem,
+            this.pptrToolStripMenuItem});
             this.globalSearchToolStripMenuItem.Name = "globalSearchToolStripMenuItem";
             this.globalSearchToolStripMenuItem.Size = new System.Drawing.Size(91, 22);
             this.globalSearchToolStripMenuItem.Text = "Global Search";
@@ -249,7 +252,7 @@
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(408, 357);
+            this.assetList.Size = new System.Drawing.Size(409, 357);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
@@ -297,7 +300,7 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(372, 2);
+            this.goDirectory.Location = new System.Drawing.Point(373, 2);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
             this.goDirectory.Size = new System.Drawing.Size(36, 25);
@@ -315,7 +318,7 @@
             this.pathBox.Location = new System.Drawing.Point(42, 2);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(326, 25);
+            this.pathBox.Size = new System.Drawing.Size(327, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
@@ -349,9 +352,10 @@
             this.contextMenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.viewTextureToolStripMenuItem,
+            this.xRefsToolStripMenuItem,
             this.propertiesToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(141, 48);
+            this.contextMenuStrip.Size = new System.Drawing.Size(141, 70);
             // 
             // viewTextureToolStripMenuItem
             // 
@@ -378,6 +382,20 @@
             this.dataGridViewImageColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.dataGridViewImageColumn1.Width = 30;
+            // 
+            // xRefsToolStripMenuItem
+            // 
+            this.xRefsToolStripMenuItem.Name = "xRefsToolStripMenuItem";
+            this.xRefsToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.xRefsToolStripMenuItem.Text = "X-Refs";
+            this.xRefsToolStripMenuItem.Click += new System.EventHandler(this.xRefsToolStripMenuItem_Click);
+            // 
+            // pptrToolStripMenuItem
+            // 
+            this.pptrToolStripMenuItem.Name = "pptrToolStripMenuItem";
+            this.pptrToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+            this.pptrToolStripMenuItem.Text = "PPtr";
+            this.pptrToolStripMenuItem.Click += new System.EventHandler(this.pptrToolStripMenuItem_Click);
             // 
             // StartScreen
             // 
@@ -438,6 +456,8 @@
         private System.Windows.Forms.ToolStripMenuItem monoBehaviourToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem assetDataToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewTextureToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem xRefsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pptrToolStripMenuItem;
     }
 }
 

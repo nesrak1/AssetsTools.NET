@@ -16,7 +16,7 @@ namespace AssetsTools.NET.Extra
         public List<AssetsFileInstance> dependencies = new List<AssetsFileInstance>();
         public BundleFileInstance parentBundle = null;
         //for monobehaviours
-        public Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
+        public Dictionary<uint, string> monoIdToName = new Dictionary<uint, string>();
 
         public AssetsFileInstance(Stream stream, string filePath, string root)
         {
@@ -41,6 +41,33 @@ namespace AssetsTools.NET.Extra
                 Enumerable.Range(0, file.dependencies.dependencyCount)
                           .Select(d => (AssetsFileInstance)null)
             );
+        }
+
+        public AssetsFileInstance GetDependency(AssetsManager am, int depIdx)
+        {
+            if (dependencies[depIdx] == null)
+            {
+                string depPath = file.dependencies.dependencies[depIdx].assetPath;
+                int instIndex = am.files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
+                if (instIndex == -1)
+                {
+                    string absPath = Path.Combine(path, depPath);
+                    string localAbsPath = Path.Combine(path, Path.GetFileName(depPath));
+                    if (File.Exists(absPath))
+                    {
+                        dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);
+                    }
+                    else if (File.Exists(localAbsPath))
+                    {
+                        dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                    }
+                }
+                else
+                {
+                    dependencies[depIdx] = am.files[instIndex];
+                }
+            }
+            return dependencies[depIdx];
         }
     }
 }

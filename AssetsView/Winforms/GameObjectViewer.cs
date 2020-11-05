@@ -1,7 +1,6 @@
 ﻿using AssetsTools.NET;
 using AssetsTools.NET.Extra;
 using AssetsView.Util;
-using Plurally;
 using System;
 //using System.Data.Entity.Design.PluralizationServices;
 using System.Drawing;
@@ -17,8 +16,8 @@ namespace AssetsView.Winforms
         private AssetsManager helper;
         private AssetsFileInstance inst;
         private long selectedId;
+        private long selectedGameObjectId;
         private bool firstTimeMBMessage;
-        private Pluralizer plurServ; //for arrays
         public GameObjectViewer(AssetsManager helper, AssetsFileInstance inst, long selectedId)
         {
             InitializeComponent();
@@ -34,7 +33,6 @@ namespace AssetsView.Winforms
             {
                 PInvoke.SetWindowTheme(goTree.Handle, "explorer", null);
             }
-            plurServ = new Pluralizer(new CultureInfo("en-US"));
             valueGrid.PropertySort = PropertySort.Categorized;
 
             ClassDatabaseFile classFile = helper.classFile;
@@ -44,6 +42,7 @@ namespace AssetsView.Winforms
 
             if (typeName == "GameObject")
             {
+                selectedGameObjectId = selectedId;
                 AssetExternal firstExt = helper.GetExtAsset(inst, 0, selectedId);
                 AssetExternal rootExt = GetRootGameObject(firstExt);
                 PopulateHierarchyTree(null, rootExt);
@@ -55,8 +54,17 @@ namespace AssetsView.Winforms
                 {
                     AssetTypeValueField firstBaseField = helper.GetTypeInstance(inst.file, info).GetBaseField();
                     AssetExternal firstExt = helper.GetExtAsset(inst, firstBaseField.Get("m_GameObject"));
-                    AssetExternal rootExt = GetRootGameObject(firstExt);
-                    PopulateHierarchyTree(null, rootExt);
+                    if (firstExt.info != null)
+                    {
+                        selectedGameObjectId = firstExt.info.index;
+                        AssetExternal rootExt = GetRootGameObject(firstExt);
+                        PopulateHierarchyTree(null, rootExt);
+                    }
+                    else
+                    {
+                        TreeNode node = goTree.Nodes.Add($"[{typeName} (parentless)]");
+                        node.Tag = helper.GetExtAsset(inst, 0, info.index);
+                    }
                 }
                 else
                 {
@@ -185,9 +193,9 @@ namespace AssetsView.Winforms
             if (atvf.childrenCount == 0)
                 return;
         
-            string arraySingular = string.Empty;
+            string arrayName = string.Empty;
             if (arrayChildren && atvf.childrenCount > 0)
-                arraySingular = plurServ.Singularize(atvf.children[0].templateField.name);
+                arrayName = atvf.children[0].templateField.name;
         
             for (int i = 0; i < atvf.childrenCount; i++)
             {
@@ -199,7 +207,7 @@ namespace AssetsView.Winforms
                 if (!arrayChildren)
                     key = atvfc.GetName();
                 else
-                    key = $"{arraySingular}[{i}]";
+                    key = $"{arrayName}[{i}]";
         
                 EnumValueTypes evt;
                 if (atvfc.GetValue() != null)
@@ -287,7 +295,7 @@ namespace AssetsView.Winforms
                 newNode.ForeColor = Color.DarkRed;
 
             newNode.Tag = ext;
-            if (thisId == selectedId)
+            if (thisId == selectedGameObjectId)
             {
                 goTree.SelectedNode = newNode;
             }

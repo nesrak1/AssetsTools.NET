@@ -25,6 +25,7 @@ namespace AssetsView.Winforms
         private FSDirectory rootDir;
         private FSDirectory currentDir;
         private bool rsrcDataAdded;
+        private PPtrMap pptrMap;
 
         public StartScreen()
         {
@@ -467,6 +468,34 @@ namespace AssetsView.Winforms
             }
         }
 
+        private void xRefsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (currentFile == null)
+                return;
+            if (assetList.SelectedCells.Count > 0)
+            {
+                var selRow = assetList.SelectedRows[0];
+                long pathId = (long)selRow.Cells[3].Value;
+                string assetDir = Path.GetDirectoryName(currentFile.path);
+
+                if (pptrMap == null)
+                {
+                    string avpmFilePath = Path.Combine(assetDir, "avpm.dat");
+                    if (File.Exists(avpmFilePath))
+                    {
+                        pptrMap = new PPtrMap(new BinaryReader(File.OpenRead(avpmFilePath)));
+                    }
+                    else
+                    {
+                        MessageBox.Show("avpm.dat file does not exist.\nTry running Global Search -> PPtr.", "Assets View");
+                        return;
+                    }
+                }
+                XRefsDialog xrefs = new XRefsDialog(this, helper, assetDir, pptrMap, new AssetID(currentFile.name, pathId));
+                xrefs.Show();
+            }
+        }
+
         private void assetList_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (currentFile == null)
@@ -685,6 +714,12 @@ namespace AssetsView.Winforms
         {
             string dirName = SelectFolderAndLoad();
             new AssetDataScanner(this, helper, dirName).Show();
+        }
+
+        private void pptrToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string dirName = SelectFolderAndLoad();
+            new PPtrScanner(helper, dirName).Show();
         }
     }
 }
