@@ -24,8 +24,7 @@ namespace AssetsTools.NET.Extra
         {
             AssetTypeTemplateField[] templateChildren = templateField.children;
             AssetTypeValueField[] valueChildren;
-            if (templateField.valueType == EnumValueTypes.Array ||
-                templateField.valueType == EnumValueTypes.ByteArray ||
+            if (templateField.isArray ||
                 templateField.valueType == EnumValueTypes.String)
             {
                 valueChildren = new AssetTypeValueField[0];
@@ -40,10 +39,11 @@ namespace AssetsTools.NET.Extra
             }
 
             AssetTypeValue defaultValue = DefaultValueFromTemplate(templateField);
-            
+
             AssetTypeValueField root = new AssetTypeValueField()
             {
-                children = valueChildren, childrenCount = valueChildren.Length,
+                children = valueChildren,
+                childrenCount = valueChildren.Length,
                 templateField = templateField,
                 value = defaultValue
             };
@@ -86,7 +86,17 @@ namespace AssetsTools.NET.Extra
                 default:
                     obj = null; break;
             }
-            return new AssetTypeValue(templateField.valueType, obj);
+            if (obj == null && templateField.isArray)
+            {
+                //arrays don't usually have their type set,
+                //so we have to check .isArray instead
+                obj = new AssetTypeArray();
+                return new AssetTypeValue(EnumValueTypes.Array, obj);
+            }
+            else
+            {
+                return new AssetTypeValue(templateField.valueType, obj);
+            }
         }
     }
 }
