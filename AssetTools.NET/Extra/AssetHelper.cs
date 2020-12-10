@@ -57,7 +57,7 @@ namespace AssetsTools.NET.Extra
         {
             foreach (Type_0D type in typeTree.unity5Types)
             {
-                if (type.classId < 0 && type.scriptIndex == scriptIndex)
+                if (type.scriptIndex == scriptIndex)
                     return type;
             }
             return null;

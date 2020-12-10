@@ -51,8 +51,8 @@
             // splitContainer.Panel2
             // 
             this.splitContainer.Panel2.Controls.Add(this.matchesList);
-            this.splitContainer.Size = new System.Drawing.Size(788, 304);
-            this.splitContainer.SplitterDistance = 394;
+            this.splitContainer.Size = new System.Drawing.Size(576, 304);
+            this.splitContainer.SplitterDistance = 326;
             this.splitContainer.TabIndex = 0;
             // 
             // scriptTree
@@ -62,7 +62,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.scriptTree.Location = new System.Drawing.Point(0, 0);
             this.scriptTree.Name = "scriptTree";
-            this.scriptTree.Size = new System.Drawing.Size(394, 304);
+            this.scriptTree.Size = new System.Drawing.Size(326, 304);
             this.scriptTree.TabIndex = 1;
             this.scriptTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.scriptTree_AfterSelect);
             // 
@@ -75,7 +75,7 @@
             this.matchesList.IntegralHeight = false;
             this.matchesList.Location = new System.Drawing.Point(0, 0);
             this.matchesList.Name = "matchesList";
-            this.matchesList.Size = new System.Drawing.Size(390, 304);
+            this.matchesList.Size = new System.Drawing.Size(246, 304);
             this.matchesList.TabIndex = 0;
             this.matchesList.DoubleClick += new System.EventHandler(this.matchesList_DoubleClick);
             // 
@@ -83,7 +83,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(788, 304);
+            this.ClientSize = new System.Drawing.Size(576, 304);
             this.Controls.Add(this.splitContainer);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MonoBehaviourScanner";

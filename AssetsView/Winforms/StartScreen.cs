@@ -225,6 +225,8 @@ namespace AssetsView.Winforms
 
                         AssetExternal assetExt = helper.GetExtAsset(ggm, pointerField, true);
                         AssetFileInfoEx assetInfo = assetExt.info;
+                        if (assetInfo == null)
+                            continue;
                         ClassDatabaseType assetType = AssetHelper.FindAssetClassByID(helper.classFile, assetInfo.curFileType);
                         if (assetType == null)
                             continue;

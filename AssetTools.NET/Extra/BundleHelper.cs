@@ -23,11 +23,9 @@ namespace AssetsTools.NET.Extra
         public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, int index)
         {
             byte[] data = LoadAssetDataFromBundle(bundle, index);
-            using (MemoryStream ms = new MemoryStream(data))
-            using (AssetsFileReader r = new AssetsFileReader(ms))
-            {
-                return new AssetsFile(r);
-            }
+            MemoryStream ms = new MemoryStream(data);
+            AssetsFileReader r = new AssetsFileReader(ms);
+            return new AssetsFile(r);
         }
         public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, string name)
         {
