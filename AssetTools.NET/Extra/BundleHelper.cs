@@ -98,5 +98,66 @@ namespace AssetsTools.NET.Extra
             }
             return newFile;
         }
+        
+        public static AssetBundleFile CreateBlankBundle(string engineVersion, int contentSize)
+        {
+            AssetBundleHeader06 header = new AssetBundleHeader06()
+            {
+                signature = "UnityFS",
+                fileVersion = 6,
+                minPlayerVersion = "5.x.x",
+                fileEngineVersion = engineVersion,
+                totalFileSize = 0x82 + engineVersion.Length + contentSize,
+                compressedSize = 0x5B,
+                decompressedSize = 0x5B,
+                flags = 0x40
+            };
+            AssetBundleBlockInfo06 blockInf = new AssetBundleBlockInfo06
+            {
+                decompressedSize = (uint)contentSize,
+                compressedSize = (uint)contentSize,
+                flags = 0x0040
+            };
+            AssetBundleDirectoryInfo06 dirInf = new AssetBundleDirectoryInfo06
+            {
+                offset = 0,
+                decompressedSize = (uint)contentSize,
+                flags = 4,
+                name = GenerateCabName()
+            };
+            AssetBundleBlockAndDirectoryList06 info = new AssetBundleBlockAndDirectoryList06()
+            {
+                checksumLow = 0,
+                checksumHigh = 0,
+                blockCount = 1,
+                blockInf = new AssetBundleBlockInfo06[]
+                {
+                    blockInf
+                },
+                directoryCount = 1,
+                dirInf = new AssetBundleDirectoryInfo06[]
+                {
+                    dirInf
+                }
+            };
+            AssetBundleFile bundle = new AssetBundleFile()
+            {
+                bundleHeader6 = header,
+                bundleInf6 = info
+            };
+            return bundle;
+        }
+
+        private static string GenerateCabName()
+        {
+            string alphaNum = "0123456789abcdef";
+            string output = "CAB-";
+            Random rand = new Random();
+            for (int i = 0; i < 32; i++)
+            {
+                output += alphaNum[rand.Next(0, alphaNum.Length)];
+            }
+            return output;
+        }
     }
 }
