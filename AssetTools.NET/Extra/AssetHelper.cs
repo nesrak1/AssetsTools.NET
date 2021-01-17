@@ -195,5 +195,50 @@ namespace AssetsTools.NET.Extra
             }
             return infos;
         }
+        
+        public static byte[] CreateBlankAssets(string engineVersion)
+        {
+            return CreateBlankAssets(engineVersion, new List<Type_0D>());
+        }
+
+        public static byte[] CreateBlankAssets(string engineVersion, List<Type_0D> types)
+        {
+            using MemoryStream ms = new MemoryStream();
+            using AssetsFileWriter writer = new AssetsFileWriter(ms);
+            AssetsFileHeader header = new AssetsFileHeader()
+            {
+                metadataSize = 0,
+                fileSize = 0x1000,
+                format = 0x11,
+                firstFileOffset = 0x1000,
+                endianness = 0,
+                unknown = new byte[] { 0, 0, 0 }
+            };
+
+            TypeTree typeTree = new TypeTree()
+            {
+                unityVersion = engineVersion,
+                version = 0x5,
+                hasTypeTree = true,
+                fieldCount = types.Count(),
+                unity5Types = types
+            };
+
+            header.Write(writer);
+            writer.bigEndian = false;
+            typeTree.Write(writer, 0x11);
+            writer.Write((uint)0);
+            writer.Align();
+            //preload table and dependencies
+            writer.Write((uint)0);
+            writer.Write((uint)0);
+
+            //due to a write bug in at.net we have to pad to 0x1000
+            while (ms.Position < 0x1000)
+            {
+                writer.Write((byte)0);
+            }
+            return ms.ToArray();
+        }
     }
 }
