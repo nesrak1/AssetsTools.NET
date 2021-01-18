@@ -186,6 +186,21 @@ inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
 
+#### Create Blank Assets file
+
+To create blank assets file, get the bytes with `AssetHelper.CreateBlankAssets(string engineVersion)`, and call `File.WriteAllBytes(string path, byte[] bytes)`:
+
+```cs
+byte[] data = AssetHelper.CreateBlankAssets("2017.4.11f1");
+File.WriteAllBytes("resources.assets", data);
+```
+
+If you want to use an AssetsFile variable instead of writing bytes:
+
+```cs
+AssetsFile af = new AssetsFile(new AssetsFileReader(new MemoryStream(AssetHelper.CreateBlankAssets("2017.4.11f1"))));
+```
+
 ### Value building
 
 (Not fully tested yet)
@@ -212,10 +227,10 @@ componentArray.SetChildrenList(newChildren);
 //... do replacer stuff
 ```
 
-If you need to add items instead of set, you'll have to use array concat (I know, a little annoying)
+If you need to add items instead of set, you'll have to call `AddChildren(AssetTypeValueField[] children)`:
 
 ```cs
-componentArray.SetChildrenList(componentArray.children.Concat(newChildren));
+componentArray.AddChildren(newChildren);
 ```
 
 #### Create new asset from scratch
@@ -227,15 +242,34 @@ var cldbType = AssetHelper.FindAssetClassByName(am.classFile, "TextAsset");
 templateField.FromClassDatabase(am.classFile, cldbType, 0);
 var baseField = ValueBuilder.DefaultValueFieldFromTemplate(templateField);
 baseField.Get("m_Name").GetValue().Set("MyCoolTextAsset");
-baseField.Get("m_Script").GetValue().Set("I have some sick text");
+baseField.Get("m_Script").GetValue().Set("I have some text");
 
-//or you can just use table.assetFileInfoCount + 2 but that doesn't always work
 var nextAssetId = table.assetFileInfo.Max(i => i.index) + 1;
 replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xffff, baseField.WriteToByteArray()));
 //... do other replacer stuff
 ```
+Note: You can use `inf.scriptIndex` instead of `0xffff`.
 
 Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
+
+#### Removing Assets
+
+Here's the full code for removing assets and writing changes to the file:
+
+```cs
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+var inst = am.LoadAssetsFile("resources.assets", true);
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+var inf = inst.table.GetAssetInfo("MyBoringAsset");
+
+List<AssetsReplacer> removers = new List<AssetsReplacer>
+{
+    new AssetsRemover(0, inf.index, (int)inf.curFileType, inf.scriptIndex)
+};
+var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
+inst.file.Write(writer, 0, removers, 0);
+```
 
 ### Loading bundle files
 
@@ -249,6 +283,15 @@ var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name in
 ```
 
 If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
+
+#### Create Blank Bundle file
+
+To create blank bundle file, call `BundleHelper.CreateBlankBundle(string engineVersion, int contentSize)`:
+```cs
+AssetBundleFile bundle = BundleHelper.CreateBlankBundle("2017.4.11f1", 0);
+```
+int contentSize - The size of all the assets files in the bundle.
+If you create an empty bundle, then set it to 0.
 
 ### Loading textures
 
