@@ -233,6 +233,12 @@ If you need to add items instead of set, you'll have to call `AddChildren(AssetT
 componentArray.AddChildren(newChildren);
 ```
 
+Or if you need to remove items, call `RemoveChildren(AssetTypeValueField[] children)`:
+
+```cs
+componentArray.RemoveChildren(newChildren);
+```
+
 #### Create new asset from scratch
 
 ```cs
