@@ -212,10 +212,16 @@ componentArray.SetChildrenList(newChildren);
 //... do replacer stuff
 ```
 
-If you need to add items instead of set, you'll have to use array concat (I know, a little annoying)
+If you need to add items instead of set, you'll have to call `AddChildren(AssetTypeValueField[] children)`:
 
 ```cs
-componentArray.SetChildrenList(componentArray.children.Concat(newChildren));
+componentArray.AddChildren(newChildren);
+```
+
+Or if you need to remove items, call `RemoveChildren(AssetTypeValueField[] children)`:
+
+```cs
+componentArray.RemoveChildren(newChildren);
 ```
 
 #### Create new asset from scratch
