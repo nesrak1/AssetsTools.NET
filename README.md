@@ -243,6 +243,25 @@ replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xf
 
 Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
 
+#### Removing Assets
+
+Here's the full code for removing assets and writing changes to the file:
+
+```cs
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+var inst = am.LoadAssetsFile("resources.assets", true);
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+var inf = inst.table.GetAssetInfo("MyBoringAsset");
+
+List<AssetsReplacer> removers = new List<AssetsReplacer>
+{
+    new AssetsRemover(0, inf.index, (int)inf.curFileType, inf.scriptIndex)
+};
+var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
+inst.file.Write(writer, 0, removers, 0);
+```
+
 ### Loading bundle files
 
 Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
