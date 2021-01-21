@@ -185,6 +185,7 @@ inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 ```
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
+Note: you can use `inf.scriptIndex` instead of `0xFFFF`.
 
 ### Value building
 
@@ -212,10 +213,16 @@ componentArray.SetChildrenList(newChildren);
 //... do replacer stuff
 ```
 
-If you need to add items instead of set, you'll have to use array concat (I know, a little annoying)
+If you need to add items instead of set, call `AddChildren(AssetTypeValueField[] children)`:
 
 ```cs
-componentArray.SetChildrenList(componentArray.children.Concat(newChildren));
+componentArray.AddChildren(newChildren);
+```
+
+Or if you need to remove items, call `RemoveChildren(AssetTypeValueField[] children)`:
+
+```cs
+componentArray.RemoveChildren(newChildren);
 ```
 
 #### Create new asset from scratch
@@ -236,6 +243,25 @@ replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xf
 ```
 
 Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
+
+#### Removing assets
+
+Here's the full code for removing assets and writing changes to the file:
+
+```cs
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+var inst = am.LoadAssetsFile("resources.assets", true);
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+var inf = inst.table.GetAssetInfo("MyBoringAsset");
+
+var removers = new List<AssetsReplacer>
+{
+    new AssetsRemover(0, inf.index, (int)inf.curFileType, inf.scriptIndex)
+};
+var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
+inst.file.Write(writer, 0, removers, 0);
+```
 
 ### Loading bundle files
 
