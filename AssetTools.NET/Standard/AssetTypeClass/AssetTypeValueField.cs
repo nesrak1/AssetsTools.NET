@@ -50,7 +50,34 @@
         public AssetTypeTemplateField GetTemplateField() { return templateField; }
         public AssetTypeValueField[] GetChildrenList() { return children; }
         public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; this.childrenCount = children.Length; }
-
+        public void AddChildren(AssetTypeValueField[] children) { this.children = this.children.Concat(children).ToArray(); }
+        public void AddChildren(AssetTypeValueField children) { this.children = this.children.Append(children).ToArray(); }
+        
+        public void RemoveChildren(AssetTypeValueField[] children)
+        {
+            // Removes (skips) an array of similar children
+            this.children = this.children.Except(children).ToArray();
+        }
+        
+        public void RemoveChildren(AssetTypeValueField children) { this.children = this.children.Where(i => i != children).ToArray(); }
+        
+        public bool HasChildren(AssetTypeValueField children)
+        {
+            return this.children.Contains(children);
+        }
+        
+        public bool HasChildren(AssetTypeValueField[] children)
+        {
+            foreach (var child in children)
+            {
+                if (!this.children.Contains(child))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         public int GetChildrenCount() { return childrenCount; }
 
         public bool IsDummy()
