@@ -185,7 +185,7 @@ inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 ```
 
 Once you write changes to a file, you will need to reopen the file to see the changes.
-Note: you can use `inf.scriptIndex` instead of `0xFFFF`.
+Note: you can use `inst.file.typeTree.unity5Types[inf.curFileTypeOrIndex].scriptIndex` instead of `0xFFFF`.
 
 ### Value building
 
