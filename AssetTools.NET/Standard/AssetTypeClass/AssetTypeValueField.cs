@@ -50,16 +50,17 @@
         public AssetTypeTemplateField GetTemplateField() { return templateField; }
         public AssetTypeValueField[] GetChildrenList() { return children; }
         public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; this.childrenCount = children.Length; }
-        public void AddChildren(AssetTypeValueField[] children) { this.children = this.children.Concat(children).ToArray(); }
-        public void AddChildren(AssetTypeValueField children) { this.children = this.children.Append(children).ToArray(); }
+        public void AddChildren(AssetTypeValueField[] children) { this.children = this.children.Concat(children).ToArray(); this.childrenCount += children.Length; }
+        public void AddChildren(AssetTypeValueField children) { this.children = this.children.Concat(new AssetTypeValueField[] { children }).ToArray(); this.childrenCount++; }
         
         public void RemoveChildren(AssetTypeValueField[] children)
         {
             // Removes (skips) an array of similar children
             this.children = this.children.Except(children).ToArray();
+            this.childrenCount -= children.Length;
         }
         
-        public void RemoveChildren(AssetTypeValueField children) { this.children = this.children.Where(i => i != children).ToArray(); }
+        public void RemoveChildren(AssetTypeValueField children) { this.children = this.children.Where(i => i != children).ToArray(); this.childrenCount--; }
         
         public bool HasChildren(AssetTypeValueField children)
         {
