@@ -49,18 +49,18 @@
         public AssetTypeValue GetValue() { return value; }
         public AssetTypeTemplateField GetTemplateField() { return templateField; }
         public AssetTypeValueField[] GetChildrenList() { return children; }
-        public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; this.childrenCount = children.Length; }
-        public void AddChildren(AssetTypeValueField[] children) { this.children = this.children.Concat(children).ToArray(); this.childrenCount += children.Length; }
-        public void AddChildren(AssetTypeValueField children) { this.children = this.children.Concat(new AssetTypeValueField[] { children }).ToArray(); this.childrenCount++; }
+        public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; UpdateChildrenCount(); }
+        public void AddChildren(AssetTypeValueField[] children) { this.children = this.children.Concat(children).ToArray(); UpdateChildrenCount(); }
+        public void AddChildren(AssetTypeValueField children) { this.children = this.children.Concat(new AssetTypeValueField[] { children }).ToArray(); UpdateChildrenCount(); }
         
         public void RemoveChildren(AssetTypeValueField[] children)
         {
             // Removes (skips) an array of similar children
             this.children = this.children.Except(children).ToArray();
-            this.childrenCount -= children.Length;
+            UpdateChildrenCount();
         }
         
-        public void RemoveChildren(AssetTypeValueField children) { this.children = this.children.Where(i => i != children).ToArray(); this.childrenCount--; }
+        public void RemoveChildren(AssetTypeValueField children) { this.children = this.children.Where(i => i != children).ToArray(); UpdateChildrenCount(); }
         
         public bool HasChildren(AssetTypeValueField children)
         {
@@ -78,6 +78,8 @@
             }
             return true;
         }
+        
+        private void UpdateChildrenCount() { childrenCount = children.Length; }
         
         public int GetChildrenCount() { return childrenCount; }
 
