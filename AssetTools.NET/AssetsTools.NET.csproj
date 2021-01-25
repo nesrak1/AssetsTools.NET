@@ -74,7 +74,12 @@
     <Compile Include="Extra\AssetsManager\BundleFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsFileInstance.cs" />
     <Compile Include="Extra\AssetsManager\AssetsManager.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\SmaLLz4.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe32.Dirty.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe32HC.Dirty.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe64.Dirty.cs" />
+    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe64HC.Dirty.cs" />
     <Compile Include="Extra\TextureDecoders\ASTCDecoder.cs" />
     <Compile Include="Extra\ValueBuilder.cs" />
     <Compile Include="Extra\AssetWriters.cs" />

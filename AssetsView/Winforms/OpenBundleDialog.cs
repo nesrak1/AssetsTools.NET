@@ -117,6 +117,8 @@ namespace AssetsView.Winforms
                     justThisFile.Enabled = true;
                     fileAndDependencies.Enabled = true;
                     compressBundle.Enabled = true;
+                    decompressBundle.Enabled = false;
+                    decompressBundleInMemory.Enabled = false;
                     status.Text = $"Opening bundle file {fileName}...";
                 }
             };
@@ -125,7 +127,68 @@ namespace AssetsView.Winforms
 
         private void compressBundle_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Compression not implemented yet.", "Assets View");
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.InitialDirectory = filePath;
+            sfd.FileName = Path.GetFileName(fileName) + ".packed";
+            sfd.Filter = "All types (*.*)|*.*";
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                CompressBundle(File.Open(sfd.FileName, FileMode.Create, FileAccess.ReadWrite));
+            }
+        }
+
+        private void CompressBundle(Stream stream)
+        {
+            status.Text = "Compressing...";
+            justThisFile.Enabled = false;
+            fileAndDependencies.Enabled = false;
+            compressBundle.Enabled = false;
+            DialogResult option = MessageBox.Show("Compress in LZMA?\nYes - LZMA\nNo - LZ4", "Compression options",
+                                                  MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+            AssetBundleCompressionType comp;
+            if (option == DialogResult.Yes)
+                comp = AssetBundleCompressionType.LZMA;
+            else if (option == DialogResult.No)
+                comp = AssetBundleCompressionType.LZ4;
+            else
+                return;
+
+            BackgroundWorker bw = new BackgroundWorker();
+            string error = string.Empty;
+            bw.DoWork += delegate
+            {
+                try
+                {
+                    file.reader.Position = 0;
+                    file.Pack(file.reader, new AssetsFileWriter(stream), comp);
+                    stream.Position = 0;
+                    file = new AssetBundleFile();
+                    file.Read(new AssetsFileReader(stream), false);
+                    inst.file = file;
+                }
+                catch (Exception ex)
+                {
+                    error = ex.ToString();
+                }
+            };
+            bw.RunWorkerCompleted += delegate
+            {
+                if (error != string.Empty)
+                {
+                    MessageBox.Show("An error occurred:\n" + error, "Assets View", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    decompressBundle.Enabled = true;
+                    decompressBundleInMemory.Enabled = true;
+                    justThisFile.Enabled = false;
+                    fileAndDependencies.Enabled = false;
+                    compressBundle.Enabled = false;
+                    status.Text = $"Opening bundle file {fileName}...";
+                }
+            };
+            bw.RunWorkerAsync();
         }
     }
 }

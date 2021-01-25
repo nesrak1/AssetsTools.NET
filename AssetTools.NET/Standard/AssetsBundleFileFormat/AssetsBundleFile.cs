@@ -1,4 +1,5 @@
 ﻿using AssetsTools.NET.Extra.Decompressors.LZ4;
+using LZ4ps;
 using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
@@ -389,7 +390,149 @@ namespace AssetsTools.NET
             }
             return false;
         }
-        ///public bool Pack(AssetsFileReader reader, AssetsFileWriter writer);
+        public bool Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType)
+        {
+            reader.Position = 0;
+            writer.Position = 0;
+            if (Read(reader, false))
+            {
+                AssetBundleHeader06 newHeader = new AssetBundleHeader06()
+                {
+                    signature = bundleHeader6.signature,
+                    fileVersion = bundleHeader6.fileVersion,
+                    minPlayerVersion = bundleHeader6.minPlayerVersion,
+                    fileEngineVersion = bundleHeader6.fileEngineVersion,
+                    totalFileSize = 0,
+                    compressedSize = 0,
+                    decompressedSize = 0,
+                    flags = 0x43
+                };
+
+                AssetBundleBlockAndDirectoryList06 newBlockAndDirList = new AssetBundleBlockAndDirectoryList06()
+                {
+                    checksumLow = 0,
+                    checksumHigh = 0,
+                    blockCount = 0,
+                    blockInf = null,
+                    directoryCount = bundleInf6.directoryCount,
+                    dirInf = bundleInf6.dirInf
+                };
+
+                List<AssetBundleBlockInfo06> newBlocks = new List<AssetBundleBlockInfo06>();
+
+                reader.Position = bundleHeader6.GetFileDataOffset();
+                int fileDataLength = (int)(bundleHeader6.totalFileSize - reader.Position);
+                byte[] fileData = reader.ReadBytes(fileDataLength);
+
+                //todo, we just write everything to memory and then write to file
+                //we could calculate the blocks we need ahead of time and correctly
+                //size the block listing before this so we can write directly to file
+                byte[] compressedFileData;
+                switch (compType)
+                {
+                    case AssetBundleCompressionType.LZMA:
+                    {
+                        compressedFileData = SevenZipHelper.Compress(fileData);
+                        newBlocks.Add(new AssetBundleBlockInfo06()
+                        {
+                            compressedSize = (uint)compressedFileData.Length,
+                            decompressedSize = (uint)fileData.Length,
+                            flags = 0x41
+                        });
+                        break;
+                    }
+                    case AssetBundleCompressionType.LZ4:
+                    {
+                        using (var memStreamCom = new MemoryStream())
+                        using (var binaryWriter = new BinaryWriter(memStreamCom))
+                        {
+                            using (var memStreamUnc = new MemoryStream(fileData))
+                            using (var binaryReader = new BinaryReader(memStreamUnc))
+                            {
+                                //compress into 0x20000 blocks
+                                byte[] uncompressedBlock = binaryReader.ReadBytes(131072);
+                                while (uncompressedBlock.Length != 0)
+                                {
+                                    byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+
+                                    if (compressedBlock.Length > 131072)
+                                    {
+                                        newBlocks.Add(new AssetBundleBlockInfo06()
+                                        {
+                                            compressedSize = (uint)compressedBlock.Length,
+                                            decompressedSize = (uint)uncompressedBlock.Length,
+                                            flags = 0x0
+                                        });
+                                        binaryWriter.Write(uncompressedBlock);
+                                    }
+                                    else
+                                    {
+                                        newBlocks.Add(new AssetBundleBlockInfo06()
+                                        {
+                                            compressedSize = (uint)compressedBlock.Length,
+                                            decompressedSize = (uint)uncompressedBlock.Length,
+                                            flags = 0x3
+                                        });
+                                        binaryWriter.Write(compressedBlock);
+                                    }
+
+                                    uncompressedBlock = binaryReader.ReadBytes(131072);
+                                }
+                            }
+
+                            compressedFileData = memStreamCom.ToArray();
+                        }
+                        break;
+                    }
+                    default:
+                    {
+                        return false;
+                    }
+                }
+
+                newBlockAndDirList.blockInf = newBlocks.ToArray();
+
+                byte[] bundleInfoBytes;
+                using (var memStream = new MemoryStream())
+                {
+                    var afw = new AssetsFileWriter(memStream);
+                    newBlockAndDirList.Write(afw);
+                    bundleInfoBytes = memStream.ToArray();
+                }
+
+                if (bundleInfoBytes == null || bundleInfoBytes.Length == 0)
+                    return false;
+
+                //listing is usually lz4 even if the data blocks are lzma
+                byte[] bundleInfoBytesCom = LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
+
+                byte[] bundleHeaderBytes = null;
+                using (var memStream = new MemoryStream())
+                {
+                    var afw = new AssetsFileWriter(memStream);
+                    newHeader.Write(afw);
+                    bundleHeaderBytes = memStream.ToArray();
+                }
+
+                if (bundleHeaderBytes == null || bundleHeaderBytes.Length == 0)
+                    return false;
+
+                uint totalFileSize = (uint)(bundleHeaderBytes.Length + bundleInfoBytesCom.Length + compressedFileData.Length);
+                newHeader.totalFileSize = totalFileSize;
+                newHeader.decompressedSize = (uint)bundleInfoBytes.Length;
+                newHeader.compressedSize = (uint)bundleInfoBytesCom.Length;
+
+                newHeader.Write(writer);
+                if (newHeader.fileVersion >= 7)
+                    writer.Align16();
+
+                writer.Write(bundleInfoBytesCom);
+                writer.Write(compressedFileData);
+
+                return true;
+            }
+            return false;
+        }
         public bool IsAssetsFile(AssetsFileReader reader, AssetBundleDirectoryInfo06 entry)
         {
             //todo - not fully implemented
@@ -424,5 +567,11 @@ namespace AssetsTools.NET
             string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
             return emptyVersion == "" && fullVersion.Length > 0;
         }
+    }
+    public enum AssetBundleCompressionType
+    {
+        NONE = 0,
+        LZMA,
+        LZ4
     }
 }

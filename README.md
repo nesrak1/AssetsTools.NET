@@ -22,6 +22,7 @@ Jump to a tool:
 * [Assets file writing](#assets-file-writing)
 * [Value building](#value-building)
 * [Loading bundle files](#loading-bundle-files)
+* [Packing bundle files](#packing-bundle-files)
 * [Loading textures](#loading-textures)
 * [Extracting classdata.tpk and cldb.dat](#extracting-classdatatpk-and-cldbdat)
 
@@ -248,7 +249,32 @@ var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name in
 //...
 ```
 
+If you don't want to use `AssetsManager`, you'll need to check for compression and unpack it if it needs to be decompressed.
+
+```cs
+var bun = new AssetBundleFile();
+bun.Read(new AssetsFileReader(stream), true);
+if (bun.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
+{
+    bun = BundleHelper.UnpackBundle(bun);
+}
+```
+
 If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
+
+### Packing bundle files
+
+You can also compress a bundle with LZMA or LZ4.
+
+```cs
+var am = new AssetsManager();
+var bun = am.LoadBundleFile("uncompressedbundle.unity3d");
+using (var stream = File.OpenWrite("compressedbundle.unity3d"))
+using (var writer = new AssetsFileWriter(stream))
+{
+    bun.Pack(bun.reader, writer, AssetBundleCompressionType.LZMA);
+}
+```
 
 ### Loading textures
 
@@ -296,11 +322,9 @@ If you're parsing the texture manually or have the bytes some other way, you can
 
 ### Extracting classdata.tpk and cldb.dat
 
-The easiest way to get a decompressed classdata.tpk is to download it from the zip in the releases section.
+The easiest way to get a classdata.tpk is to download it from the zip in the releases section.
 
-To get the classdata.tpk from UABE yourself go to `Options -> Edit Type Package` in UABE's main window, open the tpk in the same folder as UABE, uncheck `Compress the file (LZMA)`, and click OK.
-
-To get a cldb.dat, export a class database from the `Edit Type Package` dialog. Make sure you do not export from the uncompressed tpk, otherwise the output will be garbage. Once you've exported the database, go to `Options -> Edit Type Database`, uncheck `Compress the file (LZMA)`, and click OK, and click OK again.
+The original UABE comes with a classdata.tpk that you can use with this library. However, some newer types are missing (2019.3+). To get a cldb.dat (classdata snapshot for one unity version), you can do so from the `Options->Edit Type Package` dialog in UABE.
 
 ## Hmms 🤔
 
