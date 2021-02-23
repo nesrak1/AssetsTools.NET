@@ -260,7 +260,6 @@ namespace AssetsTools.NET
             return true;
         }
 
-        //-todo, use a faster custom bundle decompressor. currently a copy paste of unity studio's
         public bool Unpack(AssetsFileReader reader, AssetsFileWriter writer)
         {
             reader.Position = 0;
@@ -455,11 +454,11 @@ namespace AssetsTools.NET
                                 {
                                     byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
 
-                                    if (compressedBlock.Length > 131072)
+                                    if (compressedBlock.Length > uncompressedBlock.Length)
                                     {
                                         newBlocks.Add(new AssetBundleBlockInfo06()
                                         {
-                                            compressedSize = (uint)compressedBlock.Length,
+                                            compressedSize = (uint)uncompressedBlock.Length,
                                             decompressedSize = (uint)uncompressedBlock.Length,
                                             flags = 0x0
                                         });
@@ -537,7 +536,7 @@ namespace AssetsTools.NET
         {
             //todo - not fully implemented
             long offset = bundleHeader6.GetFileDataOffset() + entry.offset;
-            if (entry.decompressedSize < 0x20)
+            if (entry.decompressedSize < 0x30)
                 return false;
 
             reader.Position = offset;
@@ -551,6 +550,11 @@ namespace AssetsTools.NET
                 return false;
 
             reader.Position = offset + 0x14;
+
+            if (possibleFormat >= 0x16)
+            {
+                reader.Position += 0x1c;
+            }
 
             string possibleVersion = "";
             char curChar;

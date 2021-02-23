@@ -84,35 +84,68 @@ namespace AssetsTools.NET.Extra
         public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfoEx info)
         {
             ClassDatabaseType type = FindAssetClassByID(cldb, info.curFileType);
-
             AssetsFileReader reader = file.reader;
 
+            if (file.typeTree.hasTypeTree)
+            {
+                Type_0D ttType = file.typeTree.unity5Types[info.curFileTypeOrIndex];
+                string ttTypeName = ttType.typeFieldsEx[0].GetTypeString(ttType.stringTable);
+                if (ttType.typeFieldsEx.Length == 0) return type.name.GetString(cldb); //fallback to cldb
+                if (ttType.typeFieldsEx.Length > 1 && ttType.typeFieldsEx[1].GetNameString(ttType.stringTable) == "m_Name")
+                {
+                    reader.Position = info.absoluteFilePos;
+                    return reader.ReadCountStringInt32();
+                }
+                //todo, use the typetree since we have it already, there could be extra fields
+                else if (ttTypeName == "GameObject")
+                {
+                    reader.Position = info.absoluteFilePos;
+                    int size = reader.ReadInt32();
+                    int componentSize = file.header.format > 0x10 ? 0x0c : 0x10;
+                    reader.Position += size * componentSize;
+                    reader.Position += 0x04;
+                    return reader.ReadCountStringInt32();
+                }
+                else if (ttTypeName == "MonoBehaviour")
+                {
+                    reader.Position = info.absoluteFilePos;
+                    reader.Position += 0x1c;
+                    string name = reader.ReadCountStringInt32();
+                    if (name != "")
+                    {
+                        return name;
+                    }
+                }
+                return ttTypeName;
+            }
+
+            string typeName = type.name.GetString(cldb);
             if (type.fields.Count == 0) return type.name.GetString(cldb);
             if (type.fields.Count > 1 && type.fields[1].fieldName.GetString(cldb) == "m_Name")
             {
                 reader.Position = info.absoluteFilePos;
                 return reader.ReadCountStringInt32();
             }
-            else if (type.name.GetString(cldb) == "GameObject")
+            else if (typeName == "GameObject")
             {
                 reader.Position = info.absoluteFilePos;
                 int size = reader.ReadInt32();
-                int componentSize = file.header.format > 0x10 ? 0xC : 0x10;
+                int componentSize = file.header.format > 0x10 ? 0x0c : 0x10;
                 reader.Position += size * componentSize;
-                reader.Position += 4;
+                reader.Position += 0x04;
                 return reader.ReadCountStringInt32();
             }
-            else if (type.name.GetString(cldb) == "MonoBehaviour")
+            else if (typeName == "MonoBehaviour")
             {
                 reader.Position = info.absoluteFilePos;
-                reader.Position += 28;
+                reader.Position += 0x1c;
                 string name = reader.ReadCountStringInt32();
                 if (name != "")
                 {
                     return name;
                 }
             }
-            return type.name.GetString(cldb);
+            return typeName;
         }
 
         //no classdatabase but may not work
