@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AssetsTools.NET</id>
+    <version>2.0.6</version>
+    <authors>nesrak1</authors>
+    <owners>nesrak1</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <description>A port and remake of UABE's AssetsTools</description>
+    <releaseNotes>v2.0.6 - compressed tpk reading, bug fixes</releaseNotes>
+    <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
+    <dependencies>
+      <dependency id="Mono.Cecil" version="0.10.4" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="icon.png" target="" />
+  </files>
+</package>

@@ -483,6 +483,17 @@ namespace AssetsTools.NET
                         }
                         break;
                     }
+                    case AssetBundleCompressionType.NONE:
+                    {
+                        compressedFileData = fileData;
+                        newBlocks.Add(new AssetBundleBlockInfo06()
+                        {
+                            compressedSize = (uint)fileData.Length,
+                            decompressedSize = (uint)fileData.Length,
+                            flags = 0x00
+                        });
+                        break;
+                    }
                     default:
                     {
                         return false;

@@ -192,6 +192,11 @@ namespace AssetsTools.NET
             }
 
             uint metadataSize = (uint)(writer.Position - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
+            if (header.format >= 0x16)
+            {
+                //remove larger variation fields as well
+                metadataSize -= 0x1c;
+            }
 
             //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             if (writer.Position < 0x1000)

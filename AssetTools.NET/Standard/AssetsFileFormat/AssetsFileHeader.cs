@@ -13,6 +13,8 @@ namespace AssetsTools.NET
         public long firstFileOffset;
         public uint endianness;
         public byte[] unknown;
+        public uint unknown1;
+        public uint unknown2;
 
         public int GetSizeBytes()
         {
@@ -35,9 +37,13 @@ namespace AssetsTools.NET
                 metadataSize = reader.ReadUInt32();
                 fileSize = reader.ReadInt64();
                 firstFileOffset = reader.ReadInt64();
-                reader.Position += 8;
             }
             reader.bigEndian = endianness == 1;
+            if (format >= 0x16)
+            {
+                unknown1 = reader.ReadUInt32(); //seen as 0x00 everywhere
+                unknown2 = reader.ReadUInt32(); //seen as 0x1b in bundles and 0x00 everywhere else
+            }
         }
         public void Write(AssetsFileWriter writer)
         {
@@ -46,30 +52,31 @@ namespace AssetsTools.NET
             {
                 writer.Write(0);
                 writer.Write(0);
+                writer.Write(format);
+                writer.Write(0);
             }
             else
             {
                 writer.Write(metadataSize);
                 writer.Write((uint)fileSize);
-            }
-            writer.Write(format);
-            if (format >= 0x16)
-            {
-                writer.Write(0);
-            }
-            else
-            {
+                writer.Write(format);
                 writer.Write((uint)firstFileOffset);
             }
+
             writer.Write((byte)endianness);
-            writer.bigEndian = endianness == 1 ? true : false;
             writer.Write(unknown);
+            writer.Align();
             if (format >= 0x16)
             {
                 writer.Write(metadataSize);
                 writer.Write(fileSize);
                 writer.Write(firstFileOffset);
-                writer.Write((long)0);
+            }
+            writer.bigEndian = endianness == 1;
+            if (format >= 0x16)
+            {
+                writer.Write(unknown1);
+                writer.Write(unknown2);
             }
         }
     }
