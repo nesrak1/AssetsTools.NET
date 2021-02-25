@@ -1,182 +1,23 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E09D5AC2-1A2E-4EC1-94AD-3F5E22F17658}</ProjectGuid>
+    <TargetFrameworks>netstandard2.0;net35;net40</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AssetsTools.NET</RootNamespace>
-    <AssemblyName>AssetsTools.NET</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.10.4\lib\net35\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
+    <None Remove="*.nupkg" />
+    <None Remove="*.nuspec" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extra\AssetHelper.cs" />
-    <Compile Include="Extra\AssetID.cs" />
-    <Compile Include="Extra\AssetsManager\BundleFileInstance.cs" />
-    <Compile Include="Extra\AssetsManager\AssetsFileInstance.cs" />
-    <Compile Include="Extra\AssetsManager\AssetsManager.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe32.Dirty.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe32HC.Dirty.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe64.Dirty.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Safe\LZ4Codec.Safe64HC.Dirty.cs" />
-    <Compile Include="Extra\TextureDecoders\ASTCDecoder.cs" />
-    <Compile Include="Extra\ValueBuilder.cs" />
-    <Compile Include="Extra\AssetWriters.cs" />
-    <Compile Include="Extra\BundleHelper.cs" />
-    <Compile Include="Extra\CldbTypeTreeConverters\C2T5.cs" />
-    <Compile Include="Extra\Decompressors\LZ4\Lz4DecoderStream.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Common\CommandLineParser.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Common\CRC.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Common\InBuffer.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Common\OutBuffer.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZMA\LzmaBase.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZMA\LzmaDecoder.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZMA\LzmaEncoder.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZ\IMatchFinder.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZ\LzBinTree.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZ\LzInWindow.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\LZ\LzOutWindow.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\RangeCoder\RangeCoder.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\RangeCoder\RangeCoderBit.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\Compress\RangeCoder\RangeCoderBitTree.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\ICoder.cs" />
-    <Compile Include="Extra\Decompressors\LZMA\SevenZipHelper.cs" />
-    <Compile Include="Extra\TextureDecoders\BC7BitReader.cs" />
-    <Compile Include="Extra\TextureDecoders\BC7Decoder.cs" />
-    <Compile Include="Extra\TextureDecoders\BPTCTables.cs" />
-    <Compile Include="Extra\TextureDecoders\DivisionTables.cs" />
-    <Compile Include="Extra\TextureDecoders\DXTDecoders.cs" />
-    <Compile Include="Extra\TextureDecoders\ETCDecoders.cs" />
-    <Compile Include="Extra\TextureDecoders\ETCTables.cs" />
-    <Compile Include="Extra\TextureDecoders\RGBADecoders.cs" />
-    <Compile Include="Extra\MonoDeserializer\MonoDeserializer.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleBlockAndDirectoryList06.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleBlockInfo06.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleDirectoryInfo06.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleEntry.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleFile.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleFilePar.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleHeader03.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleHeader06.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsBundleOffsetPair.cs" />
-    <Compile Include="Standard\AssetsBundleFileFormat\AssetsList.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleRemover.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleRenamer.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleReplacerFromAssets.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleReplacerFromMemory.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleReplacerFromFile.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleReplacementType.cs" />
-    <Compile Include="Standard\BundleReplacer\BundleReplacer.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetFileInfo.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetFileList.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetPPtr.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFile.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileDependency.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileDependencyList.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileExtra.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileHeader.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileReader.cs" />
-    <Compile Include="Standard\AssetsFileFormat\AssetsFileWriter.cs" />
-    <Compile Include="Standard\AssetsFileFormat\PreloadList.cs" />
-    <Compile Include="Standard\AssetsFileFormat\TypeField_07.cs" />
-    <Compile Include="Standard\AssetsFileFormat\TypeField_0D.cs" />
-    <Compile Include="Standard\AssetsFileFormat\TypeTree.cs" />
-    <Compile Include="Standard\AssetsFileFormat\Type_07.cs" />
-    <Compile Include="Standard\AssetsFileFormat\Type_0D.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Standard\AssetsFileTable\AssetFileInfoEx.cs" />
-    <Compile Include="Standard\AssetsFileTable\AssetsFileTable.cs" />
-    <Compile Include="Standard\AssetsReplacer\AssetsRemover.cs" />
-    <Compile Include="Standard\AssetsReplacer\AssetsReplacementType.cs" />
-    <Compile Include="Standard\AssetsReplacer\AssetsReplacer.cs" />
-    <Compile Include="Standard\AssetsReplacer\AssetsReplacerFromMemory.cs" />
-    <Compile Include="Standard\AssetsReplacer\AssetsReplacerFromFile.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeArray.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeByteArray.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeInstance.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeTemplateField.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeValue.cs" />
-    <Compile Include="Standard\AssetTypeClass\AssetTypeValueField.cs" />
-    <Compile Include="Standard\AssetTypeClass\EnumValueTypes.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFile.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFileHeader.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseFileString.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackage.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabasePackageHeader.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseType.cs" />
-    <Compile Include="Standard\ClassDatabaseFile\ClassDatabaseTypeField.cs" />
-    <Compile Include="Standard\TextureFileFormat\TextureFile.cs" />
+    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
