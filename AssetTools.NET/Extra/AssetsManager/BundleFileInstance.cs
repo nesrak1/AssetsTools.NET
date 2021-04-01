@@ -12,6 +12,8 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetBundleFile file;
+        //todo: misleading list, this is not filled in
+        //automatically and was only used in assetsview
         public List<AssetsFileInstance> assetsFiles = new List<AssetsFileInstance>();
 
         public BundleFileInstance(Stream stream, string filePath, string root)

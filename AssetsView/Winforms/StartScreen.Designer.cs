@@ -44,6 +44,7 @@
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.assetDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.monoBehaviourToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pptrToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -59,10 +60,9 @@
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.viewTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.xRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dataGridViewImageColumn1 = new System.Windows.Forms.DataGridViewImageColumn();
-            this.xRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pptrToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -77,11 +77,11 @@
             this.assetTree.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.assetTree.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.assetTree.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.assetTree.Location = new System.Drawing.Point(0, 0);
             this.assetTree.Margin = new System.Windows.Forms.Padding(2);
             this.assetTree.Name = "assetTree";
-            this.assetTree.Size = new System.Drawing.Size(287, 385);
+            this.assetTree.Size = new System.Drawing.Size(286, 448);
             this.assetTree.TabIndex = 0;
             this.assetTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.AssetTree_NodeMouseDoubleClick);
             // 
@@ -95,8 +95,8 @@
             this.helpToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Padding = new System.Windows.Forms.Padding(4, 1, 0, 1);
-            this.menuStrip.Size = new System.Drawing.Size(700, 24);
+            this.menuStrip.Padding = new System.Windows.Forms.Padding(5, 1, 0, 1);
+            this.menuStrip.Size = new System.Drawing.Size(817, 24);
             this.menuStrip.TabIndex = 1;
             this.menuStrip.Text = "menuStrip";
             // 
@@ -190,6 +190,13 @@
             this.monoBehaviourToolStripMenuItem.Text = "MonoBehaviour";
             this.monoBehaviourToolStripMenuItem.Click += new System.EventHandler(this.monoBehaviourToolStripMenuItem_Click);
             // 
+            // pptrToolStripMenuItem
+            // 
+            this.pptrToolStripMenuItem.Name = "pptrToolStripMenuItem";
+            this.pptrToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+            this.pptrToolStripMenuItem.Text = "PPtr";
+            this.pptrToolStripMenuItem.Click += new System.EventHandler(this.pptrToolStripMenuItem_Click);
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -223,9 +230,8 @@
             this.splitContainer1.Panel2.Controls.Add(this.goDirectory);
             this.splitContainer1.Panel2.Controls.Add(this.pathBox);
             this.splitContainer1.Panel2.Controls.Add(this.upDirectory);
-            this.splitContainer1.Size = new System.Drawing.Size(700, 385);
+            this.splitContainer1.Size = new System.Drawing.Size(817, 448);
             this.splitContainer1.SplitterDistance = 287;
-            this.splitContainer1.SplitterWidth = 3;
             this.splitContainer1.TabIndex = 2;
             // 
             // assetList
@@ -247,12 +253,12 @@
             this.IDCol,
             this.SizeCol});
             this.assetList.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            this.assetList.Location = new System.Drawing.Point(1, 28);
+            this.assetList.Location = new System.Drawing.Point(1, 32);
             this.assetList.Margin = new System.Windows.Forms.Padding(2);
             this.assetList.Name = "assetList";
             this.assetList.RowHeadersVisible = false;
             this.assetList.RowTemplate.Height = 28;
-            this.assetList.Size = new System.Drawing.Size(409, 357);
+            this.assetList.Size = new System.Drawing.Size(526, 416);
             this.assetList.TabIndex = 4;
             this.assetList.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.assetList_CellDoubleClick);
             this.assetList.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.AssetList_CellMouseDown);
@@ -261,7 +267,6 @@
             // 
             this.IconCol.Frozen = true;
             this.IconCol.HeaderText = "";
-            this.IconCol.Image = global::AssetsView.Properties.Resources.blankicon;
             this.IconCol.MinimumWidth = 30;
             this.IconCol.Name = "IconCol";
             this.IconCol.Resizable = System.Windows.Forms.DataGridViewTriState.False;
@@ -300,10 +305,10 @@
             // goDirectory
             // 
             this.goDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.goDirectory.Location = new System.Drawing.Point(373, 2);
+            this.goDirectory.Location = new System.Drawing.Point(482, 5);
             this.goDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.goDirectory.Name = "goDirectory";
-            this.goDirectory.Size = new System.Drawing.Size(36, 25);
+            this.goDirectory.Size = new System.Drawing.Size(42, 25);
             this.goDirectory.TabIndex = 3;
             this.goDirectory.Text = "Go";
             this.goDirectory.UseVisualStyleBackColor = true;
@@ -314,20 +319,20 @@
             this.pathBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pathBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pathBox.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.pathBox.Location = new System.Drawing.Point(42, 2);
+            this.pathBox.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.pathBox.Location = new System.Drawing.Point(48, 5);
             this.pathBox.Margin = new System.Windows.Forms.Padding(2);
             this.pathBox.Name = "pathBox";
-            this.pathBox.Size = new System.Drawing.Size(327, 25);
+            this.pathBox.Size = new System.Drawing.Size(430, 25);
             this.pathBox.TabIndex = 2;
             this.pathBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.PathBox_KeyPress);
             // 
             // upDirectory
             // 
-            this.upDirectory.Location = new System.Drawing.Point(2, 2);
+            this.upDirectory.Location = new System.Drawing.Point(2, 5);
             this.upDirectory.Margin = new System.Windows.Forms.Padding(2);
             this.upDirectory.Name = "upDirectory";
-            this.upDirectory.Size = new System.Drawing.Size(36, 25);
+            this.upDirectory.Size = new System.Drawing.Size(42, 25);
             this.upDirectory.TabIndex = 1;
             this.upDirectory.Text = "Up";
             this.upDirectory.UseVisualStyleBackColor = true;
@@ -335,6 +340,7 @@
             // 
             // imageList
             // 
+            this.imageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
             this.imageList.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList.ImageStream")));
             this.imageList.TransparentColor = System.Drawing.Color.Transparent;
             this.imageList.Images.SetKeyName(0, "unknown_32.png");
@@ -365,6 +371,13 @@
             this.viewTextureToolStripMenuItem.Visible = false;
             this.viewTextureToolStripMenuItem.Click += new System.EventHandler(this.viewTextureToolStripMenuItem_Click);
             // 
+            // xRefsToolStripMenuItem
+            // 
+            this.xRefsToolStripMenuItem.Name = "xRefsToolStripMenuItem";
+            this.xRefsToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.xRefsToolStripMenuItem.Text = "X-Refs";
+            this.xRefsToolStripMenuItem.Click += new System.EventHandler(this.xRefsToolStripMenuItem_Click);
+            // 
             // propertiesToolStripMenuItem
             // 
             this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
@@ -376,32 +389,17 @@
             // 
             this.dataGridViewImageColumn1.Frozen = true;
             this.dataGridViewImageColumn1.HeaderText = "";
-            this.dataGridViewImageColumn1.Image = global::AssetsView.Properties.Resources.blankicon;
             this.dataGridViewImageColumn1.MinimumWidth = 30;
             this.dataGridViewImageColumn1.Name = "dataGridViewImageColumn1";
             this.dataGridViewImageColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.dataGridViewImageColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
             this.dataGridViewImageColumn1.Width = 30;
             // 
-            // xRefsToolStripMenuItem
-            // 
-            this.xRefsToolStripMenuItem.Name = "xRefsToolStripMenuItem";
-            this.xRefsToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
-            this.xRefsToolStripMenuItem.Text = "X-Refs";
-            this.xRefsToolStripMenuItem.Click += new System.EventHandler(this.xRefsToolStripMenuItem_Click);
-            // 
-            // pptrToolStripMenuItem
-            // 
-            this.pptrToolStripMenuItem.Name = "pptrToolStripMenuItem";
-            this.pptrToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
-            this.pptrToolStripMenuItem.Text = "PPtr";
-            this.pptrToolStripMenuItem.Click += new System.EventHandler(this.pptrToolStripMenuItem_Click);
-            // 
             // StartScreen
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(700, 409);
+            this.ClientSize = new System.Drawing.Size(817, 472);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.menuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

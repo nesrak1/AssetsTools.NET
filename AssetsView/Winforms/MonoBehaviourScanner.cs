@@ -35,6 +35,8 @@ namespace AssetsView.Winforms
 
         private void MonoBehaviourScanner_Load(object sender, EventArgs e)
         {
+            Text = "MonoBehaviour Scanner (Loading...)";
+
             GetAllFilesInDirectory();
             bw = new BackgroundWorker();
             bw.WorkerReportsProgress = true;
@@ -83,6 +85,7 @@ namespace AssetsView.Winforms
             else //finished
             {
                 scriptTree.Sort();
+                Text = "MonoBehaviour Scanner";
             }
         }
 
