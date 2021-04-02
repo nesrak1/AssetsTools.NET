@@ -12,9 +12,7 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetBundleFile file;
-        //todo: misleading list, this is not filled in
-        //automatically and was only used in assetsview
-        public List<AssetsFileInstance> assetsFiles = new List<AssetsFileInstance>();
+        public List<AssetsFileInstance> assetsFiles;
 
         public BundleFileInstance(Stream stream, string filePath, string root)
         {
@@ -23,10 +21,7 @@ namespace AssetsTools.NET.Extra
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetBundleFile();
             file.Read(new AssetsFileReader(stream), true);
-            assetsFiles.AddRange(
-                Enumerable.Range(0, file.bundleInf6.blockCount)
-                          .Select(d => (AssetsFileInstance)null)
-            );
+            assetsFiles = new List<AssetsFileInstance>();
         }
         public BundleFileInstance(FileStream stream, string root, bool unpackIfPacked)
         {
@@ -39,10 +34,7 @@ namespace AssetsTools.NET.Extra
             {
                 file = BundleHelper.UnpackBundle(file);
             }
-            assetsFiles.AddRange(
-                Enumerable.Range(0, file.bundleInf6.blockCount)
-                          .Select(d => (AssetsFileInstance)null)
-            );
+            assetsFiles = new List<AssetsFileInstance>();
         }
     }
 }

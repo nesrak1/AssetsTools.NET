@@ -19,6 +19,7 @@ namespace AssetsTools.NET.Extra
         private Dictionary<uint, AssetTypeTemplateField> templateFieldCache = new Dictionary<uint, AssetTypeTemplateField>();
         private Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
 
+        #region assets files
         public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "")
         {
             AssetsFileInstance instance;
@@ -59,30 +60,152 @@ namespace AssetsTools.NET.Extra
                 LoadDeps(instance, Path.GetDirectoryName(stream.Name));
             return instance;
         }
-        public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
-        {
-            BundleFileInstance instance;
-            int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
-            if (index == -1)
-            {
-                instance = new BundleFileInstance(stream, "", unpackIfPacked);
-                bundles.Add(instance);
-            }
-            else
-            {
-                instance = bundles[index];
-            }
-            return instance;
-        }
+
         public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps, string root = "")
         {
             return LoadAssetsFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), loadDeps, root);
         }
+
+        public bool UnloadAssetsFile(string path)
+        {
+            int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
+            if (index != -1)
+            {
+                AssetsFileInstance assetsInst = files[index];
+                assetsInst.file.Close();
+                files.Remove(assetsInst);
+                return true;
+            }
+            return false;
+        }
+
+        public bool UnloadAllAssetsFiles(bool clearCache = false)
+        {
+            if (clearCache)
+            {
+                templateFieldCache.Clear();
+                monoTemplateFieldCache.Clear();
+            }
+
+            if (files.Count != 0)
+            {
+                foreach (AssetsFileInstance assetsInst in files)
+                {
+                    assetsInst.file.Close();
+                }
+                files.Clear();
+                return true;
+            }
+            return false;
+        }
+
+        public void UnloadAll()
+        {
+            UnloadAllAssetsFiles(true);
+            UnloadAllBundleFiles();
+            classPackage = null;
+            classFile = null;
+        }
+        #endregion
+
+        #region bundle files
+        public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
+        {
+            BundleFileInstance bunInst;
+            int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
+            if (index == -1)
+            {
+                bunInst = new BundleFileInstance(stream, "", unpackIfPacked);
+                bundles.Add(bunInst);
+            }
+            else
+            {
+                bunInst = bundles[index];
+            }
+            return bunInst;
+        }
+
         public BundleFileInstance LoadBundleFile(string path, bool unpackIfPacked = true)
         {
             return LoadBundleFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), unpackIfPacked);
         }
-        
+
+        public bool UnloadBundleFile(string path)
+        {
+            int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
+            if (index != -1)
+            {
+                BundleFileInstance bunInst = bundles[index];
+                bunInst.file.Close();
+
+                foreach (AssetsFileInstance assetsInst in bunInst.assetsFiles)
+                {
+                    assetsInst.file.Close();
+                }
+
+                bundles.Remove(bunInst);
+                return true;
+            }
+            return false;
+        }
+
+        public bool UnloadAllBundleFiles()
+        {
+            if (bundles.Count != 0)
+            {
+                foreach (BundleFileInstance bunInst in bundles)
+                {
+                    bunInst.file.Close();
+
+                    foreach (AssetsFileInstance assetsInst in bunInst.assetsFiles)
+                    {
+                        assetsInst.file.Close();
+                    }
+                }
+                bundles.Clear();
+                return true;
+            }
+            return false;
+        }
+
+        public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, int index, bool loadDeps = false)
+        {
+            var dirInf = bunInst.file.bundleInf6.dirInf[index];
+            string assetMemPath = Path.Combine(bunInst.path, dirInf.name);
+
+            int listIndex = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(assetMemPath).ToLower());
+            if (listIndex == -1)
+            {
+                if (bunInst.file.IsAssetsFile(bunInst.file.reader, dirInf))
+                {
+                    byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
+                    MemoryStream ms = new MemoryStream(assetData);
+                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps);
+                    bunInst.assetsFiles.Add(assetsInst);
+                    return assetsInst;
+                }
+            }
+            else
+            {
+                return files[listIndex];
+            }
+            return null;
+        }
+        public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, string name, bool loadDeps = false)
+        {
+            var dirInf = bunInst.file.bundleInf6.dirInf;
+            for (int i = 0; i < dirInf.Length; i++)
+            {
+                if (dirInf[i].name == name)
+                {
+                    return LoadAssetsFileFromBundle(bunInst, i, loadDeps);
+                }
+            }
+            return null;
+        }
+        #endregion
+
+        #region dependencies
         private void UpdateDependency(AssetsFileInstance ofFile)
         {
             for (int i = 0; i < files.Count; i++)
@@ -142,7 +265,9 @@ namespace AssetsTools.NET.Extra
                 }
             }
         }
+        #endregion
 
+        #region asset resolving
         public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, int fileId, long pathId, bool onlyGetInfo = false, bool forceFromCldb = false)
         {
             AssetExternal ext = new AssetExternal();
@@ -198,7 +323,9 @@ namespace AssetsTools.NET.Extra
         {
             return GetTypeInstance(file, info, forceFromCldb);
         }
+        #endregion
 
+        #region deserialization
         public AssetTypeTemplateField GetTemplateBaseField(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
             ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
@@ -236,20 +363,6 @@ namespace AssetsTools.NET.Extra
 
         public AssetTypeValueField GetMonoBaseFieldCached(AssetsFileInstance inst, AssetFileInfoEx info, string managedPath)
         {
-            //AssetsFile file = inst.file;
-            //ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
-            //if (scriptIndex != 0xFFFF && inst.templateFieldCache.ContainsKey(scriptIndex))
-            //{
-            //    AssetTypeTemplateField baseTemplateField = inst.templateFieldCache[scriptIndex];
-            //    AssetTypeInstance baseAti = new AssetTypeInstance(baseTemplateField, file.reader, info.absoluteFilePos);
-            //    return baseAti.GetBaseField();
-            //}
-            //else
-            //{
-            //    AssetTypeValueField baseValueField = MonoDeserializer.GetMonoBaseField(this, inst, info, managedPath);
-            //    inst.templateFieldCache[scriptIndex] = baseValueField.templateField;
-            //    return baseValueField;
-            //}
             AssetsFile file = inst.file;
             ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
             if (scriptIndex == 0xFFFF)
@@ -289,7 +402,9 @@ namespace AssetsTools.NET.Extra
                 return baseValueField;
             }
         }
+        #endregion
 
+        #region class database
         public ClassDatabaseFile LoadClassDatabase(Stream stream)
         {
             classFile = new ClassDatabaseFile();
@@ -354,6 +469,7 @@ namespace AssetsTools.NET.Extra
         {
             return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
+        #endregion
     }
 
     public struct AssetExternal

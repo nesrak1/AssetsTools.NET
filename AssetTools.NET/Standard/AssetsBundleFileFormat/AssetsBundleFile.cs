@@ -19,8 +19,6 @@ namespace AssetsTools.NET
 
         public AssetsFileReader reader;
 
-        ///public AssetsBundleFile();
-        ///public ~AssetsBundleFile();
         public void Close()
         {
             reader.Close();

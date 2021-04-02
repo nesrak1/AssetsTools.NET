@@ -55,6 +55,11 @@ namespace AssetsTools.NET
             dependencies = new AssetsFileDependencyList();
             dependencies.Read(reader);
         }
+        
+        public void Close()
+        {
+            readerPar.Dispose();
+        }
 
         public void Write(AssetsFileWriter writer, ulong filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {

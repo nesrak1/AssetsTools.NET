@@ -21,8 +21,9 @@ Jump to a tool:
 * [MonoBehaviour loading](#monobehaviour-loading)
 * [Assets file writing](#assets-file-writing)
 * [Value building](#value-building)
-* [Loading bundle files](#loading-bundle-files)
-* [Packing bundle files](#packing-bundle-files)
+* [Bundle file loading](#bundle-file-loading)
+* [Bundle file writing](#bundle-file-writing)
+* [Bundle file packing](#bundle-file-packing)
 * [Loading textures](#loading-textures)
 * [Extracting classdata.tpk and cldb.dat](#extracting-classdatatpk-and-cldbdat)
 
@@ -31,7 +32,6 @@ Jump to a tool:
 Programs/Libraries (since they all have similar names)
 
 * UABE - The original UABE program by DerPopo
-* UABE.NET - UABE._NET_ is the program in this repo, otherwise, it's the original
 * AssetsTools - The original AssetsTools library by DerPopo
 * AssetsTools.NET - This asset viewing/modifying library in this repo
 * AssetsView/AssetsView.NET - The asset viewer program in this repo
@@ -50,7 +50,7 @@ Files (both assetstools and unity)
 
 ## Basic usage of AssetsTools.NET
 
-AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classes come with UABE's AssetsTools. `Extra` classes are unique to AssetsTools.NET. The two most important classes in `Extra` are `AssetsManager` and `MonoClass`. Other than that, the difference between AssetsTools and AssetsTools.NET is not much different.
+AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classes come with UABE's AssetsTools. `Extra` classes are unique to AssetsTools.NET. The two most important classes in `Extra` are `AssetsManager` and `MonoDeserializer`. Other than that, the difference between AssetsTools and AssetsTools.NET is not much different.
 
 It is recommended to use `AssetsManager` for most cases unless you only need to read/write one assets file and it's a simple task.
 
@@ -230,7 +230,6 @@ var baseField = ValueBuilder.DefaultValueFieldFromTemplate(templateField);
 baseField.Get("m_Name").GetValue().Set("MyCoolTextAsset");
 baseField.Get("m_Script").GetValue().Set("I have some sick text");
 
-//or you can just use table.assetFileInfoCount + 2 but that doesn't always work
 var nextAssetId = table.assetFileInfo.Max(i => i.index) + 1;
 replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xffff, baseField.WriteToByteArray()));
 //... do other replacer stuff
@@ -238,14 +237,14 @@ replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xf
 
 Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
 
-### Loading bundle files
+### Bundle file loading
 
 Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
 
 ```cs
 var am = new AssetsManager();
 var bun = am.LoadBundleFile("bundle.unity3d");
-var firstAssetsFile = BundleHelper.LoadAssetFromBundle(bun, 0); //or use name instead
+var firstAssetsFile = am.LoadAssetsFileFromBundle(bun, 0); //or use name instead
 //...
 ```
 
@@ -254,7 +253,7 @@ If you don't want to use `AssetsManager`, you'll need to check for compression a
 ```cs
 var bun = new AssetBundleFile();
 bun.Read(new AssetsFileReader(stream), true);
-if (bun.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
+if (bun.bundleHeader6.GetCompressionType() != 0)
 {
     bun = BundleHelper.UnpackBundle(bun);
 }
@@ -262,7 +261,48 @@ if (bun.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
 
 If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
 
-### Packing bundle files
+### Bundle file writing
+
+Bundle writing works similar to assets files where you use replacers to replaces files in the bundle.
+
+Note that when you create a `BundleReplacer`, you have the option of renaming the asset in the bundle, or you can use the same name (or make newName null) to not rename the asset at all.
+
+```cs
+//example for a GameObject
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+
+var bunInst = am.LoadBundleFile("boringbundle.unity3d");
+//read the boring file from the bundle
+var inst = am.LoadAssetsFileFromBundle("boring");
+
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+
+var inf = boringInst.table.GetAssetInfo("MyBoringAsset");
+var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
+baseField.Get("m_Name")
+         .GetValue()
+         .Set("MyCoolAsset");
+var newGoBytes = baseField.WriteToByteArray();
+var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
+
+//write changes to memory
+byte[] newAssetData;
+using (var stream = new MemoryStream())
+using (var writer = new AssetsFileWriter(stream))
+{
+    inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+    newAssetData = stream.ToArray();
+}
+
+//rename this asset name from boring to cool
+var bunRepl = new BundleReplacerFromMemory("boring", "cool", true, newAssetData, -1);
+
+var writer = new AssetsFileWriter(File.OpenWrite("coolbundle.unity3d"));
+bunInst.file.Write(writer, new List<BundleReplacer>() { bunRepl });
+```
+
+### Bundle file packing
 
 You can also compress a bundle with LZMA or LZ4.
 
@@ -304,9 +344,11 @@ The output of these are in BGRA which makes it easy to use Format32bppArgb with 
 ```cs
 var atvf = am.GetTypeInstance(inst.file, texInf).GetBaseField();
 var tf = TextureFile.ReadTextureFile(atvf);
-var texDat = tf.GetTextureData(inst); //giving the instance will find .resS files in the same directory
-                                      //you can change this to a path if the .resS is somewhere else
-                                      //if you have the resS in memory instead, set the pictureData bytes
+
+//giving the instance will find .resS files in the same directory
+//you can change this to a path if the .resS is somewhere else
+//if you have the resS in memory instead, set the pictureData bytes
+var texDat = tf.GetTextureData(inst);
 if (texDat != null && texDat.Length > 0)
 {
     var canvas = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
