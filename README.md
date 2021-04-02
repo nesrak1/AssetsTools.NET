@@ -274,11 +274,11 @@ am.LoadClassPackage("classdata.tpk");
 
 var bunInst = am.LoadBundleFile("boringbundle.unity3d");
 //read the boring file from the bundle
-var inst = am.LoadAssetsFileFromBundle("boring");
+var inst = am.LoadAssetsFileFromBundle(bunInst, "boring");
 
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 
-var inf = boringInst.table.GetAssetInfo("MyBoringAsset");
+var inf = inst.table.GetAssetInfo("MyBoringAsset");
 var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
 baseField.Get("m_Name")
          .GetValue()
@@ -298,8 +298,8 @@ using (var writer = new AssetsFileWriter(stream))
 //rename this asset name from boring to cool
 var bunRepl = new BundleReplacerFromMemory("boring", "cool", true, newAssetData, -1);
 
-var writer = new AssetsFileWriter(File.OpenWrite("coolbundle.unity3d"));
-bunInst.file.Write(writer, new List<BundleReplacer>() { bunRepl });
+var bunWriter = new AssetsFileWriter(File.OpenWrite("coolbundle.unity3d"));
+bunInst.file.Write(bunWriter, new List<BundleReplacer>() { bunRepl });
 ```
 
 ### Bundle file packing
