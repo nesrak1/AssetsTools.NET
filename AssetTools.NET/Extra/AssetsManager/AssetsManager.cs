@@ -20,22 +20,22 @@ namespace AssetsTools.NET.Extra
         private Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
 
         #region assets files
-        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "")
+        public AssetsFileInstance LoadAssetsFile(BundleFileInstance bundle, Stream stream, string path, bool loadDeps, string root = "")
         {
             AssetsFileInstance instance;
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
-            if (index == -1)
+            if (index != -1)
             {
-                instance = new AssetsFileInstance(stream, path, root);
-                files.Add(instance);
-            }
-            else
-            {
-                instance = files[index];
+                var oldInstance = files[index];
+                files.Remove(oldInstance);
+                oldInstance.file.Close();
             }
 
+            instance = new AssetsFileInstance(stream, path, root);
+            files.Add(instance);
+
             if (updateAfterLoad)
-                UpdateDependency(instance);
+                UpdateDependency(instance, bundle);
             if (loadDeps)
                 LoadDeps(instance, Path.GetDirectoryName(path));
             return instance;
@@ -44,15 +44,14 @@ namespace AssetsTools.NET.Extra
         {
             AssetsFileInstance instance;
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
-            if (index == -1)
+            if (index != -1)
             {
-                instance = new AssetsFileInstance(stream, root);
-                files.Add(instance);
+                var oldInstance = files[index];
+                files.Remove(oldInstance);
+                oldInstance.file.Close();
             }
-            else
-            {
-                instance = files[index];
-            }
+            instance = new AssetsFileInstance(stream, root);
+            files.Add(instance);
 
             if (updateAfterLoad)
                 UpdateDependency(instance);
@@ -180,7 +179,7 @@ namespace AssetsTools.NET.Extra
                 {
                     byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
                     MemoryStream ms = new MemoryStream(assetData);
-                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps);
+                    AssetsFileInstance assetsInst = LoadAssetsFile(bunInst, ms, assetMemPath, loadDeps);
                     bunInst.assetsFiles.Add(assetsInst);
                     return assetsInst;
                 }
@@ -206,19 +205,29 @@ namespace AssetsTools.NET.Extra
         #endregion
 
         #region dependencies
-        private void UpdateDependency(AssetsFileInstance ofFile)
+        private void UpdateDependency(AssetsFileInstance ofFile, BundleFileInstance bundle = null)
         {
+            if (bundle != null) {
+                var file = files[0];
+                var depList = file.file.dependencies.dependencies.ConvertAll(f => f.assetPath).ConvertAll(assetName => bundle.file.bundleInf6.dirInf.ToList().FindIndex(it => it.name == assetName));
+                for (int i = 0; i < depList.Count; i++) {
+                    if (depList[i] < 0) continue;
+                    var assetBytes = BundleHelper.LoadAssetDataFromBundle(bundle.file, depList[i]);
+                    file.dependencies[i] = new AssetsFileInstance(new MemoryStream(assetBytes), ofFile.path, "");
+                }
+            }
             for (int i = 0; i < files.Count; i++)
             {
                 AssetsFileInstance file = files[i];
-                for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
-                {
-                    AssetsFileDependency dep = file.file.dependencies.dependencies[j];
-                    if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
+
+                    for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
                     {
-                        file.dependencies[j] = ofFile;
+                        AssetsFileDependency dep = file.file.dependencies.dependencies[j];
+                        if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
+                        {
+                            file.dependencies[j] = ofFile;
+                        }
                     }
-                }
             }
         }
         public void UpdateDependencies()
