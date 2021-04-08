@@ -8,10 +8,11 @@ namespace AssetsTools.NET
     {
         private readonly string oldName;
         private readonly string newName;
-        private readonly AssetsFile assetsFile;
         private readonly List<AssetsReplacer> replacers;
         private readonly uint fileId;
         private readonly int bundleListIndex;
+        private AssetsFile assetsFile;
+        private ClassDatabaseFile typeMeta;
 
         public BundleReplacerFromAssets(string oldName, string newName, AssetsFile assetsFile, List<AssetsReplacer> replacers, uint fileId, int bundleListIndex = -1)
         {
@@ -45,8 +46,15 @@ namespace AssetsTools.NET
         {
             return -1; //todo
         }
-        public override bool Init(AssetBundleFile bundleFile, AssetsFileReader entryReader, long entryPos, long entrySize)
+        public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
+            if (assetsFile != null)
+                return false;
+
+            this.typeMeta = typeMeta;
+
+            entryReader.Position = entryPos;
+            assetsFile = new AssetsFile(entryReader);
             return true;
         }
         public override void Uninit()
@@ -55,22 +63,23 @@ namespace AssetsTools.NET
         }
         public override long Write(AssetsFileWriter writer)
         {
-            //todo, we have to write to ms because AssetsFile.Write
-            //rewrites back at 0 which is the bundle header, not
-            //the top of the assets file
-            byte[] data;
-            using (MemoryStream ms = new MemoryStream())
-            using (AssetsFileWriter w = new AssetsFileWriter(ms))
-            {
-                assetsFile.Write(w, 0, replacers, fileId);
-                data = ms.ToArray();
-            }
-            writer.Write(data);
+            assetsFile.Write(writer, -1, replacers, fileId, typeMeta);
             return writer.Position;
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            throw new NotImplementedException("not implemented");
+            writer.Write((short)4); //replacer type
+            writer.Write((byte)0); //file type (0 bundle, 1 assets)
+            writer.Write(oldName);
+            writer.Write(newName);
+            writer.Write((byte)1); //idk always 1
+            writer.Write((long)replacers.Count);
+            foreach (AssetsReplacer replacer in replacers)
+            {
+                replacer.WriteReplacer(writer);
+            }
+
+            return writer.Position;
         }
         public override bool HasSerializedData()
         {

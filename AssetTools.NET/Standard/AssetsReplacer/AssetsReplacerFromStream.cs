@@ -4,12 +4,14 @@ using System.IO;
 
 namespace AssetsTools.NET
 {
-    public class AssetsReplacerFromMemory : AssetsReplacer
+    public class AssetsReplacerFromStream : AssetsReplacer
     {
         private readonly int fileId;
         private readonly long pathId;
         private readonly int classId;
-        private readonly byte[] buffer;
+        private readonly Stream stream;
+        private readonly long offset;
+        private readonly long size;
         private ushort monoScriptIndex;
         private Hash128 propertiesHash;
         private Hash128 scriptIdHash;
@@ -17,13 +19,15 @@ namespace AssetsTools.NET
         private ClassDatabaseType type;
         private List<AssetPPtr> preloadList;
 
-        public AssetsReplacerFromMemory(int fileId, long pathId, int classId, ushort monoScriptIndex, byte[] buffer)
+        public AssetsReplacerFromStream(int fileId, long pathId, int classId, ushort monoScriptIndex, Stream stream, long offset, long size)
         {
             this.fileId = fileId;
             this.pathId = pathId;
             this.classId = classId;
             this.monoScriptIndex = monoScriptIndex;
-            this.buffer = buffer;
+            this.stream = stream;
+            this.offset = offset;
+            this.size = size;
         }
         public override AssetsReplacementType GetReplacementType()
         {
@@ -48,6 +52,10 @@ namespace AssetsTools.NET
         public override void SetMonoScriptID(ushort scriptId)
         {
             monoScriptIndex = scriptId;
+        }
+        public override long GetSize()
+        {
+            return size;
         }
         public override bool GetPropertiesHash(out Hash128 propertiesHash)
         {
@@ -96,13 +104,11 @@ namespace AssetsTools.NET
             preloadList.Add(dependency);
             return true;
         }
-        public override long GetSize()
-        {
-            return buffer.Length;
-        }
         public override long Write(AssetsFileWriter writer)
         {
-            writer.Write(buffer);
+            byte[] assetData = new byte[size];
+            stream.Read(assetData, (int)offset, (int)size);
+            writer.Write(assetData);
             return writer.Position;
         }
         public override long WriteReplacer(AssetsFileWriter writer)

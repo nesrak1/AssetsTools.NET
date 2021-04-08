@@ -126,6 +126,11 @@ namespace AssetsTools.NET
             byte length = ReadByte();
             return ReadStringLength(length);
         }
+        public string ReadCountStringInt16()
+        {
+            ushort length = ReadUInt16();
+            return ReadStringLength(length);
+        }
         public string ReadCountStringInt32()
         {
             int length = ReadInt32();

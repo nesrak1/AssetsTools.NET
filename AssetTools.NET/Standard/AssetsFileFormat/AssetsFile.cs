@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetsTools.NET.Extra;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,14 +62,20 @@ namespace AssetsTools.NET
             readerPar.Dispose();
         }
 
-        public void Write(AssetsFileWriter writer, ulong filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
+        public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
         {
+            if (filePos == -1)
+                filePos = writer.Position;
+            else
+                writer.Position = filePos;
+
             header.Write(writer);
 
             for (int i = 0; i < replacers.Count; i++)
             {
                 AssetsReplacer replacer = replacers[i];
-                if (!typeTree.unity5Types.Any(t => t.classId == replacer.GetClassID()))
+                int replacerClassId = replacer.GetClassID();
+                if (!typeTree.unity5Types.Any(t => t.classId == replacerClassId))
                 {
                     Type_0D type = new Type_0D()
                     {
@@ -83,6 +90,17 @@ namespace AssetsTools.NET
                         stringTableLen = 0,
                         stringTable = ""
                     };
+
+                    if (typeMeta != null)
+                    {
+                        int cldbIndex = typeMeta.classes.FindIndex(c => c.classId == replacerClassId);
+                        if (cldbIndex != -1)
+                        {
+                            int cldbId = typeMeta.classes[cldbIndex].classId;
+                            type = C2T5.Cldb2TypeTree(typeMeta, cldbId);
+                        }
+                    }
+
                     typeTree.unity5Types.Add(type);
                 }
             }
@@ -258,7 +276,7 @@ namespace AssetsTools.NET
 
             reader.Position = header.firstFileOffset;
 
-            writer.Position = 0;
+            writer.Position = filePos;
             header.metadataSize = metadataSize;
             header.fileSize = fileSizeMarker;
             header.Write(writer);

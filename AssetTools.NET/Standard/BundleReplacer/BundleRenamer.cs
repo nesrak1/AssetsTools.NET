@@ -52,7 +52,9 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            throw new NotImplementedException("not implemented");
+            writer.Write((short)1); //replacer type
+            writer.Write((byte)0); //file type (0 bundle, 1 assets)
+            return writer.Position;
         }
         public override bool HasSerializedData()
         {

@@ -117,6 +117,13 @@ namespace AssetsTools.NET
             Write((byte)Encoding.UTF8.GetByteCount(text));
             Write(text);
         }
+        public void WriteCountStringInt16(string text)
+        {
+            if (Encoding.UTF8.GetByteCount(text) > 0xFFFF)
+                new Exception("String is longer than 65535! Use the Int32 variant instead!");
+            Write((ushort)Encoding.UTF8.GetByteCount(text));
+            Write(text);
+        }
         public void WriteCountStringInt32(string text)
         {
             Write(Encoding.UTF8.GetByteCount(text));
