@@ -20,7 +20,7 @@ namespace AssetsTools.NET.Extra
         private Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
 
         #region assets files
-        public AssetsFileInstance LoadAssetsFile(BundleFileInstance bundle, Stream stream, string path, bool loadDeps, string root = "")
+        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "", BundleFileInstance bundle = null)
         {
             AssetsFileInstance instance;
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
@@ -179,7 +179,7 @@ namespace AssetsTools.NET.Extra
                 {
                     byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
                     MemoryStream ms = new MemoryStream(assetData);
-                    AssetsFileInstance assetsInst = LoadAssetsFile(bunInst, ms, assetMemPath, loadDeps);
+                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps, bundle: bunInst);
                     bunInst.assetsFiles.Add(assetsInst);
                     return assetsInst;
                 }
