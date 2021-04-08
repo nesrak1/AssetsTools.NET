@@ -208,12 +208,15 @@ namespace AssetsTools.NET.Extra
         private void UpdateDependency(AssetsFileInstance ofFile, BundleFileInstance bundle = null)
         {
             if (bundle != null) {
-                var file = files[0];
-                var depList = file.file.dependencies.dependencies.ConvertAll(f => f.assetPath).ConvertAll(assetName => bundle.file.bundleInf6.dirInf.ToList().FindIndex(it => it.name == assetName));
-                for (int i = 0; i < depList.Count; i++) {
-                    if (depList[i] < 0) continue;
-                    var assetBytes = BundleHelper.LoadAssetDataFromBundle(bundle.file, depList[i]);
-                    file.dependencies[i] = new AssetsFileInstance(new MemoryStream(assetBytes), ofFile.path, "");
+                for (int j = 0; j < files.Count; j++) {
+                    var file = files[j];
+                    var depList = file.file.dependencies.dependencies.ConvertAll(f => f.assetPath).ConvertAll(assetName => bundle.file.bundleInf6.dirInf.ToList().FindIndex(it => it.name == assetName));
+                    for (int i = 0; i < depList.Count; i++)
+                    {
+                        if (depList[i] < 0) continue;
+                        var assetBytes = BundleHelper.LoadAssetDataFromBundle(bundle.file, depList[i]);
+                        file.dependencies[i] = new AssetsFileInstance(new MemoryStream(assetBytes), ofFile.path, "");
+                    }
                 }
             }
             for (int i = 0; i < files.Count; i++)
