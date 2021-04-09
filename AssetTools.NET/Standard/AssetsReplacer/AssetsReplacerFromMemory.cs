@@ -24,6 +24,7 @@ namespace AssetsTools.NET
             this.classId = classId;
             this.monoScriptIndex = monoScriptIndex;
             this.buffer = buffer;
+            this.preloadList = new List<AssetPPtr>();
         }
         public override AssetsReplacementType GetReplacementType()
         {
@@ -93,6 +94,9 @@ namespace AssetsTools.NET
         }
         public override bool AddPreloadDependency(AssetPPtr dependency)
         {
+            if (preloadList == null)
+                preloadList = new List<AssetPPtr>();
+
             preloadList.Add(dependency);
             return true;
         }
@@ -145,7 +149,7 @@ namespace AssetsTools.NET
                 writer.Write((byte)0);
             }
             //flag4
-            if (scriptIdHash.data != null)
+            if (file != null)
             {
                 writer.Write((byte)1);
                 file.Write(writer);

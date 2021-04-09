@@ -49,7 +49,7 @@ namespace AssetsTools.NET
         {
             return size;
         }
-        public override bool Init(AssetBundleFile bundleFile, AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
+        public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             return true;
         }

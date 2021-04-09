@@ -28,6 +28,7 @@ namespace AssetsTools.NET
             this.stream = stream;
             this.offset = offset;
             this.size = size;
+            this.preloadList = new List<AssetPPtr>();
         }
         public override AssetsReplacementType GetReplacementType()
         {
@@ -151,7 +152,7 @@ namespace AssetsTools.NET
                 writer.Write((byte)0);
             }
             //flag4
-            if (scriptIdHash.data != null)
+            if (file != null)
             {
                 writer.Write((byte)1);
                 file.Write(writer);
