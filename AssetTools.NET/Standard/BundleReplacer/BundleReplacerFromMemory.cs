@@ -63,8 +63,8 @@ namespace AssetsTools.NET
         {
             writer.Write((short)3); //replacer type
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
-            writer.Write(oldName);
-            writer.Write(newName);
+            writer.WriteCountStringInt16(oldName);
+            writer.WriteCountStringInt16(newName);
             writer.Write(hasSerializedData);
             writer.Write(GetSize());
             Write(writer);

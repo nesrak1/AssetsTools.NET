@@ -61,6 +61,7 @@ namespace AssetsTools.NET
             switch (fileVersion)
             {
                 case 1:
+                case 2:
                     writer.Write(compressionType);
                     break;
                 case 3:

@@ -71,8 +71,8 @@ namespace AssetsTools.NET
         {
             writer.Write((short)4); //replacer type
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
-            writer.Write(oldName);
-            writer.Write(newName);
+            writer.WriteCountStringInt16(oldName);
+            writer.WriteCountStringInt16(newName);
             writer.Write((byte)1); //probably hasSerializedData
             writer.Write((long)replacers.Count);
             foreach (AssetsReplacer replacer in replacers)
