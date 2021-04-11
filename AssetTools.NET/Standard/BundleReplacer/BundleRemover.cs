@@ -7,6 +7,7 @@ namespace AssetsTools.NET
         private readonly string name;
         private readonly bool hasSerializedData;
         private readonly int bundleListIndex;
+        //apparently hasSerializedData was removed from the constructor
         public BundleRemover(string name, bool hasSerializedData, int bundleListIndex = -1)
         {
             this.name = name;
@@ -49,6 +50,7 @@ namespace AssetsTools.NET
         {
             writer.Write((short)0); //replacer type
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
+            writer.WriteCountStringInt16(name);
             return writer.Position;
         }
         public override bool HasSerializedData()

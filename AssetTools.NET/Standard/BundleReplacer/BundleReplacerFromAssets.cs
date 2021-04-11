@@ -59,6 +59,7 @@ namespace AssetsTools.NET
         }
         public override void Uninit()
         {
+            assetsFile.Close();
             return;
         }
         public override long Write(AssetsFileWriter writer)
@@ -72,7 +73,7 @@ namespace AssetsTools.NET
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
             writer.Write(oldName);
             writer.Write(newName);
-            writer.Write((byte)1); //idk always 1
+            writer.Write((byte)1); //probably hasSerializedData
             writer.Write((long)replacers.Count);
             foreach (AssetsReplacer replacer in replacers)
             {

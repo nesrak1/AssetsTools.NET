@@ -54,6 +54,9 @@ namespace AssetsTools.NET
         {
             writer.Write((short)1); //replacer type
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
+            writer.WriteCountStringInt16(oldName);
+            writer.WriteCountStringInt16(newName);
+            writer.Write(hasSerializedData);
             return writer.Position;
         }
         public override bool HasSerializedData()

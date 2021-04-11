@@ -65,8 +65,8 @@ namespace AssetsTools.NET
             writer.Write((byte)0); //file type (0 bundle, 1 assets)
             writer.Write(oldName);
             writer.Write(newName);
-            writer.Write((byte)1); //idk always 1
-            writer.Write(GetSize()); //todo, check this replacer in api
+            writer.Write(hasSerializedData);
+            writer.Write(GetSize());
             Write(writer);
 
             return writer.Position;
