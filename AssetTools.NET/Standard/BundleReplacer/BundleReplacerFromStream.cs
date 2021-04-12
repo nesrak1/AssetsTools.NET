@@ -3,17 +3,17 @@ using System.IO;
 
 namespace AssetsTools.NET
 {
-    public class BundleReplacerFromFile : BundleReplacer
+    public class BundleReplacerFromStream : BundleReplacer
     {
         private readonly string oldName;
         private readonly string newName;
         private readonly bool hasSerializedData;
-        private readonly FileStream stream;
+        private readonly Stream stream;
         private readonly long offset;
         private readonly long size;
         private readonly int bundleListIndex;
 
-        public BundleReplacerFromFile(string oldName, string newName, bool hasSerializedData, FileStream stream, long offset, long size, int bundleListIndex = -1)
+        public BundleReplacerFromStream(string oldName, string newName, bool hasSerializedData, Stream stream, long offset, long size, int bundleListIndex = -1)
         {
             this.oldName = oldName;
             if (newName == null)
@@ -49,7 +49,7 @@ namespace AssetsTools.NET
         {
             return size;
         }
-        public override bool Init(AssetBundleFile bundleFile, AssetsFileReader entryReader, long entryPos, long entrySize)
+        public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             return true;
         }
@@ -66,7 +66,15 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            throw new NotImplementedException("not implemented");
+            writer.Write((short)2); //replacer type
+            writer.Write((byte)0); //file type (0 bundle, 1 assets)
+            writer.WriteCountStringInt16(oldName);
+            writer.WriteCountStringInt16(newName);
+            writer.Write(hasSerializedData);
+            writer.Write(GetSize());
+            Write(writer);
+
+            return writer.Position;
         }
         public override bool HasSerializedData()
         {

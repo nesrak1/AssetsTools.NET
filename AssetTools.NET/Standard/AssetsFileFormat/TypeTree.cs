@@ -34,7 +34,7 @@ namespace AssetsTools.NET
             {
                 dwUnknown = reader.ReadUInt24();
             }
-        }//Minimum AssetsFile format : 6
+        }
         public void Write(AssetsFileWriter writer, uint version)
         {
             writer.WriteNullTerminated(unityVersion);

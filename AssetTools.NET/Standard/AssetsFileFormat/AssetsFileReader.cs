@@ -6,6 +6,8 @@ namespace AssetsTools.NET
 {
     public class AssetsFileReader : BinaryReader
     {
+        //todo, this should default to bigEndian = false
+        //since it's more likely little endian than big endian
         public bool bigEndian = true;
         public AssetsFileReader(Stream stream) : base(stream) { }
         public override short ReadInt16()
@@ -124,6 +126,11 @@ namespace AssetsTools.NET
         public string ReadCountString()
         {
             byte length = ReadByte();
+            return ReadStringLength(length);
+        }
+        public string ReadCountStringInt16()
+        {
+            ushort length = ReadUInt16();
             return ReadStringLength(length);
         }
         public string ReadCountStringInt32()
