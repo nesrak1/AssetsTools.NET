@@ -30,6 +30,8 @@ namespace AssetsTools.NET
             switch (fileVersion)
             {
                 case 1:
+                    compressionType = 0;
+                    break;
                 case 2:
                     compressionType = reader.ReadByte();
                     break;
@@ -61,6 +63,8 @@ namespace AssetsTools.NET
             switch (fileVersion)
             {
                 case 1:
+                    writer.Write((byte)0);
+                    break;
                 case 2:
                     writer.Write(compressionType);
                     break;

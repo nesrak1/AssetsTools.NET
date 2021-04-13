@@ -20,7 +20,7 @@ namespace AssetsTools.NET.Extra
         private Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
 
         #region assets files
-        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "")
+        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "", BundleFileInstance bunInst = null)
         {
             AssetsFileInstance instance;
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
@@ -34,36 +34,25 @@ namespace AssetsTools.NET.Extra
                 instance = files[index];
             }
 
-            if (updateAfterLoad)
-                UpdateDependency(instance);
             if (loadDeps)
-                LoadDeps(instance, Path.GetDirectoryName(path));
+            {
+                if (bunInst == null)
+                    LoadDependencies(instance, Path.GetDirectoryName(path));
+                else
+                    LoadBundleDependencies(instance, bunInst, Path.GetDirectoryName(path));
+            }
+            if (updateAfterLoad)
+                UpdateDependencies(instance);
             return instance;
         }
         public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps, string root = "")
         {
-            AssetsFileInstance instance;
-            int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
-            if (index == -1)
-            {
-                instance = new AssetsFileInstance(stream, root);
-                files.Add(instance);
-            }
-            else
-            {
-                instance = files[index];
-            }
-
-            if (updateAfterLoad)
-                UpdateDependency(instance);
-            if (loadDeps)
-                LoadDeps(instance, Path.GetDirectoryName(stream.Name));
-            return instance;
+            return LoadAssetsFile(stream, stream.Name, loadDeps, root);
         }
 
         public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps, string root = "")
         {
-            return LoadAssetsFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), loadDeps, root);
+            return LoadAssetsFile(File.OpenRead(path), loadDeps, root);
         }
 
         public bool UnloadAssetsFile(string path)
@@ -127,7 +116,7 @@ namespace AssetsTools.NET.Extra
 
         public BundleFileInstance LoadBundleFile(string path, bool unpackIfPacked = true)
         {
-            return LoadBundleFile(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), unpackIfPacked);
+            return LoadBundleFile(File.OpenRead(path), unpackIfPacked);
         }
 
         public bool UnloadBundleFile(string path)
@@ -180,7 +169,7 @@ namespace AssetsTools.NET.Extra
                 {
                     byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
                     MemoryStream ms = new MemoryStream(assetData);
-                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps);
+                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps, bunInst: bunInst);
                     bunInst.assetsFiles.Add(assetsInst);
                     return assetsInst;
                 }
@@ -206,44 +195,28 @@ namespace AssetsTools.NET.Extra
         #endregion
 
         #region dependencies
-        private void UpdateDependency(AssetsFileInstance ofFile)
+        public void UpdateDependencies(AssetsFileInstance ofFile)
         {
-            for (int i = 0; i < files.Count; i++)
+            var depList = ofFile.file.dependencies;
+            for (int i = 0; i < depList.dependencyCount; i++)
             {
-                AssetsFileInstance file = files[i];
-                for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
+                AssetsFileDependency dep = depList.dependencies[i];
+                int index = files.FindIndex(f => Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(f.path.ToLower()));
+                if (index != -1)
                 {
-                    AssetsFileDependency dep = file.file.dependencies.dependencies[j];
-                    if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
-                    {
-                        file.dependencies[j] = ofFile;
-                    }
+                    ofFile.dependencies[i] = files[index];
                 }
             }
         }
         public void UpdateDependencies()
         {
-            for (int x = 0; x < files.Count; x++)
+            foreach (AssetsFileInstance file in files)
             {
-                AssetsFileInstance ofFile = files[x];
-
-                for (int i = 0; i < files.Count; i++)
-                {
-                    AssetsFileInstance file = files[i];
-                    for (int j = 0; j < file.file.dependencies.dependencyCount; j++)
-                    {
-                        AssetsFileDependency dep = file.file.dependencies.dependencies[j];
-                        if (Path.GetFileName(dep.assetPath.ToLower()) == Path.GetFileName(ofFile.path.ToLower()))
-                        {
-                            file.dependencies[j] = ofFile;
-                        }
-                    }
-                }
+                UpdateDependencies(file);
             }
         }
 
-        //todo, set stream options
-        private void LoadDeps(AssetsFileInstance ofFile, string path)
+        public void LoadDependencies(AssetsFileInstance ofFile, string path)
         {
             for (int i = 0; i < ofFile.dependencies.Count; i++)
             {
@@ -254,13 +227,56 @@ namespace AssetsTools.NET.Extra
                     string localAbsPath = Path.Combine(path, Path.GetFileName(depPath));
                     if (File.Exists(absPath))
                     {
-                        LoadAssetsFile(
-                            new FileStream(absPath, FileMode.Open, FileAccess.Read, FileShare.Read), true);
+                        LoadAssetsFile(File.OpenRead(absPath), true);
                     }
                     else if (File.Exists(localAbsPath))
                     {
-                        LoadAssetsFile(
-                            new FileStream(localAbsPath, FileMode.Open, FileAccess.Read, FileShare.Read), true);
+                        LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                    }
+                }
+            }
+        }
+
+        public void LoadBundleDependencies(AssetsFileInstance ofFile, BundleFileInstance ofBundle, string path)
+        {
+            for (int i = 0; i < ofFile.dependencies.Count; i++)
+            {
+                string depPath = ofFile.file.dependencies.dependencies[i].assetPath;
+                if (files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
+                {
+                    string bunPath = Path.GetFileName(depPath);
+                    int bunIndex = Array.FindIndex(ofBundle.file.bundleInf6.dirInf, d => Path.GetFileName(d.name) == bunPath);
+
+                    //by default, the directory of an assets file is the bundle's file path (somepath\bundle.unity3d\file.assets)
+                    //we back out again to get the directory the bundle is in
+                    string noBunPath = Path.Combine(path, "..");
+                    string nbAbsPath = Path.Combine(noBunPath, depPath);
+                    string nbLocalAbsPath = Path.Combine(noBunPath, Path.GetFileName(depPath));
+
+                    //if the user chose to set the path to the directory the bundle is in,
+                    //we need to check for that as well
+                    string absPath = Path.Combine(path, depPath);
+                    string localAbsPath = Path.Combine(path, Path.GetFileName(depPath));
+
+                    if (bunIndex != -1)
+                    {
+                        LoadAssetsFileFromBundle(ofBundle, bunIndex, true);
+                    }
+                    else if (File.Exists(absPath))
+                    {
+                        LoadAssetsFile(File.OpenRead(absPath), true);
+                    }
+                    else if (File.Exists(localAbsPath))
+                    {
+                        LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                    }
+                    else if (File.Exists(nbAbsPath))
+                    {
+                        LoadAssetsFile(File.OpenRead(nbAbsPath), true);
+                    }
+                    else if (File.Exists(nbLocalAbsPath))
+                    {
+                        LoadAssetsFile(File.OpenRead(nbLocalAbsPath), true);
                     }
                 }
             }
@@ -316,9 +332,7 @@ namespace AssetsTools.NET.Extra
             return new AssetTypeInstance(GetTemplateBaseField(file, info, forceFromCldb), file.reader, info.absoluteFilePos);
         }
 
-        //this method was renamed for consistency/clarity
-        //because it's used so much, I don't want to deprecate it right away
-        //so I'll keep the old method here for a while
+        [Obsolete("Renamed to GetTypeInstance")]
         public AssetTypeInstance GetATI(AssetsFile file, AssetFileInfoEx info, bool forceFromCldb = false)
         {
             return GetTypeInstance(file, info, forceFromCldb);
@@ -371,7 +385,7 @@ namespace AssetsTools.NET.Extra
             string scriptName;
             if (!inst.monoIdToName.ContainsKey(scriptIndex))
             {
-                AssetTypeInstance scriptAti = GetExtAsset(inst, GetATI(inst.file, info).GetBaseField().Get("m_Script")).instance;
+                AssetTypeInstance scriptAti = GetExtAsset(inst, GetTypeInstance(inst.file, info).GetBaseField().Get("m_Script")).instance;
                 scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
                 string scriptNamespace = scriptAti.GetBaseField().Get("m_Namespace").GetValue().AsString();
                 string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
@@ -414,7 +428,7 @@ namespace AssetsTools.NET.Extra
 
         public ClassDatabaseFile LoadClassDatabase(string path)
         {
-            return LoadClassDatabase(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return LoadClassDatabase(File.OpenRead(path));
         }
 
         public ClassDatabaseFile LoadClassDatabaseFromPackage(string version, bool specific = false)
@@ -467,7 +481,7 @@ namespace AssetsTools.NET.Extra
         }
         public ClassDatabasePackage LoadClassPackage(string path)
         {
-            return LoadClassPackage(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read));
+            return LoadClassPackage(File.OpenRead(path));
         }
         #endregion
     }
