@@ -98,5 +98,23 @@ namespace AssetsTools.NET.Extra
             }
             return newFile;
         }
+        public static AssetBundleDirectoryInfo06 GetDirInfo(AssetBundleFile bundle, int index)
+        {
+            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
+            return dirInf[index];
+        }
+        public static AssetBundleDirectoryInfo06 GetDirInfo(AssetBundleFile bundle, string name)
+        {
+            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
+            for (int i = 0; i < dirInf.Length; i++)
+            {
+                AssetBundleDirectoryInfo06 info = dirInf[i];
+                if (info.name == name)
+                {
+                    return info;
+                }
+            }
+            return null;
+        }
     }
 }
