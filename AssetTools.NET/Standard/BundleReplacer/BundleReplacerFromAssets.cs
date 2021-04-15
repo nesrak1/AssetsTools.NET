@@ -54,7 +54,15 @@ namespace AssetsTools.NET
             this.typeMeta = typeMeta;
 
             entryReader.Position = entryPos;
-            assetsFile = new AssetsFile(entryReader);
+            //memorystream for alignment issue
+            MemoryStream ms = new MemoryStream();
+            AssetsFileReader r = new AssetsFileReader(ms);
+            AssetsFileWriter w = new AssetsFileWriter(ms);
+            {
+                w.Write(entryReader.ReadBytes((int)entrySize));
+                ms.Position = 0;
+                assetsFile = new AssetsFile(r);
+            }
             return true;
         }
         public override void Uninit()
@@ -64,7 +72,13 @@ namespace AssetsTools.NET
         }
         public override long Write(AssetsFileWriter writer)
         {
-            assetsFile.Write(writer, -1, replacers, fileId, typeMeta);
+            //memorystream for alignment issue
+            using (MemoryStream ms = new MemoryStream())
+            using (AssetsFileWriter w = new AssetsFileWriter(ms))
+            {
+                assetsFile.Write(w, -1, replacers, fileId, typeMeta);
+                writer.Write(ms.ToArray());
+            }
             return writer.Position;
         }
         public override long WriteReplacer(AssetsFileWriter writer)

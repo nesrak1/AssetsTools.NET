@@ -214,7 +214,7 @@ namespace AssetsTools.NET
                 //writer.Write((byte)0); //unknownString length
             }
 
-            uint metadataSize = (uint)(writer.Position - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
+            uint metadataSize = (uint)(writer.Position - filePos - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
             if (header.format >= 0x16)
             {
                 //remove larger variation fields as well
@@ -272,7 +272,7 @@ namespace AssetsTools.NET
 
             header.firstFileOffset = offs_firstFile;
 
-            long fileSizeMarker = writer.Position;
+            long fileSizeMarker = writer.Position - filePos;
 
             reader.Position = header.firstFileOffset;
 
@@ -280,6 +280,8 @@ namespace AssetsTools.NET
             header.metadataSize = metadataSize;
             header.fileSize = fileSizeMarker;
             header.Write(writer);
+
+            writer.Position = fileSizeMarker + filePos;
         }
 
         ///public bool GetAssetFile(ulong fileInfoOffset, AssetsFileReader reader, AssetFile buf, FileStream readerPar);

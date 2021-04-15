@@ -14,6 +14,7 @@
         ///public bool ReadInitial(AssetsFileReader reader, LPARAM lPar, AssetsFileVerifyLogger errorLogger = NULL);
         public void Read(AssetsFileReader reader)
         {
+            reader.bigEndian = true;
             signature = reader.ReadNullTerminated();
             fileVersion = reader.ReadUInt32();
             minPlayerVersion = reader.ReadNullTerminated();
@@ -25,6 +26,7 @@
         }
         public void Write(AssetsFileWriter writer)
         {
+            writer.bigEndian = true;
             writer.WriteNullTerminated(signature);
             writer.Write(fileVersion);
             writer.WriteNullTerminated(minPlayerVersion);
