@@ -88,12 +88,15 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
-        public void UnloadAll()
+        public void UnloadAll(bool unloadClassData = false)
         {
             UnloadAllAssetsFiles(true);
             UnloadAllBundleFiles();
-            classPackage = null;
-            classFile = null;
+            if (unloadClassData)
+            {
+                classPackage = null;
+                classFile = null;
+            }
         }
         #endregion
 

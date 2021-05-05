@@ -53,10 +53,14 @@ namespace AssetsTools.NET.Extra
             for (int i = 0; i < len; i += 2)
             {
                 int dataPos = i / 2 * 4;
-                data[dataPos] = (byte)(bytes[i + 1] >> 4);
-                data[dataPos + 1] = (byte)(bytes[i + 1] & 0xf);
-                data[dataPos + 2] = (byte)(bytes[i] >> 4);
-                data[dataPos + 3] = (byte)(bytes[i] & 0xf);
+                int temp1 = bytes[i + 1] >> 4;
+                int temp2 = bytes[i + 1] & 0xf;
+                int temp3 = bytes[i] >> 4;
+                int temp4 = bytes[i] & 0xf;
+                data[dataPos] = (byte)((temp1 << 4) | temp1);
+                data[dataPos + 1] = (byte)((temp2 << 4) | temp2);
+                data[dataPos + 2] = (byte)((temp3 << 4) | temp3);
+                data[dataPos + 3] = (byte)((temp4 << 4) | temp4);
             }
             return data;
         }
