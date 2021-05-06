@@ -27,6 +27,7 @@ namespace AssetsTools.NET.Extra
             if (index == -1)
             {
                 instance = new AssetsFileInstance(stream, path, root);
+                instance.parentBundle = bunInst;
                 files.Add(instance);
             }
             else
@@ -289,33 +290,52 @@ namespace AssetsTools.NET.Extra
         #region asset resolving
         public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, int fileId, long pathId, bool onlyGetInfo = false, bool forceFromCldb = false)
         {
-            AssetExternal ext = new AssetExternal();
+            AssetExternal ext = new AssetExternal
+            {
+                info = null,
+                instance = null,
+                file = null
+            };
+
             if (fileId == 0 && pathId == 0)
             {
-                ext.info = null;
-                ext.instance = null;
-                ext.file = null;
+                return ext;
             }
             else if (fileId != 0)
             {
                 AssetsFileInstance dep = relativeTo.GetDependency(this, fileId - 1);
+
+                if (dep == null)
+                    return ext;
+
                 ext.info = dep.table.GetAssetInfo(pathId);
+
+                if (ext.info == null)
+                    return ext;
+
                 if (!onlyGetInfo)
                     ext.instance = GetTypeInstance(dep.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
+
                 ext.file = dep;
+                return ext;
             }
             else
             {
                 ext.info = relativeTo.table.GetAssetInfo(pathId);
+
+                if (ext.info == null)
+                    return ext;
+
                 if (!onlyGetInfo)
                     ext.instance = GetTypeInstance(relativeTo.file, ext.info, forceFromCldb);
                 else
                     ext.instance = null;
+
                 ext.file = relativeTo;
+                return ext;
             }
-            return ext;
         }
 
         public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false, bool forceFromCldb = false)
@@ -389,11 +409,16 @@ namespace AssetsTools.NET.Extra
             if (!inst.monoIdToName.ContainsKey(scriptIndex))
             {
                 AssetTypeInstance scriptAti = GetExtAsset(inst, GetTypeInstance(inst.file, info).GetBaseField().Get("m_Script")).instance;
+
+                //couldn't find asset
+                if (scriptAti == null)
+                    return null;
+
                 scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
                 string scriptNamespace = scriptAti.GetBaseField().Get("m_Namespace").GetValue().AsString();
                 string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
 
-                if (scriptNamespace != string.Empty)
+                if (scriptNamespace == string.Empty)
                 {
                     scriptNamespace = "-";
                 }

@@ -522,6 +522,12 @@ namespace AssetsView.Winforms
         {
             GameObjectViewer view = new GameObjectViewer(helper, currentFile, id);
             view.Show();
+            view.FormClosed += GameObjectViewer_FormClosed;
+        }
+
+        private void GameObjectViewer_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            UpdateFileList();
         }
 
         private void RecurseForResourcesInfo(FSDirectory dir, AssetsFileInstance afi)

@@ -2,7 +2,6 @@
 using AssetsTools.NET.Extra;
 using AssetsView.Util;
 using System;
-//using System.Data.Entity.Design.PluralizationServices;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -17,7 +16,6 @@ namespace AssetsView.Winforms
         private AssetsFileInstance inst;
         private long selectedId;
         private long selectedGameObjectId;
-        private bool firstTimeMBMessage;
         public GameObjectViewer(AssetsManager helper, AssetsFileInstance inst, long selectedId)
         {
             InitializeComponent();
@@ -169,19 +167,11 @@ namespace AssetsView.Winforms
             AssetTypeValueField targetBaseField = baseField;
             if (className == "MonoBehaviour")
             {
-                if (AssetUtils.AllDependenciesLoaded(helper, inst))
+                className += $" ({GetClassName(helper, inst, targetBaseField)})";
+                string managedPath = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
+                if (Directory.Exists(managedPath))
                 {
-                    className += $" ({GetClassName(helper, inst, targetBaseField)})";
-                    string managedPath = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
-                    if (Directory.Exists(managedPath))
-                    {
-                        targetBaseField = helper.GetMonoBaseFieldCached(inst, info, managedPath);
-                    }
-                }
-                else if (!firstTimeMBMessage)
-                {
-                    firstTimeMBMessage = true;
-                    MessageBox.Show("Can't display MonoBehaviour data until dependencies are loaded", "Assets View");
+                    targetBaseField = helper.GetMonoBaseFieldCached(inst, info, managedPath);
                 }
             }
             string category = new string('\t', size - index) + className;

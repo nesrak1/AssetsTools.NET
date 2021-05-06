@@ -51,8 +51,9 @@ namespace AssetsTools.NET.Extra
                 int instIndex = am.files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
                 if (instIndex == -1)
                 {
-                    string absPath = Path.Combine(path, depPath);
-                    string localAbsPath = Path.Combine(path, Path.GetFileName(depPath));
+                    string pathDir = Path.GetDirectoryName(path);
+                    string absPath = Path.Combine(pathDir, depPath);
+                    string localAbsPath = Path.Combine(pathDir, Path.GetFileName(depPath));
                     if (File.Exists(absPath))
                     {
                         dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);
@@ -60,6 +61,14 @@ namespace AssetsTools.NET.Extra
                     else if (File.Exists(localAbsPath))
                     {
                         dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                    }
+                    else if (parentBundle != null)
+                    {
+                        dependencies[depIdx] = am.LoadAssetsFileFromBundle(parentBundle, depPath, true);
+                    }
+                    else
+                    {
+                        return null;
                     }
                 }
                 else
