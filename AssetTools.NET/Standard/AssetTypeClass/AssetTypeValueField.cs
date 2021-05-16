@@ -96,6 +96,7 @@
                 case "uint64":
                 case "unsigned long":
                 case "ulong":
+                case "filesize":
                     return EnumValueTypes.UInt64;
                 case "single":
                 case "float":
