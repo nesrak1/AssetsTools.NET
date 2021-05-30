@@ -93,11 +93,10 @@ namespace AssetsTools.NET
 
                     if (typeMeta != null)
                     {
-                        int cldbIndex = typeMeta.classes.FindIndex(c => c.classId == replacerClassId);
-                        if (cldbIndex != -1)
+                        ClassDatabaseType cldbType = AssetHelper.FindAssetClassByID(typeMeta, (uint)replacerClassId);
+                        if (cldbType != null)
                         {
-                            int cldbId = typeMeta.classes[cldbIndex].classId;
-                            type = C2T5.Cldb2TypeTree(typeMeta, cldbId);
+                            type = C2T5.Cldb2TypeTree(typeMeta, cldbType);
                         }
                     }
 
@@ -111,17 +110,17 @@ namespace AssetsTools.NET
             int appendedSize = newSize - initialSize;
             reader.Position = AssetTablePos;
 
-            List<AssetFileInfo> originalAssetInfos = new List<AssetFileInfo>();
             List<AssetFileInfo> assetInfos = new List<AssetFileInfo>();
-            List<AssetsReplacer> currentReplacers = replacers.ToList();
+            Dictionary<long, AssetFileInfo> originalAssetInfos = new Dictionary<long, AssetFileInfo>();
+            Dictionary<long, AssetsReplacer> currentReplacers = replacers.ToDictionary(r => r.GetPathID());
             uint currentOffset = 0;
 
-            //-write all original assets, modify sizes if needed and skip those to be removed
+            //calculate sizes/offsets for original assets, modify sizes if needed and skip those to be removed
             for (int i = 0; i < AssetCount; i++)
             {
                 AssetFileInfo info = new AssetFileInfo();
                 info.Read(header.format, reader);
-                originalAssetInfos.Add(info);
+                originalAssetInfos.Add(info.index, info);
                 AssetFileInfo newInfo = new AssetFileInfo()
                 {
                     index = info.index,
@@ -132,10 +131,10 @@ namespace AssetsTools.NET
                     scriptIndex = info.scriptIndex,
                     unknown1 = info.unknown1
                 };
-                AssetsReplacer replacer = currentReplacers.FirstOrDefault(n => n.GetPathID() == newInfo.index);
-                if (replacer != null)
+                AssetsReplacer replacer;
+                if (currentReplacers.TryGetValue(newInfo.index, out replacer))
                 {
-                    currentReplacers.Remove(replacer);
+                    currentReplacers.Remove(newInfo.index);
                     if (replacer.GetReplacementType() == AssetsReplacementType.AddOrModify)
                     {
                         int classIndex;
@@ -160,16 +159,15 @@ namespace AssetsTools.NET
                     }
                 }
                 currentOffset += newInfo.curFileSize;
-                uint pad = 8 - (currentOffset % 8);
-                if (pad != 8) currentOffset += pad;
+                currentOffset = (currentOffset + 7) >> 3 << 3; //pad to 8 bytes
 
                 assetInfos.Add(newInfo);
             }
 
-            //-write new assets
-            while (currentReplacers.Count > 0)
+            //calculate sizes/offsets for new assets
+            foreach (var replacerPair in currentReplacers)
             {
-                AssetsReplacer replacer = currentReplacers[0];
+                AssetsReplacer replacer = replacerPair.Value;
                 if (replacer.GetReplacementType() == AssetsReplacementType.AddOrModify)
                 {
                     int classIndex;
@@ -188,13 +186,13 @@ namespace AssetsTools.NET
                         unknown1 = 0
                     };
                     currentOffset += info.curFileSize;
-                    uint pad = 8 - (currentOffset % 8);
-                    if (pad != 8) currentOffset += pad;
+                    currentOffset = (currentOffset + 7) >> 3 << 3; //pad to 8 bytes
 
                     assetInfos.Add(info);
                 }
-                currentReplacers.Remove(replacer);
             }
+
+            currentReplacers.Clear();
 
             writer.Write(assetInfos.Count);
             writer.Align();
@@ -211,7 +209,6 @@ namespace AssetsTools.NET
             if (header.format >= 0x14)
             {
                 writer.Write(0); //secondaryTypeCount
-                //writer.Write((byte)0); //unknownString length
             }
 
             uint metadataSize = (uint)(writer.Position - filePos - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
@@ -221,7 +218,7 @@ namespace AssetsTools.NET
                 metadataSize -= 0x1c;
             }
 
-            //-for padding only. if all initial data before assetData is more than 0x1000, this is skipped
+            //for padding only. if all initial data before assetData is more than 0x1000, this is skipped
             if (writer.Position < 0x1000)
             {
                 while (writer.Position < 0x1000)
@@ -237,8 +234,9 @@ namespace AssetsTools.NET
                     writer.Align16();
             }
 
-            long offs_firstFile = writer.Position;
+            long firstFileOffset = writer.Position;
 
+            //write all asset data
             for (int i = 0; i < assetInfos.Count; i++)
             {
                 AssetFileInfo info = assetInfos[i];
@@ -258,8 +256,8 @@ namespace AssetsTools.NET
                 }
                 else
                 {
-                    AssetFileInfo originalInfo = originalAssetInfos.FirstOrDefault(n => n.index == info.index);
-                    if (originalInfo != null)
+                    AssetFileInfo originalInfo;
+                    if (originalAssetInfos.TryGetValue(info.index, out originalInfo))
                     {
                         reader.Position = header.firstFileOffset + originalInfo.curFileOffset;
                         byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
@@ -270,7 +268,7 @@ namespace AssetsTools.NET
                 }
             }
 
-            header.firstFileOffset = offs_firstFile;
+            header.firstFileOffset = firstFileOffset;
 
             long fileSizeMarker = writer.Position - filePos;
 

@@ -7,13 +7,18 @@ namespace AssetsTools.NET.Extra
     {
         public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, string name)
         {
-            int id = classes.classes.Where(c => c.name.GetString(classes) == name).First().classId;
-            return Cldb2TypeTree(classes, id);
+            ClassDatabaseType type = AssetHelper.FindAssetClassByName(classes, name);
+            return Cldb2TypeTree(classes, type);
         }
 
         public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, int id)
         {
-            ClassDatabaseType type = classes.classes.Where(c => c.classId == id).First();
+            ClassDatabaseType type = AssetHelper.FindAssetClassByID(classes, (uint)id);
+            return Cldb2TypeTree(classes, type);
+        }
+
+        public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, ClassDatabaseType type)
+        {
             Type_0D type0d = new Type_0D()
             {
                 classId = type.classId,

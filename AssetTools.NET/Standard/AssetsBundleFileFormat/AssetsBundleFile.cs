@@ -252,7 +252,7 @@ namespace AssetsTools.NET
                 totalFileSize = finalSize,
                 compressedSize = infoSize,
                 decompressedSize = infoSize,
-                flags = bundleHeader6.flags & unchecked((uint)~0x80) //unset info at end flag
+                flags = bundleHeader6.flags & unchecked((uint)~0x80) & unchecked((uint)~0x3f) //unset info at end flag and compression value
             };
             newBundleHeader6.Write(writer);
 
