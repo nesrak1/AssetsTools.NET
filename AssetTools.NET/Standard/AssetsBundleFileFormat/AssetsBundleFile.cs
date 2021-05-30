@@ -1,4 +1,5 @@
-﻿using AssetsTools.NET.Extra.Decompressors.LZ4;
+﻿using AssetsTools.NET.Extra;
+using AssetsTools.NET.Extra.Decompressors.LZ4;
 using LZ4ps;
 using SevenZip.Compression.LZMA;
 using System;
@@ -298,38 +299,6 @@ namespace AssetsTools.NET
                         bundleInf6.Read(0, memReader);
                     }
                 }
-                reader.Position = bundleHeader6.GetFileDataOffset();
-                byte[][] blocksData = new byte[bundleInf6.blockCount][];
-                for (int i = 0; i < bundleInf6.blockCount; i++)
-                {
-                    AssetBundleBlockInfo06 info = bundleInf6.blockInf[i];
-                    byte[] data = reader.ReadBytes((int)info.compressedSize);
-                    switch (info.GetCompressionType())
-                    {
-                        case 0:
-                            blocksData[i] = data;
-                            break;
-                        case 1:
-                            blocksData[i] = new byte[info.decompressedSize];
-                            using (MemoryStream mstream = new MemoryStream(data))
-                            {
-                                MemoryStream decoder = SevenZipHelper.StreamDecompress(mstream, info.decompressedSize);
-                                decoder.Read(blocksData[i], 0, (int)info.decompressedSize);
-                                decoder.Dispose();
-                            }
-                            break;
-                        case 2:
-                        case 3:
-                            blocksData[i] = new byte[info.decompressedSize];
-                            using (MemoryStream mstream = new MemoryStream(data))
-                            {
-                                var decoder = new Lz4DecoderStream(mstream);
-                                decoder.Read(blocksData[i], 0, (int)info.decompressedSize);
-                                decoder.Dispose();
-                            }
-                            break;
-                    }
-                }
                 AssetBundleHeader06 newBundleHeader6 = new AssetBundleHeader06()
                 {
                     signature = bundleHeader6.signature,
@@ -379,9 +348,30 @@ namespace AssetsTools.NET
                     writer.Align16();
                 }
                 newBundleInf6.Write(writer);
+
+                reader.Position = bundleHeader6.GetFileDataOffset();
                 for (int i = 0; i < newBundleInf6.blockCount; i++)
                 {
-                    writer.Write(blocksData[i]);
+                    AssetBundleBlockInfo06 info = bundleInf6.blockInf[i];
+                    switch (info.GetCompressionType())
+                    {
+                        case 0:
+                            reader.BaseStream.CopyToCompat(writer.BaseStream, info.compressedSize);
+                            break;
+                        case 1:
+                            SevenZipHelper.StreamDecompress(reader.BaseStream, writer.BaseStream, info.compressedSize, info.decompressedSize);
+                            break;
+                        case 2:
+                        case 3:
+                            MemoryStream tempMs = new MemoryStream();
+                            reader.BaseStream.CopyToCompat(tempMs, info.compressedSize);
+
+                            using (Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs))
+                            {
+                                decoder.CopyToCompat(writer.BaseStream, info.decompressedSize);
+                            }
+                            break;
+                    }
                 }
                 return true;
             }

@@ -304,6 +304,8 @@ namespace AssetsView.Winforms
         private string GetClassName(AssetsManager manager, AssetsFileInstance inst, AssetTypeValueField baseField)
         {
             AssetTypeInstance scriptAti = manager.GetExtAsset(inst, baseField.Get("m_Script")).instance;
+            if (scriptAti == null)
+                return "Unknown class name";
             return scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
         }
 

@@ -134,5 +134,19 @@ namespace SevenZip.Compression.LZMA
             newOutStream.Position = 0;
             return newOutStream;
         }
+
+        public static void StreamDecompress(Stream compressedStream, Stream decompressedStream, long compressedSize, long decompressedSize)
+        {
+            long basePosition = compressedStream.Position;
+            Decoder decoder = new Decoder();
+
+            byte[] properties = new byte[5];
+            if (compressedStream.Read(properties, 0, 5) != 5)
+                throw new Exception("input .lzma is too short");
+            decoder.SetDecoderProperties(properties);
+
+            decoder.Code(compressedStream, decompressedStream, compressedSize - 5, decompressedSize, null);
+            compressedStream.Position = basePosition + compressedSize;
+        }
     }
 }
