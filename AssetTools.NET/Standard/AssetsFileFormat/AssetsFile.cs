@@ -268,16 +268,28 @@ namespace AssetsTools.NET
                 }
             }
 
-            header.firstFileOffset = firstFileOffset;
+            AssetsFileHeader newHeader = new AssetsFileHeader()
+            {
+                metadataSize = header.metadataSize,
+                fileSize = header.fileSize,
+                format = header.format,
+                firstFileOffset = header.firstFileOffset,
+                endianness = header.endianness,
+                unknown = header.unknown,
+                unknown1 = header.unknown1,
+                unknown2 = header.unknown2
+            };
+
+            newHeader.firstFileOffset = firstFileOffset;
 
             long fileSizeMarker = writer.Position - filePos;
 
-            reader.Position = header.firstFileOffset;
+            reader.Position = newHeader.firstFileOffset;
 
             writer.Position = filePos;
-            header.metadataSize = metadataSize;
-            header.fileSize = fileSizeMarker;
-            header.Write(writer);
+            newHeader.metadataSize = metadataSize;
+            newHeader.fileSize = fileSizeMarker;
+            newHeader.Write(writer);
 
             writer.Position = fileSizeMarker + filePos;
         }

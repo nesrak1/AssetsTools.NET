@@ -308,6 +308,7 @@ namespace AssetsTools.NET.Extra
                 if (dep == null)
                     return ext;
 
+                ext.file = dep;
                 ext.info = dep.table.GetAssetInfo(pathId);
 
                 if (ext.info == null)
@@ -318,11 +319,11 @@ namespace AssetsTools.NET.Extra
                 else
                     ext.instance = null;
 
-                ext.file = dep;
                 return ext;
             }
             else
             {
+                ext.file = relativeTo;
                 ext.info = relativeTo.table.GetAssetInfo(pathId);
 
                 if (ext.info == null)
@@ -333,7 +334,6 @@ namespace AssetsTools.NET.Extra
                 else
                     ext.instance = null;
 
-                ext.file = relativeTo;
                 return ext;
             }
         }
