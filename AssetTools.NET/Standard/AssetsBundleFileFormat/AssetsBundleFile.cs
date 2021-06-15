@@ -363,12 +363,15 @@ namespace AssetsTools.NET
                             break;
                         case 2:
                         case 3:
-                            MemoryStream tempMs = new MemoryStream();
-                            reader.BaseStream.CopyToCompat(tempMs, info.compressedSize);
-
-                            using (Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs))
+                            using (MemoryStream tempMs = new MemoryStream())
                             {
-                                decoder.CopyToCompat(writer.BaseStream, info.decompressedSize);
+                                reader.BaseStream.CopyToCompat(tempMs, info.compressedSize);
+                                tempMs.Position = 0;
+
+                                using (Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs))
+                                {
+                                    decoder.CopyToCompat(writer.BaseStream, info.decompressedSize);
+                                }
                             }
                             break;
                     }
