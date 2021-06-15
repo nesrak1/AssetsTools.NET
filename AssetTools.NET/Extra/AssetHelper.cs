@@ -53,6 +53,16 @@ namespace AssetsTools.NET.Extra
             return null;
         }
 
+        public static Type_0D FindTypeTreeTypeByID(TypeTree typeTree, uint id, ushort scriptIndex)
+        {
+            foreach (Type_0D type in typeTree.unity5Types)
+            {
+                if (type.classId == id && type.scriptIndex == scriptIndex)
+                    return type;
+            }
+            return null;
+        }
+
         public static Type_0D FindTypeTreeTypeByScriptIndex(TypeTree typeTree, ushort scriptIndex)
         {
             foreach (Type_0D type in typeTree.unity5Types)

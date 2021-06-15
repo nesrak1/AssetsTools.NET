@@ -379,7 +379,7 @@ namespace AssetsTools.NET.Extra
                 baseField = new AssetTypeTemplateField();
                 if (hasTypeTree && !forceFromCldb)
                 {
-                    baseField.From0D(AssetHelper.FindTypeTreeTypeByScriptIndex(file.typeTree, scriptIndex), 0);
+                    baseField.From0D(AssetHelper.FindTypeTreeTypeByID(file.typeTree, fixedId, scriptIndex), 0);
                 }
                 else
                 {
