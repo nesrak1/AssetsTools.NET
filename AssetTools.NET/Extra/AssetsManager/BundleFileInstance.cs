@@ -14,13 +14,17 @@ namespace AssetsTools.NET.Extra
         public AssetBundleFile file;
         public List<AssetsFileInstance> assetsFiles;
 
-        public BundleFileInstance(Stream stream, string filePath, string root)
+        public BundleFileInstance(Stream stream, string filePath, string root, bool unpackIfPacked)
         {
             this.stream = stream;
             path = Path.GetFullPath(filePath);
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetBundleFile();
             file.Read(new AssetsFileReader(stream), true);
+            if (file.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
+            {
+                file = BundleHelper.UnpackBundle(file);
+            }
             assetsFiles = new List<AssetsFileInstance>();
         }
         public BundleFileInstance(FileStream stream, string root, bool unpackIfPacked)

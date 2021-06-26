@@ -102,13 +102,13 @@ namespace AssetsTools.NET.Extra
         #endregion
 
         #region bundle files
-        public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
+        public BundleFileInstance LoadBundleFile(Stream stream, string path, bool unpackIfPacked = true)
         {
             BundleFileInstance bunInst;
-            int index = bundles.FindIndex(f => f.path.ToLower() == Path.GetFullPath(stream.Name).ToLower());
+            int index = bundles.FindIndex(f => f.path.ToLower() == path.ToLower());
             if (index == -1)
             {
-                bunInst = new BundleFileInstance(stream, "", unpackIfPacked);
+                bunInst = new BundleFileInstance(stream, path, "", unpackIfPacked);
                 bundles.Add(bunInst);
             }
             else
@@ -116,6 +116,10 @@ namespace AssetsTools.NET.Extra
                 bunInst = bundles[index];
             }
             return bunInst;
+        }
+        public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
+        {
+            return LoadBundleFile(stream, Path.GetFullPath(stream.Name), unpackIfPacked);
         }
 
         public BundleFileInstance LoadBundleFile(string path, bool unpackIfPacked = true)
