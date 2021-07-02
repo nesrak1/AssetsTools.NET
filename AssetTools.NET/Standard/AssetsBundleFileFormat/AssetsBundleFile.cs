@@ -222,8 +222,7 @@ namespace AssetsTools.NET
                         long startPos = writer.Position;
 
                         reader.Position = bundleHeader6.GetFileDataOffset() + originalInfo.offset;
-                        byte[] assetData = reader.ReadBytes((int)originalInfo.decompressedSize);
-                        writer.Write(assetData);
+                        reader.BaseStream.CopyToCompat(writer.BaseStream, originalInfo.decompressedSize);
 
                         dirInfos[i].offset = startPos - assetDataPos;
                     }
