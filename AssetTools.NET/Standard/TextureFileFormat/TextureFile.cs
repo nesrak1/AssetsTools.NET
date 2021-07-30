@@ -40,7 +40,7 @@ namespace AssetsTools.NET
 
         public struct StreamingInfo
         {
-            public uint offset;
+            public ulong offset;
             public uint size;
             public string path;
         }
@@ -133,7 +133,7 @@ namespace AssetsTools.NET
 
             if (!(streamData = baseField.Get("m_StreamData")).IsDummy())
             {
-                texture.m_StreamData.offset = streamData.Get("offset").GetValue().AsUInt();
+                texture.m_StreamData.offset = streamData.Get("offset").GetValue().AsUInt64();
                 texture.m_StreamData.size = streamData.Get("size").GetValue().AsUInt();
                 texture.m_StreamData.path = streamData.Get("path").GetValue().AsString();
             }
@@ -176,7 +176,7 @@ namespace AssetsTools.NET
                 if (File.Exists(fixedStreamPath))
                 {
                     Stream stream = File.OpenRead(fixedStreamPath);
-                    stream.Position = m_StreamData.offset;
+                    stream.Position = (long)m_StreamData.offset;
                     pictureData = new byte[m_StreamData.size];
                     stream.Read(pictureData, 0, (int)m_StreamData.size);
                 }
