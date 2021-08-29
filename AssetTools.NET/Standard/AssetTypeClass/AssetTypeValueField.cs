@@ -15,9 +15,6 @@
             this.children = children;
             this.value = value;
         }
-        ///public ulong Write(AssetsFileWriter writer, FileStream writerPar, ulong filePos);
-
-        //ASSETSTOOLS_API void Clear();
 
         public AssetTypeValueField this[string name]
         {
@@ -57,8 +54,6 @@
         {
             return childrenCount == -1;
         }
-
-        ///public ulong GetByteSize(ulong filePos = 0);
 
         public static EnumValueTypes GetValueTypeByTypeName(string type)
         {

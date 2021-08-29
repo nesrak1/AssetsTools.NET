@@ -100,6 +100,20 @@ namespace AssetsTools.NET.Extra
             }
             return newFile;
         }
+        public static AssetBundleFile UnpackBundleToStream(AssetBundleFile file, Stream stream, bool freeOriginalStream = true)
+        {
+            file.Unpack(file.reader, new AssetsFileWriter(stream));
+            stream.Position = 0;
+
+            AssetBundleFile newFile = new AssetBundleFile();
+            newFile.Read(new AssetsFileReader(stream), false);
+
+            if (freeOriginalStream)
+            {
+                file.reader.Close();
+            }
+            return newFile;
+        }
         public static AssetBundleDirectoryInfo06 GetDirInfo(AssetBundleFile bundle, int index)
         {
             AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;

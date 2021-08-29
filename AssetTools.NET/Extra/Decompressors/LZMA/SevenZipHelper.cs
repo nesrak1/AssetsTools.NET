@@ -47,6 +47,12 @@ namespace SevenZip.Compression.LZMA
         {
             MemoryStream inStream = new MemoryStream(inputBytes);
             MemoryStream outStream = new MemoryStream();
+            Compress(inStream, outStream);
+            return outStream.ToArray();
+        }
+
+        public static void Compress(Stream inStream, Stream outStream)
+        {
             Encoder encoder = new Encoder();
             encoder.SetCoderProperties(propIDs, properties);
             encoder.WriteCoderProperties(outStream);
@@ -55,7 +61,6 @@ namespace SevenZip.Compression.LZMA
             //for (int i = 0; i < 8; i++)
             //    outStream.WriteByte((Byte)(fileSize >> (8 * i)));
             encoder.Code(inStream, outStream, -1, -1, null);
-            return outStream.ToArray();
         }
 
         public static byte[] Decompress(byte[] inputBytes)

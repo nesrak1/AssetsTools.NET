@@ -15,8 +15,8 @@ namespace AssetsTools.NET
         public AssetsFileDependencyList dependencies;
         public string unknownString;
 
-        public uint AssetTablePos;
-        public uint AssetCount;
+        public uint assetTablePos;
+        public uint assetCount;
 
         public AssetsFileReader reader;
         public Stream readerPar;
@@ -32,20 +32,20 @@ namespace AssetsTools.NET
             typeTree = new TypeTree();
             typeTree.Read(reader, header.format);
             
-            AssetCount = reader.ReadUInt32();
+            assetCount = reader.ReadUInt32();
             reader.Align();
-            AssetTablePos = (uint)reader.BaseStream.Position;
+            assetTablePos = (uint)reader.BaseStream.Position;
 
             int assetInfoSize = AssetFileInfo.GetSize(header.format);
             if (0x0F <= header.format && header.format <= 0x10)
             {
                 //for these two versions, the asset info is not aligned
                 //for the last entry, so we have to do some weird stuff
-                reader.BaseStream.Position += ((assetInfoSize + 3) >> 2 << 2) * (AssetCount - 1) + assetInfoSize;
+                reader.BaseStream.Position += ((assetInfoSize + 3) >> 2 << 2) * (assetCount - 1) + assetInfoSize;
             }
             else
             {
-                reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * AssetCount;
+                reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * assetCount;
             }
             if (header.format > 0x0B)
             {
@@ -105,10 +105,10 @@ namespace AssetsTools.NET
             }
             typeTree.Write(writer, header.format);
 
-            int initialSize = (int)(AssetFileInfo.GetSize(header.format) * AssetCount);
-            int newSize = (int)(AssetFileInfo.GetSize(header.format) * (AssetCount + replacers.Count));
+            int initialSize = (int)(AssetFileInfo.GetSize(header.format) * assetCount);
+            int newSize = (int)(AssetFileInfo.GetSize(header.format) * (assetCount + replacers.Count));
             int appendedSize = newSize - initialSize;
-            reader.Position = AssetTablePos;
+            reader.Position = assetTablePos;
 
             List<AssetFileInfo> assetInfos = new List<AssetFileInfo>();
             Dictionary<long, AssetFileInfo> originalAssetInfos = new Dictionary<long, AssetFileInfo>();
@@ -116,7 +116,7 @@ namespace AssetsTools.NET
             uint currentOffset = 0;
 
             //calculate sizes/offsets for original assets, modify sizes if needed and skip those to be removed
-            for (int i = 0; i < AssetCount; i++)
+            for (int i = 0; i < assetCount; i++)
             {
                 AssetFileInfo info = new AssetFileInfo();
                 info.Read(header.format, reader);
@@ -293,16 +293,5 @@ namespace AssetsTools.NET
 
             writer.Position = fileSizeMarker + filePos;
         }
-
-        ///public bool GetAssetFile(ulong fileInfoOffset, AssetsFileReader reader, AssetFile buf, FileStream readerPar);
-        ///public ulong GetAssetFileOffs(ulong fileInfoOffset, AssetsFileReader reader, FileStream readerPar);
-        ///public bool GetAssetFileByIndex(ulong fileIndex, AssetFile buf, uint size, AssetsFileReader reader, FileStream readerPar);
-        ///public ulong GetAssetFileOffsByIndex(ulong fileIndex, AssetsFileReader reader, FileStream readerPar);
-        ///public bool GetAssetFileByName(string name, AssetFile buf, uint size, AssetsFileReader reader, FileStream readerPar);
-        ///public ulong GetAssetFileOffsByName(string name, AssetsFileReader reader, FileStream readerPar);
-        ///public ulong GetAssetFileInfoOffs(ulong fileIndex, AssetsFileReader reader, FileStream readerPar);
-        ///public ulong GetAssetFileInfoOffsByName(string name, AssetsFileReader reader, FileStream readerPar);
-        ///public ulong GetFileList(AssetsFileReader reader, FileStream readerPar);
-        ///public bool VerifyAssetsFile(AssetsFileVerifyLogger logger = null);
     }
 }

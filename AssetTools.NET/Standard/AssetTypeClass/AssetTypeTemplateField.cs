@@ -15,8 +15,6 @@ namespace AssetsTools.NET
         public int childrenCount;
         public AssetTypeTemplateField[] children;
 
-        ///public AssetTypeTemplateField()
-        ///public void Clear()
         public bool From0D(Type_0D u5Type, int fieldIndex)
         {
             TypeField_0D field = u5Type.typeFieldsEx[fieldIndex];
@@ -87,7 +85,6 @@ namespace AssetsTools.NET
             }
             return true;
         }
-        ///public bool From07(TypeField_07 typeField)
         public AssetTypeValueField MakeValue(AssetsFileReader reader)
         {
             AssetTypeValueField valueField = new AssetTypeValueField();
@@ -214,6 +211,5 @@ namespace AssetsTools.NET
             }
             return valueField;
         }
-        ///public AssetTypeTemplateField SearchChild(string name)
     }
 }

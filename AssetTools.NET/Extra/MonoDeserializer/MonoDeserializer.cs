@@ -50,7 +50,7 @@ namespace AssetsTools.NET.Extra
             if (scriptIndex != 0xFFFF)
             {
                 AssetTypeInstance scriptAti = am.GetExtAsset(inst, mainAti.GetBaseField().Get("m_Script")).instance;
-                string scriptName = scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
+                string scriptName = scriptAti.GetBaseField().Get("m_ClassName").GetValue().AsString();
                 string scriptNamespace = scriptAti.GetBaseField().Get("m_Namespace").GetValue().AsString();
                 string assemblyName = scriptAti.GetBaseField().Get("m_AssemblyName").GetValue().AsString();
                 string assemblyPath = Path.Combine(managedPath, assemblyName);

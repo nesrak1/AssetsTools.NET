@@ -9,189 +9,209 @@ Jump to a tool:
 
 # AssetsTools
 
-[![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET)
-[![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases)
+[![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET) [![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases) [![discord](https://img.shields.io/discord/862035581491478558?label=discord&logo=discord&logoColor=FFFFFF&style=flat-square)](https://discord.gg/hd9VdswwZs)
 
 ## Table of contents
 
-* [Terminology](#terminology)
-* [Basic usage of AssetsTools.NET](#basic-usage-of-assetstoolsnet)
-* [Assets file reading](#assets-file-reading)
-* [Serialized data loading](#serialized-data-loading)
-* [MonoBehaviour loading](#monobehaviour-loading)
-* [Assets file writing](#assets-file-writing)
-* [Value building](#value-building)
-* [Bundle file loading](#bundle-file-loading)
-* [Bundle file writing](#bundle-file-writing)
-* [Bundle file packing](#bundle-file-packing)
-* [Loading textures](#loading-textures)
-* [Extracting classdata.tpk and cldb.dat](#extracting-classdatatpk-and-cldbdat)
+* What is this
+* Getting started
+* Read an assets file
+* Write an assets file
+* Value builder (add assets/fields)
+* Read a bundle file
+* Write a bundle file
+* Compress a bundle file
+* Bundle creator (create assets/bundle files)
+* Reading a MonoBehaviour
+* Reading asset paths from resources.assets and bundles
+* Exporting a Texture2D
+* Class database
+* Noooo it's not working!!
 
-## Terminology
+### What is this
 
-Programs/Libraries (since they all have similar names)
+This is a library for reading and writing unity assets files and bundle files. The original api design and file formats (class package) comes from UABE's C++ AssetsTools library, but it has been rewritten in C# with many added helper functions. Because of that, there are usually two ways to do something.
 
-* UABE - The original UABE program by DerPopo
-* AssetsTools - The original AssetsTools library by DerPopo
-* AssetsTools.NET - This asset viewing/modifying library in this repo
-* AssetsView/AssetsView.NET - The asset viewer program in this repo
+* The `Extra` namespace contains classes and extension methods that aren't in the original library. For example, `AssetsManager` helps manage loading multiple files and their dependencies and `AssetHelper`/`BundleHelper` contains many useful miscellaneous methods. If there is a function here, you should prefer it over initializing things yourself.
+* The `Standard` namespace contains classes and methods that are similar to the original library.
 
-Files (both assetstools and unity)
+The library is very low-level, and even with helper functions, some features still take a bit of boilerplate. However, you can pretty much edit anything and everything you want. Any asset type is supported, both in assets files and bundles, but making sense of it is up to you. For example, there is no code to "extract sprites", but you can see the fields that store that information.
 
-* cldb/Class Database - Stores info about how to deserialize assets
-* cltpk/tpk/Class Type Package - Stores multiple class databases
-* asset - Any data of an asset, not to be confused with "assets file"
-* .assets/assets file - Stores multiple assets and optionally a type tree
-* .unity3d/bundle file - Stores multiple .assets files
-* ggm/globalgamemanagers - Metadata for unity games
-* resources.assets - The file where assets built in the Resources folder go
-* level file - Gameobjects and components go here
-* sharedassets file - Gameobjects shared across scenes and other non-scene specific assets like materials go here
+### Getting started
 
-## Basic usage of AssetsTools.NET
+To help write code, you'll want to open the file you want to read/write in a tool like AssetsView.NET (in this repo) so you can see what assets have what fields.
 
-AssetsTools is separated into two parts, `Standard` and `Extra`. Standard classes come with UABE's AssetsTools. `Extra` classes are unique to AssetsTools.NET. The two most important classes in `Extra` are `AssetsManager` and `MonoDeserializer`. Other than that, the difference between AssetsTools and AssetsTools.NET is not much different.
+### Read an assets file
 
-It is recommended to use `AssetsManager` for most cases unless you only need to read/write one assets file and it's a simple task.
-
-### Assets file reading
-
-To load an assets file, you can use `LoadAssetsFile(string assetPath, bool loadDependencies)` to get an `AssetsFileInstance`:
+Here's a full example to read all name strings from all `GameObject`s from resources.assets.
 
 ```cs
 var am = new AssetsManager(); 
 var inst = am.LoadAssetsFile("resources.assets", true);
-```
 
-See the bottom for how to load asset bundles (usually `.unity3d`)
+am.LoadClassPackage("classdata.tpk");
+am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 
-An `AssetsFileInstance` holds the `AssetsFile` and `AssetsFileTable` instances. The `AssetsFile` contains information about the version of the file, the `TypeTree` which may contain serialization data and other info on decoding assets, and the dependencies that the file needs (it may be easier to look in `AssetsFileInstance.dependencies` though). The `AssetsFileTable` is a table of information about assets like their path id, type id, and pointer in data.
-
-To get the info of an asset, if you know the path id, you can use `GetAssetInfo(long pathId)` to get an `AssetFileInfoEx`:
-
-```cs
-var table = inst.table;
-var inf = table.GetAssetInfo(1);
-```
-
-If you know the name you can use `GetAssetInfo(string name[, uint typeId])`:
-
-```cs
-//if you know there is only one asset by the name RocketShip, you don't need to search by type
-var inf1 = table.GetAssetInfo("RocketShip");
-//if there are multiple assets by the same name, you can use type to narrow it down
-var inf2 = table.GetAssetInfo("RocketShip", 0x01); //0x01 - GameObject type id
-```
-
-Otherwise, if you just want to loop through all assets or all assets of a specific type, you can use `assetFileInfo` or the extension method `GetAssetsOfType(int typeId)`:
-
-```cs
-foreach (var inf in table.assetFileInfo)
+foreach (var inf in inst.table.GetAssetsOfType((int)AssetClassID.GameObject))
 {
-    Console.WriteLine($"{inf.index} {inf.absoluteFilePos}");
+    var baseField = am.GetTypeInstance(inst, inf).GetBaseField();
+    
+    var name = baseField.Get("m_Name").GetValue().AsString();
+    Console.WriteLine(name);
 }
-foreach (var inf in table.GetAssetsOfType(0x01))
-{
-    Console.WriteLine($"{inf.index} {inf.absoluteFilePos}");
-}
+
+am.UnloadAllAssetsFiles();
 ```
 
-### Serialized data loading
+Below will go into more about what each part does.
 
-Once you have the info for an asset, you can start to get the serialized data of it. For the library to understand how to deserialize the fields, it needs a class database or a type tree. Class databases and type trees are basically the same thing, so they convert their fields into shared format, `AssetTypeTemplateField`s.
+#### Load assets file
 
-Unity usually puts type trees in bundles, but for assets files in built games there isn't a type tree, so a class database is needed. UABE has class databases (dat files) stored in the class package file (classdata.tpk). If you are targeting multiple unity versions, you can use `AssetsManager`'s `LoadClassDatabaseFromPackage`:
+To load an assets file, use the `LoadAssetsFile` method with an `AssetsManager`.
+
+```cs
+var am = new AssetsManager(); 
+var inst = am.LoadAssetsFile("resources.assets", true); //true = load dependencies
+```
+
+`LoadAssetsFile` returns an `AssetsFileInstance` which is a wrapper for two classes.
+
+* `AssetsFile` contains file version info, the type tree for storing info about asset types, and a list of dependencies. Most of the time, you should just use the dependencies list in `AssetsFileInstance`.
+* `AssetsFileTable` which is a list of `AssetFileInfoEx`s which contain pointers to the raw data in file and more.
+
+You can think of `Standard` classes like `AssetsFile` and `AssetsFileTable` as structs directly representing the file format and `AssetsManager` classes like `AssetsFileInstance` as classes that help linking files together.
+
+#### Load class database
+
+Before going any further, type information needs to be loaded. This only applies to assets files and not bundles, which usually have type trees. The `classdata.tpk` file, which you can get from the releases page, contains type info that isn't included assets files. For more information about this file, see the classdata info section below.
 
 ```cs
 am.LoadClassPackage("classdata.tpk");
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 ```
 
-Or if you know you're using a specific version, you can use one specific class database instead.
+#### Get asset info
+
+Before we starting reading an asset, we need to look through the asset info table. Asset infos contain information such as the size of the asset, the position in the file, and the type of asset it is. There are many ways to get asset infos depending on what you're doing.
+
+If you want to load a single asset by asset id or name, you can use `inst.table.GetAssetInfo()`.
 
 ```cs
-am.LoadClassDatabase("2018.3.0f2.dat");
+var table = inst.table;
+//if you know there is only one asset by the name RocketShip, you don't need to search by type
+var inf1 = table.GetAssetInfo("RocketShip");
+//if there are multiple assets by the same name, you can use type to narrow it down
+var inf2 = table.GetAssetInfo("RocketShip", (int)AssetClassID.GameObject);
+//if you want to get an asset by id (not recommended since they change over versions)
+var inf3 = table.GetAssetInfo(428);
 ```
 
-You can find [more info](#extracting-classdatatpk-and-cldbdat) about how to get these from UABE at the bottom.
-
-With a loaded class database, you can finally use `GetTypeInstance(AssetsFile file, AssetFileInfoEx info[, fromTypeTree])` to read the values from the asset:
+If you want to load all asset infos, loop over `inst.table.assetFileInfo`.
 
 ```cs
-var inf = table.GetAssetInfo("Pineapple");
-//AssetTypeInstance isn't too useful, so we go directly into the base field
-var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
+var table = inst.table;
+foreach (var inf in table.assetFileInfo)
+{
+    //...
+}
 ```
 
-The base field is the first field of a serialized asset. From there, you can use `Get(string name)`, `Get(int index)`, or `[int index]` to get child fields. You can use `GetValue()` to get the value of the field and `AsXXX()` to convert it to a .net type.
+Or if you want to load assets of a certain type, use `inst.table.GetAssetsOfType()`.
 
 ```cs
-//example for a GameObject
-var m_Name = baseField.Get("m_Name")
-                      .GetValue()
-                      .AsString();
-Console.WriteLine("gameobject's name is " + m_Name);
+var table = inst.table;
+foreach (var inf in table.GetAssetsOfType((int)AssetClassID.GameObject))
+{
+    //...
+}
 ```
 
-The AssetTypeInstance only has one basefield, the field we opened. To view the data of another asset referenced by this asset, you can use `GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf[, bool onlyGetInfo])`
+You can get an asset's type id from the Type field in UABE or right click -> Properties menu in AssetsView.
+
+#### Reading the asset's fields
+
+Once you've done that, you will probably want to deserialize the asset. To do this, use `AssetManager`'s `GetTypeInstance` method, then call `GetBaseField` on that.
 
 ```cs
-//example for a GameObject
-var componentArray = baseField.Get("m_Component").Get("Array");
+var baseField = am.GetTypeInstance(inst, inf).GetBaseField();
+```
+
+Now you can browse the fields in this asset as if it were json. Use `Get` to get children fields and `GetValue` to get the actual value of field if it has one.
+
+```cs
+var m_Name = baseField.Get("m_Name").GetValue().AsString();
+```
+
+If you prefer the syntax, `[]` is supported as well.
+
+```cs
+var m_Name = baseField["m_Name"].value.AsString();
+```
+
+Arrays (or regular fields) can be iterated by `field.GetChildrenList()`.
+
+```cs
+var names = baseField.Get("names");
+foreach (var name in names.GetChildrenList())
+{
+    var nameStr = name.GetValue().AsString();
+}
+```
+
+#### Following asset pointers
+
+You'll probably come across a PPtr field, a pointer to another asset that you might want to follow. Because assets can sometimes be in different files, it is best to use `am.GetExtAsset()` rather than `table.GetAssetInfo()` and `am.GetTypeInstance()` . `GetExtAsset` also returns the file it came from and the info of the asset in case you don't know the file or the type of the asset you're reading.
+
+For example, if you wanted to get the Transform attached to a GameObject, you could use `GetExtAsset`.
+
+```cs
+var componentArray = gameObjectBf.Get("m_Component").Get("Array");
 //get first component in gameobject, which is always transform
 var transformRef = componentArray[0].Get("component");
 var transform = am.GetExtAsset(instance, transformRef);
 var transformBf = transform.instance.GetBaseField();
+//... do something with transform fields
 ```
 
-Set `onlyGetInfo` if you only want the asset info without reading the serialized data. You may want to do this if you want to only read a specific type which is much faster than reading all of the types you don't need to read.
+### Write an assets file
 
-### MonoBehaviour loading
+Writing assets files is a bit tricky. Instead of just saving the modified assets file, you must pass in changes you make when you write.
 
-Reading MonoBehaviours are a little different because the information for deserialization is stored in assemblies in the Managed folder, rather than the class database file. (Bundles will usually have a type tree with MonoBehaviours)
-
-```cs
-//example for a GameObject
-var componentArray = baseField.Get("m_Component").Get("Array");
-var startMenuRef = componentArray[1].Get("component");
-var startMenu = am.GetExtAsset(instance, transformRef);
-var managedFolderPath = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
-var startMenuBf = MonoDeserializer.GetMonoBaseField(am, inst, startMenu.info, managedFolderPath);
-```
-
-You can also use `AssetsManager.GetMonoBaseFieldCached` to cache types that take long to load, however, with the speed improvements `MonoDeserializer` has now, it may not be needed.
-
-### Assets file writing
-
-To modify an assets file, edit the values with `Set(object value)`, get the bytes with `WriteToByteArray()`, create an `AssetsReplacer`, and call `Write(AssetsFileWriter writer, AssetsReplacer[] replacers)` on the `AssetsFile`:
+First, make the changes to fields you want to fields with `field.GetValue().Set()`. Then, call `WriteToByteArray()` on the base field to get the new raw bytes of the asset. To save the new changes back to an assets file, create an `AssetsReplacer` and pass it to the assets file's `Write` method.
 
 ```cs
-//example for a GameObject
 var am = new AssetsManager();
 am.LoadClassPackage("classdata.tpk");
 
+//true to load dependencies. if you know you're only
+//reading this one asset, you can set to false to
+//speed things up a bit
 var inst = am.LoadAssetsFile("resources.assets", true);
+//load correct class database for this unity version
 am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 
-var inf = inst.table.GetAssetInfo("MyBoringAsset");
-var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
-baseField.Get("m_Name")
-         .GetValue()
-         .Set("MyCoolAsset");
+var inf = inst.table.GetAssetInfo("MyBoringGameObject");
+
+var baseField = am.GetTypeInstance(inst, inf).GetBaseField();
+baseField.Get("m_Name").GetValue().Set("MyCoolGameObject");
 var newGoBytes = baseField.WriteToByteArray();
-//AssetsReplacerFromMemory's monoScriptIndex should always be 0xFFFF unless it's a MonoBehaviour
-var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
-var writer = new AssetsFileWriter(File.OpenWrite("resources-modified.assets"));
-inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+
+var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xffff, newGoBytes);
+
+using (var stream = File.OpenWrite("resources-modified.assets"))
+using (var writer = new AssetsFileWriter(stream))
+{
+	inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+}
+
+am.UnloadAllAssetsFiles();
 ```
 
-Once you write changes to a file, you will need to reopen the file to see the changes.
+The constructor for `AssetsReplacer`s take a monoScriptIndex parameter. If you won't be touching `MonoBehaviour` assets, leave this as `0xffff` like in this example (no script id) as a shortcut. If you are editing `MonoBehaviour`s, use `AssetHelper.GetScriptIndex()` to get the correct script index. More information about this in the MonoBehaviour reading/writing section.
 
-### Value building
+### Value builder (add assets/fields)
 
-(Not fully tested yet)
-
-With the above example, you can change the value of existing fields, but you can't add new fields (like to add to an array or create an asset from scratch.) To do that, you can use the `ValueBuilder` which let's you create blank `AssetTypeValueField`s from `AssetTypeTemplateField`s.
+With the above examples, you can change the value of existing fields, but you can't add new fields (like to add to an array or create an asset from scratch.) To do that, you can use the `ValueBuilder` which lets you create blank `AssetTypeValueField`s from `AssetTypeTemplateField`s.
 
 #### Set array items
 
@@ -224,8 +244,15 @@ componentArray.SetChildrenList(componentArray.children.Concat(newChildren));
 ```cs
 //example for TextAsset
 var templateField = new AssetTypeTemplateField();
+
+//if from an assets file, use the class database
 var cldbType = AssetHelper.FindAssetClassByName(am.classFile, "TextAsset");
 templateField.FromClassDatabase(am.classFile, cldbType, 0);
+
+//if from a bundle, use the type tree (more on this in the bundle loading section below)
+//var ttType = AssetHelper.FindTypeTreeTypeByName(inst.file.typeTree, "TextAsset");
+//templateField.From0D(ttType, 0);
+
 var baseField = ValueBuilder.DefaultValueFieldFromTemplate(templateField);
 baseField.Get("m_Name").GetValue().Set("MyCoolTextAsset");
 baseField.Get("m_Script").GetValue().Set("I have some sick text");
@@ -235,40 +262,48 @@ replacers.Add(new AssetsReplacerFromMemory(0, nextAssetId, cldbType.classId, 0xf
 //... do other replacer stuff
 ```
 
-Currently, there is no way to get just a template field of a MonoBehaviour, so you won't be able to create MonoBehaviours from scratch yet. (You can read an existing MonoBehaviour with MonoDeserializer and do `.templateField` on it, but that's a bit of a hack.)
+### Read a bundle file
 
-### Bundle file loading
-
-Bundles are files that can hold multiple assets files. Sometimes they only hold one, but usually the assets file inside has a real type tree rather than just the list of types most assets files have. Bundles can be read with the bundle loader in `AssetsManager`.
+Use `am.LoadBundleFile()` to load bundles and `am.LoadAssetsFileFromBundle()` to load assets files.
 
 ```cs
 var am = new AssetsManager();
 var bun = am.LoadBundleFile("bundle.unity3d");
-var firstAssetsFile = am.LoadAssetsFileFromBundle(bun, 0); //or use name instead
-//...
+
+//load first asset from bundle
+var assetInst = am.LoadAssetsFileFromBundle(bun, 0, true);
+//if you're not sure the asset you want is first,
+//iterate over bun.file.bundleInf6.dirInf[x].name
+//(i.e. skip files that end with .resS/.resource)
 ```
 
-If you don't want to use `AssetsManager`, you'll need to check for compression and unpack it if it needs to be decompressed.
+If you want data files in the bundle like .resS or .resource, use `BundleHelper.LoadAssetDataFromBundle()` to get a byte array of that file.
+
+If you want to read the files listing in a bundle but don't want to decompress the entire file yet, use `BundleHelper.UnpackInfoOnly()` to decompress only the file listing info block. Make sure to call `am.LoadBundleFile()` with `unpackIfPacked` set to false.
+
+#### Notes
+
+1. Unity usually packs type information into bundles. That means you probably won't have to load class package files (classdata.tpk). There are exceptions, but most of the time you won't have to worry about it. Check `assetInst.file.typeTree.hasTypeTree` if you're not sure.
+2. If you are loading a huge bundle, consider writing it to file first.
 
 ```cs
-var bun = new AssetBundleFile();
-bun.Read(new AssetsFileReader(stream), true);
-if (bun.bundleHeader6.GetCompressionType() != 0)
-{
-    bun = BundleHelper.UnpackBundle(bun);
-}
+//set to false to prevent automatically decompressing to memory
+var bun = am.LoadBundleFile("bundle.unity3d", false);
+
+var bunDecompStream = File.OpenWrite("bun.decomp");
+//load new bundle file from newly written stream
+bun.file = BundleHelper.UnpackBundleToStream(bun.file, bunDecompStream);
 ```
 
-If you need to load binary entries such as .resS files in bundles, you can use `BundleHelper.LoadAssetDataFromBundle` to get a byte array.
+3. Do not iterate over `bun.loadedAssetsFiles` to find assets. This list contains _all loaded assets files_ (from when you call `am.LoadAssetsFileFromBundle()`) files from this bundle, not all files that are actually in the bundle. Instead, use either `am.LoadAssetsFileFromBundle()` or `BundleHelper.LoadAssetFromBundle()`.
 
-### Bundle file writing
+### Write a bundle file
 
-Bundle writing works similar to assets files where you use replacers to replaces files in the bundle.
+Bundle writing works similar to assets files where you use replacers to replace files in the bundle.
 
-Note that when you create a `BundleReplacer`, you have the option of renaming the asset in the bundle, or you can use the same name (or make newName null) to not rename the asset at all.
+Note that when you create a `BundleReplacer`, you have the option of renaming the asset in the bundle, or you can use the same name (or make `newName` null) to not rename the asset at all.
 
 ```cs
-//example for a GameObject
 var am = new AssetsManager();
 am.LoadClassPackage("classdata.tpk");
 
@@ -276,15 +311,16 @@ var bunInst = am.LoadBundleFile("boringbundle.unity3d");
 //read the boring file from the bundle
 var inst = am.LoadAssetsFileFromBundle(bunInst, "boring");
 
-am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+//load class database in the rare case this bundle has no type info
+if (!inst.file.typeTree.hasTypeTree)
+    am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
 
 var inf = inst.table.GetAssetInfo("MyBoringAsset");
-var baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
-baseField.Get("m_Name")
-         .GetValue()
-         .Set("MyCoolAsset");
+var baseField = am.GetTypeInstance(inst, inf).GetBaseField();
+baseField.Get("m_Name").GetValue().Set("MyCoolAsset");
+
 var newGoBytes = baseField.WriteToByteArray();
-var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xFFFF, newGoBytes);
+var repl = new AssetsReplacerFromMemory(0, inf.index, (int)inf.curFileType, 0xffff, newGoBytes);
 
 //write changes to memory
 byte[] newAssetData;
@@ -295,14 +331,14 @@ using (var writer = new AssetsFileWriter(stream))
     newAssetData = stream.ToArray();
 }
 
-//rename this asset name from boring to cool
+//rename this asset name from boring to cool when saving
 var bunRepl = new BundleReplacerFromMemory("boring", "cool", true, newAssetData, -1);
 
 var bunWriter = new AssetsFileWriter(File.OpenWrite("coolbundle.unity3d"));
 bunInst.file.Write(bunWriter, new List<BundleReplacer>() { bunRepl });
 ```
 
-### Bundle file packing
+### Compress a bundle file
 
 You can also compress a bundle with LZMA or LZ4.
 
@@ -316,28 +352,186 @@ using (var writer = new AssetsFileWriter(stream))
 }
 ```
 
-### Loading textures
+The packers are using managed implementations so they may be slow (especially LZMA, whose c# implementation hasn't been updated in years). You may want to find a way to use native libraries instead.
 
-Texture2Ds can contain data in many different kinds of compression types. AssetsTools.NET is meant to be portable and doesn't rely on any native libraries or use any unsafe code. As a result, the Texture2D decoder won't be 100% as fast as the native versions, however, they are fast enough for most tasks (85%-95% of native speed, depending on compression method.) If you know how to, you can always hook up a native library for extra speed using the data from resS or the data byte array.
+### Bundle creator (create assets/bundle files) (todo)
 
-Supported formats:
+You can create a new assets file or bundle file with `BundleCreator`.
 
-* R8
-* R16
-* RG16
-* RGB24
-* RGBA32
-* ARGB32
-* RGBA4444
-* ARGB4444
-* Alpha8
-* DXT1
-* DXT5
-* BC7
-* ETC1
-* ETC2
+### Creating assets file
 
-In the future I'll be adding more formats but these should be good for most games.
+```cs
+var am = new AssetsManager();
+var ms = new MemoryStream();
+
+var engineVer = "2019.4.18f1";
+var formatVer = 0x15;
+var typeTreeVer = 0x13;
+
+BundleCreator.CreateAssetsFile(ms, engineVer, formatVer, typeTreeVer);
+ms.Position = 0;
+var inst = am.LoadAssetsFile(ms, "fakefilepath.assets", false);
+//...
+```
+
+To figure out the unity version string and format number for your game, open an assets file or bundle in AssetsView and open the Info->View Current Assets File Info menu item.
+
+### Creating bundle file
+
+The process for bundles is pretty much the same, just use `BundleCreator.CreateBundleFile`. Note that since the type tree is empty, you will have to add types from the class database to the bundle.
+
+```cs
+... todo
+```
+
+### Reading a MonoBehaviour
+
+If you are reading a bundle file, most likely you can use the normal methods to read MonoBehaviours and skip this section. However, if you are reading an assets file or bundle with no type info, AssetsTools.NET needs to use the game's assemblies to deserialize MonoBehaviours. Only managed mono assemblies are read, so if your game uses il2cpp, you will need to dump the game's assemblies with il2cppdumper.
+
+```cs
+var managedFolder = Path.Combine(Path.GetDirectoryName(fileInst.path), "Managed");
+var monoBf = MonoDeserializer.GetMonoBaseField(am, fileInst, monoInf, managedFolder);
+```
+
+If you are using a bundle with type info, `GetTypeInstance()` or `GetExtAsset()` will work fine without this.
+
+### Writing a MonoBehaviour
+
+If you are adding a MonoBehaviour to a replacer, you'll need to give the replacer a mono id. Each unique script gets a unique mono id per file. For example, all MonoBehaviours using Script1.cs will be mono id 0 and all MonoBehaviours using Script2.cs will be mono id 1. To figure out which mono id your asset is, use `AssetHelper.GetScriptIndex()`.
+
+```cs
+var repl = new AssetsReplacerFromMemory(
+    0, monoBehaviourInf.index, (int)monoInf.curFileType,
+    AssetHelper.GetScriptIndex(inst.file, monoInf), newMonoBytes
+);
+```
+
+### Full MonoBehaviour writing example
+
+```cs
+//example for finding a specific script and modifying the script on a GameObject
+var playerInf = inst.table.GetAssetInfo("PlayerObject");
+var playerBf = am.GetTypeInstance(inst, playerInf).GetBaseField();
+var playerComponentArr = playerBf.Get("m_Component").Get("Array");
+
+AssetFileInfoEx monoBehaviourInf = null;
+AssetTypeValueField monoBehaviourBf = null;
+//first let's search for the MonoBehaviour we want in a GameObject
+for (var i = 0; i < playerComponentArr.GetChildrenCount(); i++)
+{
+    //get component info (but don't deserialize yet, loading assets we don't need is wasteful)
+    var childPtr = playerComponentArr[i].Get("component");
+    var childExt = am.GetExtAsset(inst, childPtr, true);
+    var childInf = childExt.info;
+    
+    //skip if not MonoBehaviour
+    if (childInf.curFileType != (uint)AssetClassID.MonoBehaviour)
+        continue;
+    
+    //we found a MonoBehaviour, so let's check the MonoScript for its class name
+    
+    //actually deserialize the MonoBehaviour asset now
+    childExt = am.GetExtAsset(inst, playerComponentArr[i], false);
+    var childBf = childExt.instance.GetBaseField();
+    var monoScriptPtr = childBf.Get("m_Script");
+    
+    //get MonoScript from MonoBehaviour
+    var monoScriptExt = am.GetExtAsset(childExt.file, monoScriptPtr);
+    var monoScriptBf = monoScriptExt.instance.GetBaseField();
+    
+    var className = monoScriptBf.Get("m_ClassName").GetValue().AsString();
+    if (className == "SuperEpicScript")
+    {
+        //we found the super epic script! now we can edit it
+        monoBehaviourInf = childInf;
+        monoBehaviourBf = childBf;
+        break;
+    }
+}
+
+if (monoBehaviourInf == null)
+    throw new Exception("couldn't find SuperEpicScript on this GameObject");
+
+//load MonoBehaviour fields on top of regular fields
+var managedFolder = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
+monoBehaviourBf = MonoDeserializer.GetMonoBaseField(am, inst, monoBehaviourInf, managedFolder);
+
+//change runSpeed field
+monoBehaviourBf.Get("runSpeed").GetValue().Set(20f);
+
+var newMonoBytes = monoBehaviourBf.WriteToByteArray();
+var repl = new AssetsReplacerFromMemory(
+    0, monoBehaviourInf.index, (int)monoBehaviourInf.curFileType,
+    AssetHelper.GetScriptIndex(inst.file, monoBehaviourInf),
+    newMonoBytes
+);
+
+using (var stream = File.OpenWrite("resources-modified.assets"))
+using (var writer = new AssetsFileWriter(stream))
+{
+	inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+}
+
+am.UnloadAllAssetsFiles();
+```
+
+### Reading asset paths from resources.assets and bundles
+
+This isn't a feature of the library, but it may be helpful to know. Some assets such as resources assets have full paths rather than just names. UABE shows these paths in the Container column.
+
+#### resources.assets
+
+Open `globalgamemanagers` and check the `ResourceManager` asset and its `m_Container` list.
+
+```cs
+var am = new AssetsManager();
+am.LoadClassPackage("classdata.tpk");
+
+var ggm = am.LoadAssetsFile("globalgamemanagers", true);
+am.LoadClassDatabaseFromPackage(ggm.file.typeTree.unityVersion);
+
+var rsrcInfo = ggm.table.GetAssetsOfType((int)AssetClassID.ResourceManager)[0];
+var rsrcBf = am.GetTypeInstance(ggm, rsrcInfo).GetBaseField();
+
+var m_Container = rsrcBf.Get("m_Container").Get("Array");
+
+foreach (var data in m_Container.children)
+{
+    var name = data[0].GetValue().AsString();
+    var pathId = data[1].Get("m_PathID").GetValue().AsInt64();
+
+    Console.WriteLine($"in resources.assets, pathid {pathId} = {name}");
+}
+```
+
+This helps you give full paths to assets in resources.assets.
+
+#### Bundles
+
+Bundles are much the same, but in the `AssetBundle` asset (usually at path id 1).
+
+```cs
+var am = new AssetsManager();
+
+var bun = am.LoadBundleFile("bundle.unity3d");
+var assetInst = am.LoadAssetsFileFromBundle(bun, 0, true);
+
+var abInfo = assetInst.table.GetAssetsOfType((int)AssetClassID.AssetBundle)[0];
+var abBf = am.GetTypeInstance(assetInst, rsrcInfo).GetBaseField();
+
+var m_Container = abBf.Get("m_Container").Get("Array");
+foreach (var data in m_Container.children)
+{
+    var name = data[0].GetValue().AsString();
+    var pathId = data[1].Get("asset").Get("m_PathID").GetValue().AsInt64();
+
+    Console.WriteLine($"in this bundle, pathid {pathId} = {name}");
+}
+```
+
+### Exporting a Texture2D
+
+AssetsTools.NET is fully managed and uses no native libraries to be portable. Most texture encoding/decoding libraries are written in c++, so using existing libraries was not an option. Some of the [detex](https://github.com/hglm/detex/) texture decoding code has been ported to c# (DXT1/DXT5/BC7/ETC1/ETC2) along with the RGBA formats. That means that decoding formats like ASTC and encoding any formats is not supported. If you are looking for a way to decode these formats, AssetStudio has a great (almost) no-dependencies native solution (Texture2DDecoderNative) and if you need encoding, see UABEA (TexToolWrap) but it uses dependencies.
 
 The output of these are in BGRA which makes it easy to use Format32bppArgb with System.Drawing's bitmaps. Here's a quick and dirty way to implement that:
 
@@ -358,49 +552,31 @@ if (texDat != null && texDat.Length > 0)
 }
 ```
 
-Note that the original AssetsTools uses RGBA output instead of BGRA output. In the future I'll probably add a flag to support choosing which order the output is in.
+Note that the original AssetsTools uses RGBA output instead of BGRA output. There is currently no way to output in RGBA at the moment, so you'll just need to swap the r and b bytes yourself for now.
 
-If you're parsing the texture manually or have the bytes some other way, you can use TextureFile.GetTextureDataFromBytes to decode a texture from bytes, a texture format, and size without having to create a TextureFile manually.
+If you're parsing the texture manually or have the bytes some other way, you can use `TextureFile.GetTextureDataFromBytes` to decode a texture from bytes, a texture format, and size without having to create a TextureFile manually.
 
-### Extracting classdata.tpk and cldb.dat
+### Class database
 
-The easiest way to get a classdata.tpk is to download it from the zip in the releases section.
+All assets are deserialized using a class database (.dat). Each class database includes all fields of most types from a minor release of unity (2018.1, 2018.2, etc.) All supported unity databases are stored in a class package (.tpk). There are updated class packages in the release zips.
 
-The original UABE comes with a classdata.tpk that you can use with this library. However, some newer types are missing (2019.3+). To get a cldb.dat (classdata snapshot for one unity version), you can do so from the `Options->Edit Type Package` dialog in UABE.
+#### Licensing
 
-## Hmms 🤔
+All versions up to 2019.3 are from UABE's original classdata.tpk file which is included under the BY-NC-SA license which is non-commercial. All versions starting at 2019.4 and up come from TypeTreeDumper.
 
-### Why does AssetsView.NET or my program with AssetsTools.NET crash when reading a specific type
+I personally include the tpk in the release of the program and mention it being under BY-NC-SA. If you know the game you are using is 2019.4 and up, you can remove the older versions in UABE's type package editor and you won't have to worry about it. If you're using older unity versions and you don't want to chance it, it may be better to ask the user to [manually download the tpk themselves](https://github.com/DerPopo/UABE/files/4618273/classdata.with.2019.3.9.fix.zip) or create your own cldb with [TypeTreeDumper](https://github.com/DaZombieKiller/TypeTreeDumper). But IANAL, and I don't exactly know what the rules are with including it with differently licensed software.
 
-Most likely a minor version update changed a field or two and broke the reader. You can check if that's the issue by attempting to open the asset in UABE. If it shows up blank or shows an error message, that's probably the issue. There's not much you can do unless you can generate a new cldb somehow or reading the asset manually with the `AssetsFileReader`.
+If you're wondering "why not just use AssetStudio's code", it's for two big reasons. AssetStudio's code is hardcoded c# that would be hard to port over to AssetsTools' format. Also, AssetStudio supports a smaller number of types (~40 at time of writing) vs over 200 of AssetsTools' that can easily be generated for new versions.
 
-### Does AssetsTools.NET work for versions below Unity 5.5
+### Noooo it's not working!!
 
-Unity versions 5.0-5.4 are in testing at the moment. If you have a problem with reading/writing drop an issue so we can fix it.
-
-### Does the library have a way to extract assets
-
-Extracting assets into non-serialized formats (like `obj`s, `wav`s, etc.) is not supported by the library. I have no plan to write any extractors for them as they are not part of the original library, and as mentioned, there are already other tools that can do that.
-
-### Do I need Mono.Cecil
-
-Only if you're using MonoDeserializer.
-
-### Some other issue or need help
-
-Create a github issue and I will try to get back to you when I can.
+If you're experiencing crashes, it could be many things. If it crashes on file open, the format version may be too new or it could be encrypted (check AssetStudio to see if it can load the file). If it crashes on asset deserialization, a minor unity version may have changed an asset and you'll have to figure out what changed on your own (again, check with AssetStudio to see if it can open the asset). If you have any questions, open an issue or ask on the discord.
 
 # AssetsView
 
 AssetsView is a viewer for assets files. Rather than being targeted toward extracting assets, AssetsView can view the raw data of assets. It improves on UABE by being easier to navigate with gameobject tree views and much more.
 
 ![AssetsView](https://user-images.githubusercontent.com/12544505/73774729-1f823380-474a-11ea-8e14-ce89691e63df.png)
-
-## Hmms 🤔
-
-### "Can't display monobehaviour data until dependencies are loaded"?
-
-Run File->Update Dependencies. This check is just there to make sure that the script that the MonoBehaviour needs can be loaded. Eventually, you would only need to load the file that has the script file. For bundles that have type trees (most likely), you can safely ignore this message for now.
 
 ### Follow Reference button in GameObject Viewer?
 

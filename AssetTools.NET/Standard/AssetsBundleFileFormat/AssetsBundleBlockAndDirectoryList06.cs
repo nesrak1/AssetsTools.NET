@@ -9,7 +9,6 @@
         public int directoryCount;
         public AssetBundleDirectoryInfo06[] dirInf;
 
-        ///void Free();
         public void Read(long filePos, AssetsFileReader reader)
         {
             reader.Position = filePos;

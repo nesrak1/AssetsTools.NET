@@ -12,7 +12,7 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetBundleFile file;
-        public List<AssetsFileInstance> assetsFiles;
+        public List<AssetsFileInstance> loadedAssetsFiles;
 
         public BundleFileInstance(Stream stream, string filePath, string root, bool unpackIfPacked)
         {
@@ -25,7 +25,7 @@ namespace AssetsTools.NET.Extra
             {
                 file = BundleHelper.UnpackBundle(file);
             }
-            assetsFiles = new List<AssetsFileInstance>();
+            loadedAssetsFiles = new List<AssetsFileInstance>();
         }
         public BundleFileInstance(FileStream stream, string root, bool unpackIfPacked)
         {
@@ -38,7 +38,7 @@ namespace AssetsTools.NET.Extra
             {
                 file = BundleHelper.UnpackBundle(file);
             }
-            assetsFiles = new List<AssetsFileInstance>();
+            loadedAssetsFiles = new List<AssetsFileInstance>();
         }
     }
 }

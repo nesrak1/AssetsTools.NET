@@ -463,7 +463,9 @@ namespace AssetsView.Winforms
             {
                 var selRow = assetList.SelectedRows[0];
                 AssetFileInfoEx info = currentFile.table.GetAssetInfo((long)selRow.Cells[3].Value);
-                AssetTypeValueField baseField = helper.GetTypeInstance(currentFile.file, info).GetBaseField();
+                //THIS IS JUST TEST PLEASE DON'T LEAVE THIS HERE
+                AssetTypeValueField baseField = helper.GetExtAsset(currentFile, 0, info.index).instance.GetBaseField();
+                //AssetTypeValueField baseField = helper.GetTypeInstance(currentFile.file, info).GetBaseField();
 
                 TextureViewer texView = new TextureViewer(currentFile, baseField);
                 texView.Show();

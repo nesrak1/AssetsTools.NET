@@ -46,7 +46,7 @@ namespace AssetsView.Winforms
                     AssetBundleDirectoryInfo06 info = dirInf[i];
                     if (info.name == searchPath)
                     {
-                        reader.Position = bundle.bundleHeader6.GetFileDataOffset() + info.offset + streamInfo.offset;
+                        reader.Position = bundle.bundleHeader6.GetFileDataOffset() + info.offset + (long)streamInfo.offset;
                         tf.pictureData = reader.ReadBytes((int)streamInfo.size);
                         tf.m_StreamData.offset = 0;
                         tf.m_StreamData.size = 0;

@@ -54,7 +54,5 @@ namespace AssetsTools.NET
                 writer.WriteUInt24(dwUnknown);
             }
         }
-
-        ///public void Clear();
     }
 }

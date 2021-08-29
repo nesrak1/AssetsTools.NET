@@ -15,8 +15,6 @@
         public uint unknown2;
         public byte unknown3;
 
-        ///public bool Read(AssetsFileReader reader, LPARAM lPar, AssetsFileVerifyLogger errorLogger = NULL);
-        ///public bool Write(AssetsFileWriter writer, LPARAM lPar, QWORD &curFilePos, AssetsFileVerifyLogger errorLogger = NULL);
         public uint bundleCount;
     }
 }

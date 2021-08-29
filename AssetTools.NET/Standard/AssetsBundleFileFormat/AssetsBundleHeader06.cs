@@ -11,7 +11,6 @@
         public uint decompressedSize;
         public uint flags;
 
-        ///public bool ReadInitial(AssetsFileReader reader, LPARAM lPar, AssetsFileVerifyLogger errorLogger = NULL);
         public void Read(AssetsFileReader reader)
         {
             reader.bigEndian = true;

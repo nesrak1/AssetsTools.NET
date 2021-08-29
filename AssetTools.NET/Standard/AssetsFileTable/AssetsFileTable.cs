@@ -21,8 +21,8 @@ namespace AssetsTools.NET
             reader = file.reader;
             readerPar = file.readerPar;
             reader.bigEndian = file.header.endianness == 1 ? true : false;
-            reader.BaseStream.Position = file.AssetTablePos;
-            assetFileInfoCount = file.AssetCount;
+            reader.BaseStream.Position = file.assetTablePos;
+            assetFileInfoCount = file.assetCount;
             assetFileInfo = new AssetFileInfoEx[assetFileInfoCount];
             for (int i = 0; i < assetFileInfoCount; i++)
             {

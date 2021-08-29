@@ -20,8 +20,6 @@
         }
         public AssetTypeInstance(AssetTypeTemplateField baseField, AssetsFileReader reader, long filePos)
             : this(new[] { baseField }, reader, filePos) { }
-        ///public bool SetChildList(AssetTypeValueField valueField, AssetTypeValueField[] childrenList, uint childrenCount, bool freeMemory = true);
-        ///public bool AddTempMemory(byte[] memory);
 
         public static AssetTypeValueField GetDummyAssetTypeField()
         {

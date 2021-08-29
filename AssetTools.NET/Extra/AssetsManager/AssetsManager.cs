@@ -135,7 +135,7 @@ namespace AssetsTools.NET.Extra
                 BundleFileInstance bunInst = bundles[index];
                 bunInst.file.Close();
 
-                foreach (AssetsFileInstance assetsInst in bunInst.assetsFiles)
+                foreach (AssetsFileInstance assetsInst in bunInst.loadedAssetsFiles)
                 {
                     assetsInst.file.Close();
                 }
@@ -154,7 +154,7 @@ namespace AssetsTools.NET.Extra
                 {
                     bunInst.file.Close();
 
-                    foreach (AssetsFileInstance assetsInst in bunInst.assetsFiles)
+                    foreach (AssetsFileInstance assetsInst in bunInst.loadedAssetsFiles)
                     {
                         assetsInst.file.Close();
                     }
@@ -178,7 +178,7 @@ namespace AssetsTools.NET.Extra
                     byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
                     MemoryStream ms = new MemoryStream(assetData);
                     AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps, bunInst: bunInst);
-                    bunInst.assetsFiles.Add(assetsInst);
+                    bunInst.loadedAssetsFiles.Add(assetsInst);
                     return assetsInst;
                 }
             }

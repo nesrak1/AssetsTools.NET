@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetsTools.NET.Extra;
+using System;
 using System.IO;
 
 namespace AssetsTools.NET
@@ -59,9 +60,8 @@ namespace AssetsTools.NET
         }
         public override long Write(AssetsFileWriter writer)
         {
-            byte[] assetData = new byte[size];
-            stream.Read(assetData, (int)offset, (int)size);
-            writer.Write(assetData);
+            writer.BaseStream.Position = offset;
+            stream.CopyToCompat(writer.BaseStream, size);
             return writer.Position;
         }
         public override long WriteReplacer(AssetsFileWriter writer)
