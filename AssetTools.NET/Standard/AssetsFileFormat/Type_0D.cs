@@ -33,6 +33,7 @@ namespace AssetsTools.NET
             classId = reader.ReadInt32();
             if (version >= 0x10) unknown16_1 = reader.ReadByte();
             if (version >= 0x11) scriptIndex = reader.ReadUInt16();
+            else                 scriptIndex = 0xffff;
             if ((version < 0x11 && classId < 0) || (version >= 0x11 && classId == 0x72))
             {
                 scriptHash1 = reader.ReadUInt32();
@@ -72,7 +73,7 @@ namespace AssetsTools.NET
             writer.Write(classId);
             if (version >= 0x10) writer.Write(unknown16_1);
             if (version >= 0x11) writer.Write(scriptIndex);
-            if (classId == 0x72)
+            if ((version < 0x11 && classId < 0) || (version >= 0x11 && classId == 0x72))
             {
                 writer.Write(scriptHash1);
                 writer.Write(scriptHash2);

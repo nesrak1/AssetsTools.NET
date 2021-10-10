@@ -27,7 +27,7 @@ namespace AssetsTools.NET.Extra
             id = FixAudioID(id);
             foreach (ClassDatabaseType type in cldb.classes)
             {
-                if (type.classId == id)
+                if ((uint)type.classId == id)
                     return type;
             }
             return null;
@@ -47,7 +47,7 @@ namespace AssetsTools.NET.Extra
         {
             foreach (Type_0D type in typeTree.unity5Types)
             {
-                if (type.classId == id)
+                if ((uint)type.classId == id)
                     return type;
             }
             return null;
@@ -57,7 +57,11 @@ namespace AssetsTools.NET.Extra
         {
             foreach (Type_0D type in typeTree.unity5Types)
             {
-                if (type.classId == id && type.scriptIndex == scriptIndex)
+                //5.5+
+                if ((uint)type.classId == id && type.scriptIndex == scriptIndex)
+                    return type;
+                //5.4-
+                if (type.classId < 0 && id == 0x72 && (type.scriptIndex - 0x10000 == type.classId))
                     return type;
             }
             return null;
@@ -98,7 +102,10 @@ namespace AssetsTools.NET.Extra
 
             if (file.typeTree.hasTypeTree)
             {
-                Type_0D ttType = file.typeTree.unity5Types[info.curFileTypeOrIndex];
+                ushort scriptId = GetScriptIndex(file, info);
+
+                Type_0D ttType = FindTypeTreeTypeByID(file.typeTree, info.curFileType, scriptId);
+
                 string ttTypeName = ttType.typeFieldsEx[0].GetTypeString(ttType.stringTable);
                 if (ttType.typeFieldsEx.Length == 0) return type.name.GetString(cldb); //fallback to cldb
                 if (ttType.typeFieldsEx.Length > 1 && ttType.typeFieldsEx[1].GetNameString(ttType.stringTable) == "m_Name")
