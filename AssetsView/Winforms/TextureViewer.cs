@@ -117,8 +117,11 @@ namespace AssetsView.Winforms
 
         private void TextureViewer_FormClosed(object sender, FormClosedEventArgs e)
         {
-            image.Dispose();
-            loaded = false;
+            if (loaded && image != null)
+            {
+                image.Dispose();
+                loaded = false;
+            }
         }
 
         private void TextureViewer_Paint(object sender, PaintEventArgs e)
