@@ -203,6 +203,8 @@ namespace AssetsTools.NET
                     return RGBADecoders.ReadRG16(data, width, height);
                 case TextureFormat.RGB24:
                     return RGBADecoders.ReadRGB24(data, width, height);
+                case TextureFormat.RGB565:
+                    return RGBADecoders.ReadRGB565(data, width, height);
                 case TextureFormat.RGBA32:
                     return RGBADecoders.ReadRGBA32(data, width, height);
                 case TextureFormat.ARGB32:
