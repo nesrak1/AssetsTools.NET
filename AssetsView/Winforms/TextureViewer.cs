@@ -67,8 +67,15 @@ namespace AssetsView.Winforms
                 string fmtName = ((TextureFormat)tf.m_TextureFormat).ToString().Replace("_", " ");
                 Text = $"Texture Viewer [{fmtName}]";
 
-                image = new Bitmap(tf.m_Width, tf.m_Height, tf.m_Width * 4, PixelFormat.Format32bppArgb,
-                    Marshal.UnsafeAddrOfPinnedArrayElement(texDat, 0));
+                image = new Bitmap(tf.m_Width, tf.m_Height, PixelFormat.Format32bppArgb);
+
+                Rectangle rect = new Rectangle(0, 0, image.Width, image.Height);
+                BitmapData picData = image.LockBits(rect, ImageLockMode.ReadWrite, image.PixelFormat);
+                picData.Stride = tf.m_Width * 4;
+                IntPtr startAddr = picData.Scan0;
+                Marshal.Copy(texDat, 0, startAddr, texDat.Length);
+
+                image.UnlockBits(picData);
                 image.RotateFlip(RotateFlipType.RotateNoneFlipY);
 
                 x = 0;
@@ -106,6 +113,12 @@ namespace AssetsView.Winforms
             y = newImageY - oldImageY + y;
 
             Refresh();
+        }
+
+        private void TextureViewer_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            image.Dispose();
+            loaded = false;
         }
 
         private void TextureViewer_Paint(object sender, PaintEventArgs e)

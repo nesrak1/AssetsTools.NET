@@ -42,6 +42,7 @@
             this.Name = "TextureViewer";
             this.Text = "Texture Viewer";
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.TextureViewer_Paint);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.TextureViewer_FormClosed);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TextureViewer_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.TextureViewer_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.TextureViewer_MouseUp);
