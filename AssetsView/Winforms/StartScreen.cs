@@ -439,7 +439,7 @@ namespace AssetsView.Winforms
                 else
                 {
                     AssetFileInfoEx info = currentFile.table.GetAssetInfo((long)selRow.Cells[3].Value);
-                    ushort monoId = currentFile.file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
+                    ushort monoId = AssetHelper.GetScriptIndex(currentFile.file, info);
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.curFileType,
                         info.absoluteFilePos,
