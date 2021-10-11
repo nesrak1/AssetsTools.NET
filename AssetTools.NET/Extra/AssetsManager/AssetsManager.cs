@@ -167,17 +167,16 @@ namespace AssetsTools.NET.Extra
 
         public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, int index, bool loadDeps = false)
         {
-            var dirInf = bunInst.file.bundleInf6.dirInf[index];
-            string assetMemPath = Path.Combine(bunInst.path, dirInf.name);
+            string assetMemPath = Path.Combine(bunInst.path, bunInst.file.GetAssetsFileName(index));
 
             int listIndex = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(assetMemPath).ToLower());
             if (listIndex == -1)
             {
-                if (bunInst.file.IsAssetsFile(bunInst.file.reader, dirInf))
+                if (bunInst.file.IsAssetsFile(index))
                 {
-                    byte[] assetData = BundleHelper.LoadAssetDataFromBundle(bunInst.file, index);
-                    MemoryStream ms = new MemoryStream(assetData);
-                    AssetsFileInstance assetsInst = LoadAssetsFile(ms, assetMemPath, loadDeps, bunInst: bunInst);
+                    bunInst.file.GetAssetsFileRange(index, out long offset, out int length);
+                    SegmentStream stream = new SegmentStream(bunInst.stream, offset, length);
+                    AssetsFileInstance assetsInst = LoadAssetsFile(stream, assetMemPath, loadDeps, bunInst: bunInst);
                     bunInst.loadedAssetsFiles.Add(assetsInst);
                     return assetsInst;
                 }
@@ -188,6 +187,7 @@ namespace AssetsTools.NET.Extra
             }
             return null;
         }
+
         public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, string name, bool loadDeps = false)
         {
             var dirInf = bunInst.file.bundleInf6.dirInf;

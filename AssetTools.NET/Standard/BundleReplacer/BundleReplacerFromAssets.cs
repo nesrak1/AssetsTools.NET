@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
+using AssetsTools.NET.Extra;
 
 namespace AssetsTools.NET
 {
@@ -8,79 +7,46 @@ namespace AssetsTools.NET
     {
         private readonly string oldName;
         private readonly string newName;
-        private readonly List<AssetsReplacer> replacers;
-        private readonly uint fileId;
-        private readonly int bundleListIndex;
         private AssetsFile assetsFile;
-        private ClassDatabaseFile typeMeta;
+        private readonly List<AssetsReplacer> assetReplacers;
 
-        public BundleReplacerFromAssets(string oldName, string newName, AssetsFile assetsFile, List<AssetsReplacer> replacers, uint fileId, int bundleListIndex = -1)
+        public BundleReplacerFromAssets(string oldName, string newName, AssetsFile assetsFile, List<AssetsReplacer> assetReplacers, uint fileId = 0, int bundleListIndex = -1)
         {
             this.oldName = oldName;
-            if (newName == null)
-                this.newName = oldName;
-            else
-                this.newName = newName;
+            this.newName = newName ?? oldName;
             this.assetsFile = assetsFile;
-            this.replacers = replacers;
-            this.fileId = fileId;
-            this.bundleListIndex = bundleListIndex;
+            this.assetReplacers = assetReplacers;
         }
+
         public override BundleReplacementType GetReplacementType()
         {
             return BundleReplacementType.AddOrModify;
         }
-        public override int GetBundleListIndex()
-        {
-            return bundleListIndex;
-        }
+
         public override string GetOriginalEntryName()
         {
             return oldName;
         }
+
         public override string GetEntryName()
         {
             return newName;
         }
-        public override long GetSize()
-        {
-            return -1; //todo
-        }
-        public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
-        {
-            if (assetsFile != null)
-                return false;
 
-            this.typeMeta = typeMeta;
-
-            entryReader.Position = entryPos;
-            //memorystream for alignment issue
-            MemoryStream ms = new MemoryStream();
-            AssetsFileReader r = new AssetsFileReader(ms);
-            AssetsFileWriter w = new AssetsFileWriter(ms);
-            {
-                w.Write(entryReader.ReadBytes((int)entrySize));
-                ms.Position = 0;
-                assetsFile = new AssetsFile(r);
-            }
-            return true;
-        }
-        public override void Uninit()
-        {
-            assetsFile.Close();
-            return;
-        }
         public override long Write(AssetsFileWriter writer)
         {
-            //memorystream for alignment issue
-            using (MemoryStream ms = new MemoryStream())
-            using (AssetsFileWriter w = new AssetsFileWriter(ms))
-            {
-                assetsFile.Write(w, -1, replacers, fileId, typeMeta);
-                writer.Write(ms.ToArray());
-            }
+            // Some parts of an assets file need to be aligned to a multiple of 4/8/16 bytes,
+            // but for this to work correctly, the start of the file of course needs to be aligned too.
+            // In a loose .assets file this is true by default, but inside a bundle file,
+            // this might not be the case. Therefore wrap the bundle output stream in a SegmentStream
+            // which will make it look like the start of the new assets file is at position 0
+            SegmentStream alignedStream = new SegmentStream(writer.BaseStream, writer.Position);
+            AssetsFileWriter alignedWriter = new AssetsFileWriter(alignedStream);
+            assetsFile.Write(alignedWriter, -1, assetReplacers);
+            writer.Position = writer.BaseStream.Length;
             return writer.Position;
         }
+
         public override long WriteReplacer(AssetsFileWriter writer)
         {
             writer.Write((short)4); //replacer type
@@ -88,14 +54,15 @@ namespace AssetsTools.NET
             writer.WriteCountStringInt16(oldName);
             writer.WriteCountStringInt16(newName);
             writer.Write((byte)1); //probably hasSerializedData
-            writer.Write((long)replacers.Count);
-            foreach (AssetsReplacer replacer in replacers)
+            writer.Write((long)assetReplacers.Count);
+            foreach (AssetsReplacer replacer in assetReplacers)
             {
                 replacer.WriteReplacer(writer);
             }
 
             return writer.Position;
         }
+
         public override bool HasSerializedData()
         {
             return true;

@@ -1,8 +1,8 @@
 ﻿using AssetsTools.NET.Extra;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET
 {
@@ -13,7 +13,6 @@ namespace AssetsTools.NET
 
         public PreloadList preloadTable;
         public AssetsFileDependencyList dependencies;
-        public string unknownString;
 
         public uint assetTablePos;
         public uint assetCount;
@@ -62,7 +61,7 @@ namespace AssetsTools.NET
             readerPar.Dispose();
         }
 
-        public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
+        public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID = 0, ClassDatabaseFile typeMeta = null)
         {
             if (filePos == -1)
                 filePos = writer.Position;
@@ -71,25 +70,12 @@ namespace AssetsTools.NET
 
             header.Write(writer);
 
-            for (int i = 0; i < replacers.Count; i++)
+            foreach (AssetsReplacer replacer in replacers)
             {
-                AssetsReplacer replacer = replacers[i];
                 int replacerClassId = replacer.GetClassID();
                 if (!typeTree.unity5Types.Any(t => t.classId == replacerClassId))
                 {
-                    Type_0D type = new Type_0D()
-                    {
-                        classId = replacer.GetClassID(),
-                        unknown16_1 = 0,
-                        scriptIndex = 0xFFFF,
-                        typeHash1 = 0,
-                        typeHash2 = 0,
-                        typeHash3 = 0,
-                        typeHash4 = 0,
-                        typeFieldsExCount = 0,
-                        stringTableLen = 0,
-                        stringTable = ""
-                    };
+                    Type_0D type = null;
 
                     if (typeMeta != null)
                     {
@@ -100,125 +86,108 @@ namespace AssetsTools.NET
                         }
                     }
 
+                    if (type == null)
+                    {
+                        type = new Type_0D
+                               {
+                                   classId = replacerClassId,
+                                   unknown16_1 = 0,
+                                   scriptIndex = 0xFFFF,
+                                   typeHash1 = 0,
+                                   typeHash2 = 0,
+                                   typeHash3 = 0,
+                                   typeHash4 = 0,
+                                   typeFieldsExCount = 0,
+                                   stringTableLen = 0,
+                                   stringTable = ""
+                               };
+                    }
+
                     typeTree.unity5Types.Add(type);
                 }
             }
             typeTree.Write(writer, header.format);
 
-            int initialSize = (int)(AssetFileInfo.GetSize(header.format) * assetCount);
-            int newSize = (int)(AssetFileInfo.GetSize(header.format) * (assetCount + replacers.Count));
-            int appendedSize = newSize - initialSize;
+            Dictionary<long, AssetFileInfo> oldAssetInfosByPathId = new Dictionary<long, AssetFileInfo>();
+            Dictionary<long, AssetsReplacer> replacersByPathId = replacers.ToDictionary(r => r.GetPathID());
+            List<AssetFileInfo> newAssetInfos = new List<AssetFileInfo>();
+
+            // Collect unchanged assets (that aren't getting removed)
             reader.Position = assetTablePos;
-
-            List<AssetFileInfo> assetInfos = new List<AssetFileInfo>();
-            Dictionary<long, AssetFileInfo> originalAssetInfos = new Dictionary<long, AssetFileInfo>();
-            Dictionary<long, AssetsReplacer> currentReplacers = replacers.ToDictionary(r => r.GetPathID());
-            uint currentOffset = 0;
-
-            //calculate sizes/offsets for original assets, modify sizes if needed and skip those to be removed
             for (int i = 0; i < assetCount; i++)
             {
-                AssetFileInfo info = new AssetFileInfo();
-                info.Read(header.format, reader);
-                originalAssetInfos.Add(info.index, info);
-                AssetFileInfo newInfo = new AssetFileInfo()
-                {
-                    index = info.index,
-                    curFileOffset = currentOffset,
-                    curFileSize = info.curFileSize,
-                    curFileTypeOrIndex = info.curFileTypeOrIndex,
-                    inheritedUnityClass = info.inheritedUnityClass,
-                    scriptIndex = info.scriptIndex,
-                    unknown1 = info.unknown1
-                };
-                AssetsReplacer replacer;
-                if (currentReplacers.TryGetValue(newInfo.index, out replacer))
-                {
-                    currentReplacers.Remove(newInfo.index);
-                    if (replacer.GetReplacementType() == AssetsReplacementType.AddOrModify)
-                    {
-                        int classIndex;
-                        if (replacer.GetMonoScriptID() == 0xFFFF)
-                            classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID());
-                        else
-                            classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
-                        newInfo = new AssetFileInfo()
-                        {
-                            index = replacer.GetPathID(),
-                            curFileOffset = currentOffset,
-                            curFileSize = (uint)replacer.GetSize(),
-                            curFileTypeOrIndex = classIndex,
-                            inheritedUnityClass = (ushort)replacer.GetClassID(), //for older unity versions
-                            scriptIndex = replacer.GetMonoScriptID(),
-                            unknown1 = 0
-                        };
-                    }
-                    else if (replacer.GetReplacementType() == AssetsReplacementType.Remove)
-                    {
-                        continue;
-                    }
-                }
-                currentOffset += newInfo.curFileSize;
-                currentOffset = (currentOffset + 7) >> 3 << 3; //pad to 8 bytes
+                AssetFileInfo oldAssetInfo = new AssetFileInfo();
+                oldAssetInfo.Read(header.format, reader);
+                oldAssetInfosByPathId.Add(oldAssetInfo.index, oldAssetInfo);
 
-                assetInfos.Add(newInfo);
+                if (replacersByPathId.ContainsKey(oldAssetInfo.index))
+                    continue;
+
+                AssetFileInfo newAssetInfo = new AssetFileInfo
+                                             {
+                                                 index = oldAssetInfo.index,
+                                                 curFileTypeOrIndex = oldAssetInfo.curFileTypeOrIndex,
+                                                 inheritedUnityClass = oldAssetInfo.inheritedUnityClass,
+                                                 scriptIndex = oldAssetInfo.scriptIndex,
+                                                 unknown1 = oldAssetInfo.unknown1
+                                             };
+                newAssetInfos.Add(newAssetInfo);
             }
 
-            //calculate sizes/offsets for new assets
-            foreach (var replacerPair in currentReplacers)
+            // Collect modified and new assets
+            foreach (AssetsReplacer replacer in replacers.Where(r => r.GetReplacementType() == AssetsReplacementType.AddOrModify))
             {
-                AssetsReplacer replacer = replacerPair.Value;
-                if (replacer.GetReplacementType() == AssetsReplacementType.AddOrModify)
+                AssetFileInfo newAssetInfo = new AssetFileInfo
+                                             {
+                                                 index = replacer.GetPathID(),
+                                                 inheritedUnityClass = (ushort)replacer.GetClassID(), //for older unity versions
+                                                 scriptIndex = replacer.GetMonoScriptID(),
+                                                 unknown1 = 0
+                                             };
+
+                if (header.format < 0x10)
                 {
-                    int classIndex;
+                    newAssetInfo.curFileTypeOrIndex = replacer.GetClassID();
+                }
+                else
+                {
                     if (replacer.GetMonoScriptID() == 0xFFFF)
-                        classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID());
+                        newAssetInfo.curFileTypeOrIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID());
                     else
-                        classIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
-                    AssetFileInfo info = new AssetFileInfo()
-                    {
-                        index = replacer.GetPathID(),
-                        curFileOffset = currentOffset,
-                        curFileSize = (uint)replacer.GetSize(),
-                        curFileTypeOrIndex = classIndex,
-                        inheritedUnityClass = (ushort)replacer.GetClassID(),
-                        scriptIndex = replacer.GetMonoScriptID(),
-                        unknown1 = 0
-                    };
-                    currentOffset += info.curFileSize;
-                    currentOffset = (currentOffset + 7) >> 3 << 3; //pad to 8 bytes
-
-                    assetInfos.Add(info);
+                        newAssetInfo.curFileTypeOrIndex = typeTree.unity5Types.FindIndex(t => t.classId == replacer.GetClassID() && t.scriptIndex == replacer.GetMonoScriptID());
                 }
+
+                newAssetInfos.Add(newAssetInfo);
             }
 
-            currentReplacers.Clear();
+            newAssetInfos.Sort((i1, i2) => i1.index.CompareTo(i2.index));
 
-            writer.Write(assetInfos.Count);
+            // Write asset infos (will write again later on to update the offsets and sizes)
+            writer.Write(newAssetInfos.Count);
             writer.Align();
-            for (int i = 0; i < assetInfos.Count; i++)
+            long newAssetTablePos = writer.Position;
+            foreach (AssetFileInfo newAssetInfo in newAssetInfos)
             {
-                assetInfos[i].Write(header.format, writer);
+                newAssetInfo.Write(header.format, writer);
             }
 
             preloadTable.Write(writer);
-
             dependencies.Write(writer);
 
-            //temporary fix for secondarytypecount and friends
+            // Temporary fix for secondaryTypeCount and friends
             if (header.format >= 0x14)
             {
                 writer.Write(0); //secondaryTypeCount
             }
 
-            uint metadataSize = (uint)(writer.Position - filePos - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
+            uint newMetadataSize = (uint)(writer.Position - filePos - 0x13); //0x13 is header - "endianness byte"? (if that's what it even is)
             if (header.format >= 0x16)
             {
-                //remove larger variation fields as well
-                metadataSize -= 0x1c;
+                // Remove larger variation fields as well
+                newMetadataSize -= 0x1c;
             }
 
-            //for padding only. if all initial data before assetData is more than 0x1000, this is skipped
+            // For padding only. if all initial data before assetData is more than 0x1000, this is skipped
             if (writer.Position < 0x1000)
             {
                 while (writer.Position < 0x1000)
@@ -234,64 +203,102 @@ namespace AssetsTools.NET
                     writer.Align16();
             }
 
-            long firstFileOffset = writer.Position;
+            long newFirstFileOffset = writer.Position;
 
-            //write all asset data
-            for (int i = 0; i < assetInfos.Count; i++)
+            // Write all asset data
+            for (int i = 0; i < newAssetInfos.Count; i++)
             {
-                AssetFileInfo info = assetInfos[i];
-                AssetsReplacer replacer = replacers.FirstOrDefault(n => n.GetPathID() == info.index);
-                if (replacer != null)
+                AssetFileInfo newAssetInfo = newAssetInfos[i];
+                newAssetInfo.curFileOffset = writer.Position - newFirstFileOffset;
+
+                if (replacersByPathId.TryGetValue(newAssetInfo.index, out AssetsReplacer replacer))
                 {
-                    if (replacer.GetReplacementType() == AssetsReplacementType.AddOrModify)
-                    {
-                        replacer.Write(writer);
-                        if (i != assetInfos.Count - 1)
-                            writer.Align8();
-                    }
-                    else if (replacer.GetReplacementType() == AssetsReplacementType.Remove)
-                    {
-                        continue;
-                    }
+                    replacer.Write(writer);
                 }
                 else
                 {
-                    AssetFileInfo originalInfo;
-                    if (originalAssetInfos.TryGetValue(info.index, out originalInfo))
-                    {
-                        reader.Position = header.firstFileOffset + originalInfo.curFileOffset;
-                        byte[] assetData = reader.ReadBytes((int)originalInfo.curFileSize);
-                        writer.Write(assetData);
-                        if (i != assetInfos.Count - 1)
-                            writer.Align8();
-                    }
+                    AssetFileInfo oldAssetInfo = oldAssetInfosByPathId[newAssetInfo.index];
+                    reader.Position = header.firstFileOffset + oldAssetInfo.curFileOffset;
+                    reader.BaseStream.CopyToCompat(writer.BaseStream, oldAssetInfo.curFileSize);
+                }
+
+                newAssetInfo.curFileSize = (uint)(writer.Position - (newFirstFileOffset + newAssetInfo.curFileOffset));
+                if (i != newAssetInfos.Count - 1)
+                    writer.Align8();
+            }
+
+            long newFileSize = writer.Position - filePos;
+
+            // Write new header
+            AssetsFileHeader newHeader = new AssetsFileHeader
+                                         {
+                                             metadataSize = newMetadataSize,
+                                             fileSize = newFileSize,
+                                             format = header.format,
+                                             firstFileOffset = newFirstFileOffset,
+                                             endianness = header.endianness,
+                                             unknown = header.unknown,
+                                             unknown1 = header.unknown1,
+                                             unknown2 = header.unknown2
+                                         };
+
+            writer.Position = filePos;
+            newHeader.Write(writer);
+
+            // Write new asset infos again (this time with offsets and sizes filled in)
+            writer.Position = newAssetTablePos;
+            foreach (AssetFileInfo newAssetInfo in newAssetInfos)
+            {
+                newAssetInfo.Write(header.format, writer);
+            }
+
+            // Set writer position back to end of file
+            writer.Position = filePos + newFileSize;
+        }
+
+        public static bool IsAssetsFile(string filePath)
+        {
+            using AssetsFileReader reader = new AssetsFileReader(filePath);
+            return IsAssetsFile(reader, 0, reader.BaseStream.Length);
+        }
+
+        public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
+        {
+            //todo - not fully implemented
+            if (length < 0x30)
+                return false;
+
+            reader.Position = offset;
+            string possibleBundleHeader = reader.ReadStringLength(5);
+            if (possibleBundleHeader == "Unity")
+                return false;
+
+            reader.Position = offset + 0x08;
+            int possibleFormat = reader.ReadInt32();
+            if (possibleFormat > 99)
+                return false;
+
+            reader.Position = offset + 0x14;
+
+            if (possibleFormat >= 0x16)
+            {
+                reader.Position += 0x1c;
+            }
+
+            string possibleVersion = "";
+            char curChar;
+            while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
+            {
+                possibleVersion += curChar;
+                if (possibleVersion.Length > 0xFF)
+                {
+                    return false;
                 }
             }
 
-            AssetsFileHeader newHeader = new AssetsFileHeader()
-            {
-                metadataSize = header.metadataSize,
-                fileSize = header.fileSize,
-                format = header.format,
-                firstFileOffset = header.firstFileOffset,
-                endianness = header.endianness,
-                unknown = header.unknown,
-                unknown1 = header.unknown1,
-                unknown2 = header.unknown2
-            };
-
-            newHeader.firstFileOffset = firstFileOffset;
-
-            long fileSizeMarker = writer.Position - filePos;
-
-            reader.Position = newHeader.firstFileOffset;
-
-            writer.Position = filePos;
-            newHeader.metadataSize = metadataSize;
-            newHeader.fileSize = fileSizeMarker;
-            newHeader.Write(writer);
-
-            writer.Position = fileSizeMarker + filePos;
+            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
+            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
+            return emptyVersion == "" && fullVersion.Length > 0;
         }
     }
 }

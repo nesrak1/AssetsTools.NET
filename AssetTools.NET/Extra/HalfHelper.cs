@@ -7,7 +7,7 @@ namespace AssetsTools.NET.Extra
     /// </summary>
     /// <remarks>
     /// References:
-    ///     - Code retrieved from http://sourceforge.net/p/csharp-half/code/HEAD/tree/ on 2015-12-04
+    ///     - Code retrieved from http://sourceforge.net/p/csharp-half/code/HEAD/tree/
     ///     - Fast Half Float Conversions, Jeroen van der Zijp, link: http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
     /// </remarks>
     public static class HalfHelper

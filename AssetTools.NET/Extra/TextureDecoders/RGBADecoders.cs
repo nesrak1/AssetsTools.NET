@@ -2,7 +2,7 @@
 
 namespace AssetsTools.NET.Extra
 {
-    public class RGBADecoders
+    public static class RGBADecoders
     {
         public static byte[] ReadR8(byte[] input, int width, int height)
         {
@@ -72,7 +72,7 @@ namespace AssetsTools.NET.Extra
         public static byte[] ReadRGHalf(byte[] input, int width, int height)
         {
             byte[] output = new byte[width * height * 4];
-            for (int inputPos = 0, outputPos = 0; outputPos < output.Length; inputPos += 2, outputPos += 4)
+            for (int inputPos = 0, outputPos = 0; outputPos < output.Length; inputPos += 4, outputPos += 4)
             {
                 byte r = ReadHalf(input, inputPos + 0);
                 byte g = ReadHalf(input, inputPos + 2);
