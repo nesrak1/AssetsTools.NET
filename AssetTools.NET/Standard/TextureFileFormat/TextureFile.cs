@@ -203,6 +203,8 @@ namespace AssetsTools.NET
                     return RGBADecoders.ReadRG16(data, width, height);
                 case TextureFormat.RGB24:
                     return RGBADecoders.ReadRGB24(data, width, height);
+                case TextureFormat.RGB565:
+                    return RGBADecoders.ReadRGB565(data, width, height);
                 case TextureFormat.RGBA32:
                     return RGBADecoders.ReadRGBA32(data, width, height);
                 case TextureFormat.ARGB32:
@@ -213,6 +215,12 @@ namespace AssetsTools.NET
                     return RGBADecoders.ReadARGB4444(data, width, height);
                 case TextureFormat.Alpha8:
                     return RGBADecoders.ReadAlpha8(data, width, height);
+                case TextureFormat.RHalf:
+                    return RGBADecoders.ReadRHalf(data, width, height);
+                case TextureFormat.RGHalf:
+                    return RGBADecoders.ReadRGHalf(data, width, height);
+                case TextureFormat.RGBAHalf:
+                    return RGBADecoders.ReadRGBAHalf(data, width, height);
                 case TextureFormat.DXT1:
                     return DXTDecoders.ReadDXT1(data, width, height);
                 case TextureFormat.DXT5:
