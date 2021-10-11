@@ -25,16 +25,6 @@
         {
             fromStringTable = true;
             str.stringTableOffset = reader.ReadUInt32();
-            if (str.stringTableOffset != 0xFFFFFFFF)
-            {
-                fromStringTable = true;
-            }
-            else
-            {
-                //untested, probably wrong
-                fromStringTable = false;
-                str.@string = reader.ReadCountString();
-            }
         }
         public void Write(AssetsFileWriter writer)
         {

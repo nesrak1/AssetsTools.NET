@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -20,7 +21,7 @@ namespace AssetsTools.NET
             stringTableOffset = reader.ReadUInt32();
             stringTableLenUncompressed = reader.ReadUInt32();
             stringTableLenCompressed = reader.ReadUInt32();
-            if (fileVersion == 1)
+            if (fileVersion == 1) //is this even right?
                 fileBlockSize = reader.ReadUInt32();
             else
                 fileBlockSize = 0;
@@ -34,6 +35,28 @@ namespace AssetsTools.NET
                     length = reader.ReadUInt32(),
                     name = reader.ReadStringLength(15)
                 });
+            }
+        }
+        public void Write(AssetsFileWriter writer)
+        {
+            writer.bigEndian = false;
+            writer.Write(Encoding.ASCII.GetBytes(magic));
+            writer.Write(fileVersion);
+            writer.Write(compressionType);
+            writer.Write(stringTableOffset);
+            writer.Write(stringTableLenUncompressed);
+            writer.Write(stringTableLenCompressed);
+            if (fileVersion == 1)
+                writer.Write(fileBlockSize);
+            writer.Write(fileCount);
+            for (int i = 0; i < fileCount; i++)
+            {
+                ClassDatabaseFileRef fileRef = files[i];
+                writer.Write(fileRef.offset);
+                writer.Write(fileRef.length);
+
+                string fixedFileName = fileRef.name.PadRight(15, '\0').Substring(0, 15);
+                writer.Write(Encoding.ASCII.GetBytes(fixedFileName));
             }
         }
     }

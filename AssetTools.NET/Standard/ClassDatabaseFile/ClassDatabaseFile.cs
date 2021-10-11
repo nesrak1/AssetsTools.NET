@@ -3,6 +3,7 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -74,23 +75,80 @@ namespace AssetsTools.NET
             return valid;
         }
 
-        public void Write(AssetsFileWriter writer)
+        public void Write(AssetsFileWriter writer, int optimizeStringTable = 1, int compress = 1, bool writeStringTable = true)
         {
+            long filePos = writer.BaseStream.Position;
+
+            byte[] newStrTable = stringTable;
+
+            //"optimize string table (slow)" mode 2 not supported
+            //ex: >AABB\0>localAABB\0 can be just >local>AABB\0
+            if (optimizeStringTable == 1)
+            {
+                StringBuilder strTableBuilder = new StringBuilder();
+                Dictionary<string, uint> strTableMap = new Dictionary<string, uint>();
+                for (int i = 0; i < classes.Count; i++)
+                {
+                    ClassDatabaseType type = classes[i];
+
+                    AddStringTableEntry(strTableBuilder, strTableMap, ref type.name);
+                
+                    if (header.fileVersion == 4 && (header.flags & 1) != 0)
+                    {
+                        AddStringTableEntry(strTableBuilder, strTableMap, ref type.assemblyFileName);
+                    }
+                    
+                    List<ClassDatabaseTypeField> fields = type.fields;
+                    for (int j = 0; j < fields.Count; j++)
+                    {
+                        ClassDatabaseTypeField field = fields[j];
+                        AddStringTableEntry(strTableBuilder, strTableMap, ref field.fieldName);
+                        AddStringTableEntry(strTableBuilder, strTableMap, ref field.typeName);
+                        fields[j] = field;
+                    }
+                }
+            }
+
             header.Write(writer);
             writer.Write(classes.Count);
             for (int i = 0; i < classes.Count; i++)
             {
                 classes[i].Write(writer, header.fileVersion, header.flags);
             }
+
             long stringTablePos = writer.Position;
-            writer.Write(stringTable);
+
+            //set false only for tpk packing, don't set false anytime else!
+            if (writeStringTable)
+            {
+                writer.Write(newStrTable);
+            }
+
+            long fileEndPos = writer.Position;
+
             long stringTableLen = writer.Position - stringTablePos;
             long fileSize = writer.Position;
+
             header.stringTablePos = (uint)stringTablePos;
             header.stringTableLen = (uint)stringTableLen;
             header.uncompressedSize = (uint)fileSize;
-            writer.Position = 0;
+
+            writer.Position = filePos;
             header.Write(writer);
+
+            writer.Position = fileEndPos;
+        }
+
+        private void AddStringTableEntry(StringBuilder strTable, Dictionary<string, uint> strMap, ref ClassDatabaseFileString str)
+        {
+            string stringValue = str.GetString(this);
+
+            if (!strMap.ContainsKey(stringValue))
+            {
+                strMap[stringValue] = (uint)strTable.Length;
+                strTable.Append(stringValue + '\0');
+            }
+            str.str.stringTableOffset = strMap[stringValue];
         }
 
         public bool IsValid()

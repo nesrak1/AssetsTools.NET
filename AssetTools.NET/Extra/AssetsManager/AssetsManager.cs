@@ -480,7 +480,7 @@ namespace AssetsTools.NET.Extra
             {
                 if (version.StartsWith("U"))
                     version = version.Substring(1);
-                for (int i = 0; i < classPackage.files.Length; i++)
+                for (int i = 0; i < classPackage.files.Count; i++)
                 {
                     ClassDatabaseFile file = classPackage.files[i];
                     for (int j = 0; j < file.header.unityVersions.Length; j++)

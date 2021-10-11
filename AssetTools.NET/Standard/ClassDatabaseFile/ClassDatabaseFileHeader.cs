@@ -9,7 +9,7 @@ namespace AssetsTools.NET
         public byte fileVersion;
 
         public byte flags;
-        public byte compressionType; //0 - none, 1 - lz4
+        public byte compressionType;
         public uint compressedSize, uncompressedSize;
 
         public byte unityVersionCount;
@@ -63,7 +63,6 @@ namespace AssetsTools.NET
             switch (fileVersion)
             {
                 case 1:
-                    writer.Write((byte)0);
                     break;
                 case 2:
                     writer.Write(compressionType);
