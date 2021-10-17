@@ -103,7 +103,7 @@ namespace AssetsTools.NET
 
             Dictionary<string, BundleReplacer> addingReplacers =
                 replacers.Where(r => r.GetReplacementType() == BundleReplacementType.AddOrModify)
-                         .ToDictionary(r => r.GetEntryName());
+                         .ToDictionary(r => r.GetOriginalEntryName());
 
             List<AssetsBundleEntry> newEntries = new List<AssetsBundleEntry>();
             Dictionary<AssetsBundleEntry, AssetsBundleEntry> newEntryToOldEntry = new Dictionary<AssetsBundleEntry, AssetsBundleEntry>();
@@ -112,15 +112,12 @@ namespace AssetsTools.NET
             {
                 addingReplacers.Remove(entry.name);
 
-                AssetsBundleEntry newEntry = null;
                 BundleReplacer replacer = replacers.FirstOrDefault(r => r.GetOriginalEntryName() == entry.name);
-                if (replacer == null || replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
-                    newEntry = new AssetsBundleEntry { name = entry.name };
-                else if (replacer.GetReplacementType() == BundleReplacementType.Rename)
-                    newEntry = new AssetsBundleEntry { name = replacer.GetEntryName() };
-
-                if (newEntry != null)
+                if (replacer == null ||
+                    replacer.GetReplacementType() == BundleReplacementType.AddOrModify ||
+                    replacer.GetReplacementType() == BundleReplacementType.Rename)
                 {
+                    AssetsBundleEntry newEntry = new AssetsBundleEntry { name = replacer?.GetEntryName() ?? entry.name };
                     newEntries.Add(newEntry);
                     newEntryToOldEntry.Add(newEntry, entry);
                     if (replacer != null && replacer.GetReplacementType() == BundleReplacementType.AddOrModify)

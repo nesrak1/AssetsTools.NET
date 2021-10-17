@@ -1,12 +1,17 @@
 ﻿namespace AssetsTools.NET.Extra
 {
-    public abstract class FieldBasedAssetReplacer : AssetsReplacer
+    public abstract class SerializingAssetReplacer : AssetsReplacer
     {
         private readonly AssetsManager manager;
         private readonly AssetsFile assetsFile;
         private readonly AssetFileInfoEx asset;
 
-        protected FieldBasedAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfoEx asset)
+        protected SerializingAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfoEx asset)
+            : this(manager, assetsFile.file, asset)
+        {
+        }
+
+        protected SerializingAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfoEx asset)
         {
             this.manager = manager;
             this.assetsFile = assetsFile;
@@ -30,17 +35,17 @@
 
         public override ushort GetMonoScriptID()
         {
-            return asset.scriptIndex;
+            return AssetHelper.GetScriptIndex(assetsFile, asset);
         }
 
         public override long Write(AssetsFileWriter writer)
         {
             AssetTypeValueField baseField = manager.GetTypeInstance(assetsFile, asset).GetBaseField();
-            ModifyField(baseField);
+            Modify(baseField);
             baseField.Write(writer);
             return writer.Position;
         }
 
-        protected abstract void ModifyField(AssetTypeValueField baseField);
+        protected abstract void Modify(AssetTypeValueField baseField);
     }
 }

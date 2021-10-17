@@ -190,15 +190,11 @@ namespace AssetsTools.NET.Extra
 
         public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, string name, bool loadDeps = false)
         {
-            var dirInf = bunInst.file.bundleInf6.dirInf;
-            for (int i = 0; i < dirInf.Length; i++)
-            {
-                if (dirInf[i].name == name)
-                {
-                    return LoadAssetsFileFromBundle(bunInst, i, loadDeps);
-                }
-            }
-            return null;
+            int index = bunInst.file.GetAssetsFileIndex(name);
+            if (index < 0)
+                return null;
+
+            return LoadAssetsFileFromBundle(bunInst, index, loadDeps);
         }
         #endregion
 

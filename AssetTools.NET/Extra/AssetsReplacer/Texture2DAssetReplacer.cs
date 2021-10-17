@@ -1,6 +1,6 @@
 ﻿namespace AssetsTools.NET.Extra
 {
-    public abstract class Texture2DAssetReplacer : FieldBasedAssetReplacer
+    public abstract class Texture2DAssetReplacer : SerializingAssetReplacer
     {
         protected Texture2DAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfoEx asset)
             : base(manager, assetsFile, asset)
@@ -12,7 +12,7 @@
             return 0xFFFF;
         }
 
-        protected override void ModifyField(AssetTypeValueField baseField)
+        protected override void Modify(AssetTypeValueField baseField)
         {
             TextureFile texture = TextureFile.ReadTextureFile(baseField);
             SetTextureData(texture, GetBgra());
