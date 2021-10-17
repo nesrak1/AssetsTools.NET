@@ -440,12 +440,12 @@ if (epicBehaviorAsset == null)
 
 // Load MonoBehaviour fields on top of regular fields
 var managedFolder = Path.Combine(Path.GetDirectoryName(assetsFile.path), "Managed");
-var epicScript = MonoDeserializer.GetMonoBaseField(manager, assetsFile, epicBehaviorAsset, managedFolder);
+var epicBehavior = MonoDeserializer.GetMonoBaseField(manager, assetsFile, epicBehaviorAsset, managedFolder);
 
 // Change runSpeed field
-epicScript.Get("runSpeed").GetValue().Set(1);
+epicBehavior.Get("runSpeed").GetValue().Set(1);
 
-var newMonoBytes = epicScript.WriteToByteArray();
+var newMonoBytes = epicBehavior.WriteToByteArray();
 var replacer = new AssetsReplacerFromMemory(
     0, epicBehaviorAsset.index, (int)epicBehaviorAsset.curFileType,
     AssetHelper.GetScriptIndex(assetsFile.file, epicBehaviorAsset),
