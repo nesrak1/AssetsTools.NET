@@ -309,9 +309,10 @@ namespace AssetsTools.NET
             m_StreamData.offset = 0;
             m_StreamData.size = 0;
             pictureData = EncodeTextureFromBgra(bgra, (TextureFormat)m_TextureFormat, m_Width, m_Height);
-            m_CompleteImageSize = pictureData.Length;
             if (pictureData == null)
                 throw new NotSupportedException("The current texture format is not supported for encoding.");
+
+            m_CompleteImageSize = pictureData.Length;
         }
 
         [Obsolete("Renamed to " + nameof(DecodeTextureToBgra))]
