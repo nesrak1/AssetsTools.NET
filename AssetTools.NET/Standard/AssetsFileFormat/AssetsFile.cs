@@ -1,8 +1,8 @@
 ﻿using AssetsTools.NET.Extra;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET
 {
@@ -62,7 +62,7 @@ namespace AssetsTools.NET
             readerPar.Dispose();
         }
 
-        public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID, ClassDatabaseFile typeMeta = null)
+        public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID = 0, ClassDatabaseFile typeMeta = null)
         {
             if (filePos == -1)
                 filePos = writer.Position;
@@ -292,6 +292,51 @@ namespace AssetsTools.NET
             newHeader.Write(writer);
 
             writer.Position = fileSizeMarker + filePos;
+        }
+
+        public static bool IsAssetsFile(string filePath)
+        {
+            using AssetsFileReader reader = new AssetsFileReader(filePath);
+            return IsAssetsFile(reader, 0, reader.BaseStream.Length);
+        }
+
+        public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
+        {
+            //todo - not fully implemented
+            if (length < 0x30)
+                return false;
+
+            reader.Position = offset;
+            string possibleBundleHeader = reader.ReadStringLength(5);
+            if (possibleBundleHeader == "Unity")
+                return false;
+
+            reader.Position = offset + 0x08;
+            int possibleFormat = reader.ReadInt32();
+            if (possibleFormat > 99)
+                return false;
+
+            reader.Position = offset + 0x14;
+
+            if (possibleFormat >= 0x16)
+            {
+                reader.Position += 0x1c;
+            }
+
+            string possibleVersion = "";
+            char curChar;
+            while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
+            {
+                possibleVersion += curChar;
+                if (possibleVersion.Length > 0xFF)
+                {
+                    return false;
+                }
+            }
+
+            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
+            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
+            return emptyVersion == "" && fullVersion.Length > 0;
         }
     }
 }

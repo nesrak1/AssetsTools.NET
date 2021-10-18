@@ -4,6 +4,6 @@
     {
         public uint offset;
         public uint length;
-        public byte name;
+        public string name;
     }
 }
