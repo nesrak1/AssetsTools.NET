@@ -158,8 +158,8 @@ namespace AssetsView.Winforms
                     //may still not work but better than nothing I guess
                     //in the future we should probably do a selector
                     //like uabe does
-                    ClassDatabaseFile[] files = helper.classPackage.files;
-                    helper.classFile = files[files.Length - 1];
+                    List<ClassDatabaseFile> files = helper.classPackage.files;
+                    helper.classFile = files[files.Count - 1];
                 }
                 UpdateFileList();
                 currentFile = inst;
