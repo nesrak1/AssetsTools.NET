@@ -13,20 +13,20 @@ Jump to a tool:
 
 ## Table of contents
 
-* What is this
-* Getting started
-* Read an assets file
-* Write an assets file
-* Value builder (add assets/fields)
-* Read a bundle file
-* Write a bundle file
-* Compress a bundle file
-* Bundle creator (create assets/bundle files)
-* Reading a MonoBehaviour
-* Reading asset paths from resources.assets and bundles
-* Exporting a Texture2D
-* Class database
-* Noooo it's not working!!
+* [What is this](https://github.com/nesrak1/AssetsTools.NET#what-is-this)
+* [Getting started](https://github.com/nesrak1/AssetsTools.NET#getting-started)
+* [Read an assets file](https://github.com/nesrak1/AssetsTools.NET#read-an-assets-file)
+* [Write an assets file](https://github.com/nesrak1/AssetsTools.NET#write-an-assets-file)
+* [Value builder (add assets/fields)](https://github.com/nesrak1/AssetsTools.NET#value-builder-add-assetsfields)
+* [Read a bundle file](https://github.com/nesrak1/AssetsTools.NET#read-a-bundle-file)
+* [Write a bundle file](https://github.com/nesrak1/AssetsTools.NET#write-a-bundle-file)
+* [Compress a bundle file](https://github.com/nesrak1/AssetsTools.NET#compress-a-bundle-file)
+* [Bundle creator (create assets/bundle files)](https://github.com/nesrak1/AssetsTools.NET#bundle-creator-create-assetsbundle-files-todo)
+* [Reading a MonoBehaviour](https://github.com/nesrak1/AssetsTools.NET#reading-a-monobehaviour)
+* [Reading asset paths from resources.assets and bundles](https://github.com/nesrak1/AssetsTools.NET#reading-asset-paths-from-resourcesassets-and-bundles)
+* [Exporting a Texture2D](https://github.com/nesrak1/AssetsTools.NET#exporting-a-texture2d)
+* [Class database](https://github.com/nesrak1/AssetsTools.NET#class-database)
+* [Noooo it's not working!!](https://github.com/nesrak1/AssetsTools.NET#noooo-its-not-working)
 
 ### What is this
 
@@ -368,13 +368,13 @@ var engineVer = "2019.4.18f1";
 var formatVer = 0x15;
 var typeTreeVer = 0x13;
 
-BundleCreator.CreateAssetsFile(ms, engineVer, formatVer, typeTreeVer);
+BundleCreator.CreateBlankAssets(ms, engineVer, formatVer, typeTreeVer);
 ms.Position = 0;
 var inst = am.LoadAssetsFile(ms, "fakefilepath.assets", false);
 //...
 ```
 
-To figure out the unity version string and format number for your game, open an assets file or bundle in AssetsView and open the Info->View Current Assets File Info menu item.
+To figure out the unity version string and format number for your game, open an assets file or bundle in AssetsView and open the Info->View Current Assets File Info menu item. You can find this programmatically with `typeTreeVer = AssetsFile.typeTree.version` and `formatVer = AssetsFile.header.format`.
 
 ### Creating bundle file
 
@@ -469,7 +469,7 @@ var repl = new AssetsReplacerFromMemory(
 using (var stream = File.OpenWrite("resources-modified.assets"))
 using (var writer = new AssetsFileWriter(stream))
 {
-	inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
+    inst.file.Write(writer, 0, new List<AssetsReplacer>() { repl }, 0);
 }
 
 am.UnloadAllAssetsFiles();
