@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET
@@ -533,46 +534,88 @@ namespace AssetsTools.NET
             }
             return false;
         }
+
+        public int NumFiles
+        {
+            get
+            {
+                if (bundleHeader3 != null)
+                    return assetsLists3.entries.Length;
+
+                if (bundleHeader6 != null)
+                    return bundleInf6.dirInf.Length;
+
+                return 0;
+            }
+        }
+
+        public bool IsAssetsFile(int index)
+        {
+            GetFileRange(index, out long offset, out long length);
+            return AssetsFile.IsAssetsFile(reader, offset, length);
+        }
+
+        [Obsolete]
         public bool IsAssetsFile(AssetsFileReader reader, AssetBundleDirectoryInfo06 entry)
         {
-            //todo - not fully implemented
             long offset = bundleHeader6.GetFileDataOffset() + entry.offset;
-            if (entry.decompressedSize < 0x30)
-                return false;
+            return AssetsFile.IsAssetsFile(reader, offset, entry.decompressedSize);
+        }
 
-            reader.Position = offset;
-            string possibleBundleHeader = reader.ReadStringLength(7);
-            if (possibleBundleHeader == "UnityFS")
-                return false;
-
-            reader.Position = offset + 0x08;
-            int possibleFormat = reader.ReadInt32();
-            if (possibleFormat > 99)
-                return false;
-
-            reader.Position = offset + 0x14;
-
-            if (possibleFormat >= 0x16)
+        public int GetFileIndex(string name)
+        {
+            if (bundleHeader3 != null)
             {
-                reader.Position += 0x1c;
-            }
-
-            string possibleVersion = "";
-            char curChar;
-            while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
-            {
-                possibleVersion += curChar;
-                if (possibleVersion.Length > 0xFF)
+                for (int i = 0; i < assetsLists3.entries.Length; i++)
                 {
-                    return false;
+                    if (assetsLists3.entries[i].name == name)
+                        return i;
+                }
+            }
+            else if (bundleHeader6 != null)
+            {
+                for (int i = 0; i < bundleInf6.dirInf.Length; i++)
+                {
+                    if (bundleInf6.dirInf[i].name == name)
+                        return i;
                 }
             }
 
-            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.]", "");
-            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.]", "");
-            return emptyVersion == "" && fullVersion.Length > 0;
+            return -1;
+        }
+
+        public string GetFileName(int index)
+        {
+            if (bundleHeader3 != null)
+                return assetsLists3.entries[index].name;
+
+            if (bundleHeader6 != null)
+                return bundleInf6.dirInf[index].name;
+
+            return null;
+        }
+
+        internal void GetFileRange(int index, out long offset, out long length)
+        {
+            if (bundleHeader3 != null)
+            {
+                AssetsBundleEntry entry = assetsLists3.entries[index];
+                offset = bundleHeader3.bundleDataOffs + entry.offset;
+                length = entry.length;
+            }
+            else if (bundleHeader6 != null)
+            {
+                AssetBundleDirectoryInfo06 entry = bundleInf6.dirInf[index];
+                offset = bundleHeader6.GetFileDataOffset() + entry.offset;
+                length = entry.decompressedSize;
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
         }
     }
+
     public enum AssetBundleCompressionType
     {
         NONE = 0,

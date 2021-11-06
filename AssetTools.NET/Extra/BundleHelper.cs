@@ -16,75 +16,67 @@ namespace AssetsTools.NET.Extra
     {
         public static byte[] LoadAssetDataFromBundle(AssetBundleFile bundle, int index)
         {
+            bundle.GetFileRange(index, out long offset, out long length);
+            
             AssetsFileReader reader = bundle.reader;
-            int start = (int)(bundle.bundleHeader6.GetFileDataOffset() + bundle.bundleInf6.dirInf[index].offset);
-            int length = (int)bundle.bundleInf6.dirInf[index].decompressedSize;
-            reader.Position = start;
-            return reader.ReadBytes(length);
+            reader.Position = offset;
+            return reader.ReadBytes((int)length);
         }
-        public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, int index)
-        {
-            byte[] data = LoadAssetDataFromBundle(bundle, index);
-            MemoryStream ms = new MemoryStream(data);
-            AssetsFileReader r = new AssetsFileReader(ms);
-            return new AssetsFile(r);
-        }
-        public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, string name)
-        {
-            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
-            for (int i = 0; i < dirInf.Length; i++)
-            {
-                AssetBundleDirectoryInfo06 info = dirInf[i];
-                if (info.name == name)
-                {
-                    return LoadAssetFromBundle(bundle, i);
-                }
-            }
-            return null;
-        }
+
         public static byte[] LoadAssetDataFromBundle(AssetBundleFile bundle, string name)
         {
-            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
-            for (int i = 0; i < dirInf.Length; i++)
-            {
-                AssetBundleDirectoryInfo06 info = dirInf[i];
-                if (info.name == name)
-                {
-                    return LoadAssetDataFromBundle(bundle, i);
-                }
-            }
-            return null;
+            int index = bundle.GetFileIndex(name);
+            if (index < 0)
+                return null;
+
+            return LoadAssetDataFromBundle(bundle, index);
         }
-        public static List<AssetsFile> LoadAllAssetsFromBundle(AssetBundleFile bundle)
+
+        public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, int index)
         {
-            List<AssetsFile> files = new List<AssetsFile>();
-            AssetsFileReader reader = bundle.reader;
-            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
-            for (int i = 0; i < dirInf.Length; i++)
-            {
-                AssetBundleDirectoryInfo06 info = dirInf[i];
-                if (bundle.IsAssetsFile(reader, info))
-                {
-                    files.Add(LoadAssetFromBundle(bundle, i));
-                }
-            }
-            return files;
+            bundle.GetFileRange(index, out long offset, out long length);
+            Stream stream = new SegmentStream(bundle.reader.BaseStream, offset, length);
+            AssetsFileReader reader = new AssetsFileReader(stream);
+            return new AssetsFile(reader);
         }
+
+        public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, string name)
+        {
+            int index = bundle.GetFileIndex(name);
+            if (index < 0)
+                return null;
+
+            return LoadAssetFromBundle(bundle, index);
+        }
+
         public static List<byte[]> LoadAllAssetsDataFromBundle(AssetBundleFile bundle)
         {
             List<byte[]> files = new List<byte[]>();
-            AssetsFileReader reader = bundle.reader;
-            AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
-            for (int i = 0; i < dirInf.Length; i++)
+            int numFiles = bundle.NumFiles;
+            for (int i = 0; i < numFiles; i++)
             {
-                AssetBundleDirectoryInfo06 info = dirInf[i];
-                if (bundle.IsAssetsFile(reader, info))
+                if (bundle.IsAssetsFile(i))
                 {
                     files.Add(LoadAssetDataFromBundle(bundle, i));
                 }
             }
             return files;
         }
+
+        public static List<AssetsFile> LoadAllAssetsFromBundle(AssetBundleFile bundle)
+        {
+            List<AssetsFile> files = new List<AssetsFile>();
+            int numFiles = bundle.NumFiles;
+            for (int i = 0; i < numFiles; i++)
+            {
+                if (bundle.IsAssetsFile(i))
+                {
+                    files.Add(LoadAssetFromBundle(bundle, i));
+                }
+            }
+            return files;
+        }
+
         public static AssetBundleFile UnpackBundle(AssetBundleFile file, bool freeOriginalStream = true)
         {
             MemoryStream ms = new MemoryStream();
@@ -100,6 +92,7 @@ namespace AssetsTools.NET.Extra
             }
             return newFile;
         }
+
         public static AssetBundleFile UnpackBundleToStream(AssetBundleFile file, Stream stream, bool freeOriginalStream = true)
         {
             file.Unpack(file.reader, new AssetsFileWriter(stream));
@@ -114,11 +107,13 @@ namespace AssetsTools.NET.Extra
             }
             return newFile;
         }
+
         public static AssetBundleDirectoryInfo06 GetDirInfo(AssetBundleFile bundle, int index)
         {
             AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
             return dirInf[index];
         }
+
         public static AssetBundleDirectoryInfo06 GetDirInfo(AssetBundleFile bundle, string name)
         {
             AssetBundleDirectoryInfo06[] dirInf = bundle.bundleInf6.dirInf;
@@ -132,6 +127,7 @@ namespace AssetsTools.NET.Extra
             }
             return null;
         }
+
         public static void UnpackInfoOnly(this AssetBundleFile bundle)
         {
             AssetsFileReader reader = bundle.reader;
