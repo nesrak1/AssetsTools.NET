@@ -7,9 +7,27 @@ namespace AssetsTools.NET
     public class AssetsFileWriter : BinaryWriter
     {
         public bool bigEndian = true;
-        public AssetsFileWriter(FileStream fileStream) : base(fileStream) { }
-        public AssetsFileWriter(MemoryStream memoryStream) : base(memoryStream) { }
-        public AssetsFileWriter(Stream stream) : base(stream) { }
+
+        public AssetsFileWriter(string filePath)
+            : base(File.Open(filePath, FileMode.Create, FileAccess.Write))
+        {
+        }
+        
+        public AssetsFileWriter(FileStream fileStream)
+            : base(fileStream)
+        {
+        }
+        
+        public AssetsFileWriter(MemoryStream memoryStream)
+            : base(memoryStream)
+        {
+        }
+        
+        public AssetsFileWriter(Stream stream)
+            : base(stream)
+        {
+        }
+        
         public override void Write(short val)
         {
             unchecked

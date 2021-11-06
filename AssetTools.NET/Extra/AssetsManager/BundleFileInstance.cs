@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
@@ -21,24 +18,17 @@ namespace AssetsTools.NET.Extra
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetBundleFile();
             file.Read(new AssetsFileReader(stream), true);
-            if (file.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
+            if (file.bundleHeader6 != null && file.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
             {
                 file = BundleHelper.UnpackBundle(file);
+                this.stream = file.reader.BaseStream;
             }
             loadedAssetsFiles = new List<AssetsFileInstance>();
         }
+
         public BundleFileInstance(FileStream stream, string root, bool unpackIfPacked)
+            : this(stream, stream.Name, root, unpackIfPacked)
         {
-            this.stream = stream;
-            path = stream.Name;
-            name = Path.Combine(root, Path.GetFileName(path));
-            file = new AssetBundleFile();
-            file.Read(new AssetsFileReader(stream), true);
-            if (file.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
-            {
-                file = BundleHelper.UnpackBundle(file);
-            }
-            loadedAssetsFiles = new List<AssetsFileInstance>();
         }
     }
 }
