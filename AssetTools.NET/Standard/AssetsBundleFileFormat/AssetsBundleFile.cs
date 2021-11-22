@@ -398,10 +398,6 @@ namespace AssetsTools.NET
                     flags = 0x43
                 };
 
-                newHeader.Write(writer);
-                if (newHeader.fileVersion >= 7)
-                    writer.Align16();
-
                 AssetBundleBlockAndDirectoryList06 newBlockAndDirList = new AssetBundleBlockAndDirectoryList06()
                 {
                     checksumLow = 0,
