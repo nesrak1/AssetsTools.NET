@@ -164,5 +164,9 @@ namespace AssetsTools.NET
 
             return writer.Position;
         }
+        public override void Dispose()
+        {
+            //can't do anything here, gc will clean up buffer
+        }
     }
 }

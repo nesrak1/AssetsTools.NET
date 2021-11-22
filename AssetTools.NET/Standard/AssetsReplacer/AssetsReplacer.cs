@@ -25,5 +25,7 @@ namespace AssetsTools.NET
         public abstract long GetSize();
         public abstract long Write(AssetsFileWriter writer);
         public abstract long WriteReplacer(AssetsFileWriter writer);
+
+        public abstract void Dispose();
     }
 }

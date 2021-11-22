@@ -167,5 +167,9 @@ namespace AssetsTools.NET
 
             return writer.Position;
         }
+        public override void Dispose()
+        {
+            stream.Dispose();
+        }
     }
 }
