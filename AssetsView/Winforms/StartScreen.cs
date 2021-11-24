@@ -155,11 +155,41 @@ namespace AssetsView.Winforms
                 helper.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
                 if (helper.classFile == null)
                 {
-                    //may still not work but better than nothing I guess
-                    //in the future we should probably do a selector
-                    //like uabe does
+                    // Modification to find closest Unity version match
+                    int index = helper.classPackage.header.files.FindIndex(f => f.name.StartsWith("U" + inst.file.typeTree.unityVersion));
+                    if (index >= 0) // -1 mean's it isn't in current tpk
+                    {
+                        helper.classFile = helper.classPackage.files[index]; // If am.classFile is Null you get errors.
+                    }
+                    else
+                    {
+                        List<ClassDatabaseFile> files = helper.classPackage.files;
+
+                        // Filter all classDbFiles for matching versions
+                        var unityMajMinVer = inst.file.typeTree.unityVersion.Substring(0, 6);
+                        var filter1 = files.Where(f => f.header.unityVersions[0].StartsWith(unityMajMinVer)).OrderBy(v => v.header.unityVersions[v.header.unityVersionCount - 1]);
+                        var filter2 = filter1.Where(f => f.header.unityVersions[f.header.unityVersionCount - 1].Trim().Length == inst.file.typeTree.unityVersion.Length).OrderBy(v => v.header.unityVersions[v.header.unityVersionCount - 1]);
+
+                        // Get the SubMinor version number
+                        string unitySubMinVer = inst.file.typeTree.unityVersion.Split('.')[2];
+                        string tmpNum = "";
+                        if (unitySubMinVer.Length >= 4) { tmpNum = unitySubMinVer.Substring(0, 2); } else { tmpNum = unitySubMinVer.Substring(0, 1); }
+
+                        // Make Existing Num List 
+                        List<int> nums = new List<int>();
+                        foreach (var pos in filter2) { nums.Add(int.Parse(pos.header.unityVersions[pos.header.unityVersionCount - 1].Split('.')[2].Substring(0, tmpNum.Length))); }
+                        int closest = nums.Aggregate((x, y) => Math.Abs(x - int.Parse(tmpNum)) < Math.Abs(y - int.Parse(tmpNum)) ? x : y);
+
+                        ClassDatabaseFile result = filter2.Where(f => f.header.unityVersions[f.header.unityVersionCount - 1].StartsWith(unityMajMinVer + "." + closest)).Single();
+                        helper.classFile = result;
+                    }
+
+
+                    /* ORIGINAL CODE - will be Unity 5.x, due to order of list
+                    //may still not work but better than nothing I guess in the future we should probably do a selector like uabe does
                     List<ClassDatabaseFile> files = helper.classPackage.files;
                     helper.classFile = files[files.Count - 1];
+                    */
                 }
                 UpdateFileList();
                 currentFile = inst;
