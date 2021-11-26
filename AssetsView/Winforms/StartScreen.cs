@@ -125,7 +125,7 @@ namespace AssetsView.Winforms
                     }
                     MemoryStream mainStream = new MemoryStream(files[0]);
                     string mainName = bundleFile.bundleInf6.dirInf[0].name;
-                    AssetsFileInstance mainInst = helper.LoadAssetsFile(mainStream, mainName, openFile.selection == 1);
+                    AssetsFileInstance mainInst = helper.LoadAssetsFile(mainStream, Path.Combine(bundleInst.path, mainName), openFile.selection == 1, bunInst: bundleInst);
                     mainInst.parentBundle = bundleInst;
                     LoadMainAssetsFile(mainInst);
                 }
