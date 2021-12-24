@@ -73,7 +73,8 @@ namespace AssetsTools.NET
             foreach (AssetsReplacer replacer in replacers)
             {
                 int replacerClassId = replacer.GetClassID();
-                if (!typeTree.unity5Types.Any(t => t.classId == replacerClassId))
+                ushort replacerScriptIndex = replacer.GetMonoScriptID();
+                if (!typeTree.unity5Types.Any(t => t.classId == replacerClassId && t.scriptIndex == replacerScriptIndex))
                 {
                     Type_0D type = null;
 
@@ -83,6 +84,13 @@ namespace AssetsTools.NET
                         if (cldbType != null)
                         {
                             type = C2T5.Cldb2TypeTree(typeMeta, cldbType);
+
+                            //in original AssetsTools, if you tried to use a new monoId it would just try to use
+                            //the highest existing scriptIndex that existed without making a new one (unless there
+                            //were no monobehavours ofc) this isn't any better as we just assign a plain monobehaviour
+                            //typetree to a type that probably has more fields. I don't really know of a better way to
+                            //handle this at the moment as cldbs cannot differentiate monoids.
+                            type.scriptIndex = replacerScriptIndex;
                         }
                     }
 
@@ -92,7 +100,7 @@ namespace AssetsTools.NET
                                {
                                    classId = replacerClassId,
                                    unknown16_1 = 0,
-                                   scriptIndex = 0xFFFF,
+                                   scriptIndex = replacerScriptIndex,
                                    typeHash1 = 0,
                                    typeHash2 = 0,
                                    typeHash3 = 0,
