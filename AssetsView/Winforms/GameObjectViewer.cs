@@ -339,6 +339,11 @@ namespace AssetsView.Winforms
                     return;
                 }
                 AssetExternal ext = helper.GetExtAsset(inst, fileId, pathId, true);
+                if (ext.file == null)
+                {
+                    MessageBox.Show("Dependency could not be loaded. Maybe the file couldn't be loaded or doesn't exist?", "Assets View");
+                    return;
+                }
                 GameObjectViewer view = new GameObjectViewer(helper, ext.file, ext.info.index);
                 view.Show();
             }
