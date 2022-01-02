@@ -59,6 +59,7 @@
             this.upDirectory = new System.Windows.Forms.Button();
             this.imageList = new System.Windows.Forms.ImageList(this.components);
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.exportTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewTextureToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xRefsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -357,6 +358,7 @@
             // 
             this.contextMenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exportTextureToolStripMenuItem,
             this.viewTextureToolStripMenuItem,
             this.xRefsToolStripMenuItem,
             this.propertiesToolStripMenuItem});
@@ -370,6 +372,14 @@
             this.viewTextureToolStripMenuItem.Text = "View Texture";
             this.viewTextureToolStripMenuItem.Visible = false;
             this.viewTextureToolStripMenuItem.Click += new System.EventHandler(this.viewTextureToolStripMenuItem_Click);
+            //
+            // exportTextureToolStripMenuItem
+            //
+            this.exportTextureToolStripMenuItem.Name = "exportTextureToolStripMenuItem";
+            this.exportTextureToolStripMenuItem.Size = new System.Drawing.Size(140, 22);
+            this.exportTextureToolStripMenuItem.Text = "Export Texture";
+            this.exportTextureToolStripMenuItem.Visible = false;
+            this.exportTextureToolStripMenuItem.Click += new System.EventHandler(this.exportTextureToolStripMenuItem_Click);
             // 
             // xRefsToolStripMenuItem
             // 
@@ -453,6 +463,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem monoBehaviourToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem assetDataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportTextureToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewTextureToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xRefsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pptrToolStripMenuItem;
