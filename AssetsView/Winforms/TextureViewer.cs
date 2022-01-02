@@ -129,24 +129,26 @@ namespace AssetsView.Winforms
         public void SaveTexture()
         {
             var res = MessageBox.Show("Would you like to save the texture as .PNG?", "Texture", MessageBoxButtons.YesNo);
-            if(res == DialogResult.Yes)
+            if (res != DialogResult.Yes)
             {
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-                saveFileDialog1.Filter = ".PNG File|*.png";
-                saveFileDialog1.Title = "Save texture as .PNG file";
-                res = saveFileDialog1.ShowDialog();
-                if(res == DialogResult.Cancel || res == DialogResult.No)
-                {
-                    return;
-                }
-                string selected_name = saveFileDialog1.FileName;
-                if(File.Exists(selected_name))
-                {
-                    File.Delete(selected_name);
-                }
-                image.Save(selected_name, ImageFormat.Png);
-                MessageBox.Show("Done!");
+                return;
             }
+
+            SaveFileDialog tex_save_dialog = new SaveFileDialog();
+            tex_save_dialog.Filter = ".PNG File|*.png";
+            tex_save_dialog.Title = "Save texture as .PNG file";
+            res = tex_save_dialog.ShowDialog();
+            string selected_name = tex_save_dialog.FileName;
+            if (res == DialogResult.Cancel || res == DialogResult.No || string.IsNullOrWhiteSpace(selected_name))
+            {
+                return;
+            }
+            if (File.Exists(selected_name))
+            {
+                File.Delete(selected_name);
+            }
+            image.Save(selected_name, ImageFormat.Png);
+            MessageBox.Show("Done!");
         }
 
         private void TextureViewer_Paint(object sender, PaintEventArgs e)
