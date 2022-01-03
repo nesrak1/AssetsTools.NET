@@ -142,86 +142,86 @@ namespace AssetsTools.NET
             return texture;
         }
 
-        public static void WriteTextureFile(TextureFile texture, AssetTypeValueField baseField)
+        public void WriteTo(AssetTypeValueField baseField)
         {
             AssetTypeValueField tempField;
 
-            baseField.Get("m_Name").GetValue().Set(texture.m_Name);
+            baseField.Get("m_Name").GetValue().Set(m_Name);
 
             if (!(tempField = baseField.Get("m_ForcedFallbackFormat")).IsDummy())
-                tempField.GetValue().Set(texture.m_ForcedFallbackFormat);
+                tempField.GetValue().Set(m_ForcedFallbackFormat);
 
             if (!(tempField = baseField.Get("m_DownscaleFallback")).IsDummy())
-                tempField.GetValue().Set(texture.m_DownscaleFallback);
+                tempField.GetValue().Set(m_DownscaleFallback);
 
-            baseField.Get("m_Width").GetValue().Set(texture.m_Width);
+            baseField.Get("m_Width").GetValue().Set(m_Width);
 
-            baseField.Get("m_Height").GetValue().Set(texture.m_Height);
+            baseField.Get("m_Height").GetValue().Set(m_Height);
 
             if (!(tempField = baseField.Get("m_CompleteImageSize")).IsDummy())
-                tempField.GetValue().Set(texture.m_CompleteImageSize);
+                tempField.GetValue().Set(m_CompleteImageSize);
 
-            baseField.Get("m_TextureFormat").GetValue().Set(texture.m_TextureFormat);
+            baseField.Get("m_TextureFormat").GetValue().Set(m_TextureFormat);
 
             if (!(tempField = baseField.Get("m_MipCount")).IsDummy())
-                tempField.GetValue().Set(texture.m_MipCount);
+                tempField.GetValue().Set(m_MipCount);
 
             if (!(tempField = baseField.Get("m_MipMap")).IsDummy())
-                tempField.GetValue().Set(texture.m_MipMap);
+                tempField.GetValue().Set(m_MipMap);
 
-            baseField.Get("m_IsReadable").GetValue().Set(texture.m_IsReadable);
+            baseField.Get("m_IsReadable").GetValue().Set(m_IsReadable);
 
             if (!(tempField = baseField.Get("m_ReadAllowed")).IsDummy())
-                tempField.GetValue().Set(texture.m_ReadAllowed);
+                tempField.GetValue().Set(m_ReadAllowed);
 
             if (!(tempField = baseField.Get("m_StreamingMipmaps")).IsDummy())
-                tempField.GetValue().Set(texture.m_StreamingMipmaps);
+                tempField.GetValue().Set(m_StreamingMipmaps);
 
             if (!(tempField = baseField.Get("m_StreamingMipmapsPriority")).IsDummy())
-                tempField.GetValue().Set(texture.m_StreamingMipmapsPriority);
+                tempField.GetValue().Set(m_StreamingMipmapsPriority);
 
-            baseField.Get("m_ImageCount").GetValue().Set(texture.m_ImageCount);
+            baseField.Get("m_ImageCount").GetValue().Set(m_ImageCount);
 
-            baseField.Get("m_TextureDimension").GetValue().Set(texture.m_TextureDimension);
+            baseField.Get("m_TextureDimension").GetValue().Set(m_TextureDimension);
 
             AssetTypeValueField textureSettings = baseField.Get("m_TextureSettings");
 
-            textureSettings.Get("m_FilterMode").GetValue().Set(texture.m_TextureSettings.m_FilterMode);
-            textureSettings.Get("m_Aniso").GetValue().Set(texture.m_TextureSettings.m_Aniso);
-            textureSettings.Get("m_MipBias").GetValue().Set(texture.m_TextureSettings.m_MipBias);
+            textureSettings.Get("m_FilterMode").GetValue().Set(m_TextureSettings.m_FilterMode);
+            textureSettings.Get("m_Aniso").GetValue().Set(m_TextureSettings.m_Aniso);
+            textureSettings.Get("m_MipBias").GetValue().Set(m_TextureSettings.m_MipBias);
 
             if (!(tempField = textureSettings.Get("m_WrapMode")).IsDummy())
-                tempField.GetValue().Set(texture.m_TextureSettings.m_WrapMode);
+                tempField.GetValue().Set(m_TextureSettings.m_WrapMode);
 
             if (!(tempField = textureSettings.Get("m_WrapU")).IsDummy())
-                tempField.GetValue().Set(texture.m_TextureSettings.m_WrapU);
+                tempField.GetValue().Set(m_TextureSettings.m_WrapU);
 
             if (!(tempField = textureSettings.Get("m_WrapV")).IsDummy())
-                tempField.GetValue().Set(texture.m_TextureSettings.m_WrapV);
+                tempField.GetValue().Set(m_TextureSettings.m_WrapV);
 
             if (!(tempField = textureSettings.Get("m_WrapW")).IsDummy())
-                tempField.GetValue().Set(texture.m_TextureSettings.m_WrapW);
+                tempField.GetValue().Set(m_TextureSettings.m_WrapW);
 
             if (!(tempField = baseField.Get("m_LightmapFormat")).IsDummy())
-                tempField.GetValue().Set(texture.m_LightmapFormat);
+                tempField.GetValue().Set(m_LightmapFormat);
 
             if (!(tempField = baseField.Get("m_ColorSpace")).IsDummy())
-                tempField.GetValue().Set(texture.m_ColorSpace);
+                tempField.GetValue().Set(m_ColorSpace);
 
             AssetTypeValueField imageData = baseField.Get("image data");
             if (imageData.templateField.valueType == EnumValueTypes.ByteArray)
             {
-                imageData.GetValue().Set(texture.pictureData);
+                imageData.GetValue().Set(pictureData);
             }
             else
             {
-                imageData.GetValue().Set(new AssetTypeArray(texture.pictureData.Length));
+                imageData.GetValue().Set(new AssetTypeArray(pictureData.Length));
 
-                AssetTypeValueField[] children = new AssetTypeValueField[texture.pictureData.Length];
-                for (int i = 0; i < texture.pictureData.Length; i++)
+                AssetTypeValueField[] children = new AssetTypeValueField[pictureData.Length];
+                for (int i = 0; i < pictureData.Length; i++)
                 {
                     AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(imageData);
-                    child.GetValue().Set(texture.pictureData[i]);
+                    child.GetValue().Set(pictureData[i]);
                     children[i] = child;
                 }
 
@@ -232,9 +232,9 @@ namespace AssetsTools.NET
 
             if (!(streamData = baseField.Get("m_StreamData")).IsDummy())
             {
-                streamData.Get("offset").GetValue().Set(texture.m_StreamData.offset);
-                streamData.Get("size").GetValue().Set(texture.m_StreamData.size);
-                streamData.Get("path").GetValue().Set(texture.m_StreamData.path);
+                streamData.Get("offset").GetValue().Set(m_StreamData.offset);
+                streamData.Get("size").GetValue().Set(m_StreamData.size);
+                streamData.Get("path").GetValue().Set(m_StreamData.path);
             }
         }
 

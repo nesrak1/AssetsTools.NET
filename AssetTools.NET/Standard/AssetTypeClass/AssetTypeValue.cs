@@ -138,7 +138,7 @@ namespace AssetsTools.NET
                                          {
                                              byte[] byteArray => byteArray,
                                              string str       => Encoding.UTF8.GetBytes(str),
-                                             _                => Array.Empty<byte>()
+                                             _                => new byte[0]
                                          };
                         break;
                     }
@@ -151,7 +151,7 @@ namespace AssetsTools.NET
                                             {
                                                 AssetTypeByteArray byteArrayStruct  => byteArrayStruct,
                                                 byte[] byteArray                    => new AssetTypeByteArray(byteArray),
-                                                _                                   => new AssetTypeByteArray(Array.Empty<byte>())
+                                                _                                   => new AssetTypeByteArray(new byte[0])
                                             };
                         break;
                     }

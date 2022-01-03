@@ -17,7 +17,7 @@
             TextureFile texture = TextureFile.ReadTextureFile(baseField);
             GetNewTextureData(out byte[] bgra, out int width, out int height);
             SetTextureData(texture, bgra, width, height);
-            TextureFile.WriteTextureFile(texture, baseField);
+            texture.WriteTo(baseField);
         }
 
         /// <summary>

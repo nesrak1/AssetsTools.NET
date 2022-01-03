@@ -12,7 +12,9 @@ namespace AssetsTools.NET
         public abstract long Write(AssetsFileWriter writer);
         public abstract long WriteReplacer(AssetsFileWriter writer);
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+        }
 
         #region Unused methods kept for backwards compatibility
 
