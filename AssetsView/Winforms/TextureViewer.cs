@@ -14,6 +14,7 @@ namespace AssetsView.Winforms
     {
         Bitmap image;
 
+        string loadedFileName;
         bool loaded;
         float x, y;
         int width, height;
@@ -66,6 +67,7 @@ namespace AssetsView.Winforms
             {
                 string fmtName = ((TextureFormat)tf.m_TextureFormat).ToString().Replace("_", " ");
                 Text = $"Texture Viewer [{fmtName}]";
+                loadedFileName = tf.m_Name;
 
                 image = new Bitmap(tf.m_Width, tf.m_Height, PixelFormat.Format32bppArgb);
 
@@ -122,6 +124,30 @@ namespace AssetsView.Winforms
                 image.Dispose();
                 loaded = false;
             }
+        }
+
+        public void SaveTexture()
+        {
+            if(image == null)
+            {
+                return;
+            }
+            SaveFileDialog texSaveDialog = new SaveFileDialog();
+            texSaveDialog.Filter = ".PNG File|*.png";
+            texSaveDialog.Title = "Save texture as .PNG file";
+            texSaveDialog.FileName = loadedFileName;
+            DialogResult res = texSaveDialog.ShowDialog();
+            string selectedName = texSaveDialog.FileName;
+            if (res == DialogResult.Cancel || res == DialogResult.No || string.IsNullOrWhiteSpace(selectedName))
+            {
+                return;
+            }
+            if (File.Exists(selectedName))
+            {
+                File.Delete(selectedName);
+            }
+            image.Save(selectedName, ImageFormat.Png);
+            MessageBox.Show("Done!");
         }
 
         private void TextureViewer_Paint(object sender, PaintEventArgs e)
