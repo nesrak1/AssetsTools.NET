@@ -2,9 +2,32 @@
 {
     public class AssetsList
     {
-        public uint pos;
-        public uint count;
         public AssetsBundleEntry[] entries;
-        public uint allocatedCount;
+
+        public void Read(AssetsFileReader reader)
+        {
+            uint count = reader.ReadUInt32();
+            entries = new AssetsBundleEntry[count];
+            for (int i = 0; i < count; i++)
+            {
+                entries[i] = new AssetsBundleEntry();
+                entries[i].Read(reader);
+            }
+        }
+
+        public void Write(AssetsFileWriter writer)
+        {
+            if (entries == null)
+            {
+                writer.Write(0);
+                return;
+            }
+
+            writer.Write(entries.Length);
+            foreach (AssetsBundleEntry entry in entries)
+            {
+                entry.Write(writer);
+            }
+        }
     }
 }
