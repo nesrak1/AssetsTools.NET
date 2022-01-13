@@ -1,31 +1,83 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace AssetsTools.NET
 {
-    public abstract class AssetsReplacer
+    public abstract class AssetsReplacer : IDisposable
     {
         public abstract AssetsReplacementType GetReplacementType();
-
-        public abstract int GetFileID();
         public abstract long GetPathID();
         public abstract int GetClassID();
         public abstract ushort GetMonoScriptID();
-        public abstract void SetMonoScriptID(ushort scriptId);
-
-        public abstract bool GetPropertiesHash(out Hash128 propertiesHash);
-        public abstract bool SetPropertiesHash(Hash128 propertiesHash);
-        public abstract bool GetScriptIDHash(out Hash128 scriptIdHash);
-        public abstract bool SetScriptIDHash(Hash128 scriptIdHash);
-        public abstract bool GetTypeInfo(out ClassDatabaseFile file, out ClassDatabaseType type);
-        public abstract bool SetTypeInfo(ClassDatabaseFile file, ClassDatabaseType type, bool localCopy);
-        public abstract bool GetPreloadDependencies(out List<AssetPPtr> preloadList);
-        public abstract bool SetPreloadDependencies(List<AssetPPtr> preloadList);
-        public abstract bool AddPreloadDependency(AssetPPtr dependency);
-
-        public abstract long GetSize();
         public abstract long Write(AssetsFileWriter writer);
         public abstract long WriteReplacer(AssetsFileWriter writer);
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+        }
+
+        #region Unused methods kept for backwards compatibility
+
+        public virtual int GetFileID()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual long GetSize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void SetMonoScriptID(ushort scriptId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool GetPropertiesHash(out Hash128 propertiesHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool SetPropertiesHash(Hash128 propertiesHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool GetScriptIDHash(out Hash128 scriptIdHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool SetScriptIDHash(Hash128 scriptIdHash)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool GetTypeInfo(out ClassDatabaseFile file, out ClassDatabaseType type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool SetTypeInfo(ClassDatabaseFile file, ClassDatabaseType type, bool localCopy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool GetPreloadDependencies(out List<AssetPPtr> preloadList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool SetPreloadDependencies(List<AssetPPtr> preloadList)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual bool AddPreloadDependency(AssetPPtr dependency)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
     }
 }

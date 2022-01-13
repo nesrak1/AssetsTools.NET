@@ -81,7 +81,7 @@ namespace AssetsTools.NET
                 set { this.value = value; }
             }
         }
-        public ValueTypes value = new ValueTypes();
+        public ValueTypes value;
 
         public AssetTypeValue(EnumValueTypes type, object valueContainer)
         {
@@ -133,31 +133,38 @@ namespace AssetsTools.NET
                         value.asDouble = Convert.ToDouble(valueContainer);
                         break;
                     case EnumValueTypes.String:
-                        if (valueContainer is byte[] byteArr)
-                            value.asString = byteArr;
-                        else if (valueContainer is string str)
-                            value.asString = Encoding.UTF8.GetBytes(str);
-                        else
-                            value.asString = new byte[0];
+                    {
+                        value.asString = valueContainer switch
+                                         {
+                                             byte[] byteArray => byteArray,
+                                             string str       => Encoding.UTF8.GetBytes(str),
+                                             _                => new byte[0]
+                                         };
                         break;
+                    }
                     case EnumValueTypes.Array:
                         value.asArray = (AssetTypeArray)valueContainer;
                         break;
                     case EnumValueTypes.ByteArray:
-                        value.asByteArray = (AssetTypeByteArray)valueContainer;
+                    {
+                        value.asByteArray = valueContainer switch
+                                            {
+                                                AssetTypeByteArray byteArrayStruct  => byteArrayStruct,
+                                                byte[] byteArray                    => new AssetTypeByteArray(byteArray),
+                                                _                                   => new AssetTypeByteArray(new byte[0])
+                                            };
                         break;
-                    default:
-                        break;
+                    }
                 }
             }
         }
         public AssetTypeArray AsArray()
         {
-            return (type == EnumValueTypes.Array) ? value.asArray : new AssetTypeArray() { size = 0xFFFF };
+            return (type == EnumValueTypes.Array) ? value.asArray : new AssetTypeArray { size = 0xFFFF };
         }
         public AssetTypeByteArray AsByteArray()
         {
-            return (type == EnumValueTypes.ByteArray) ? value.asByteArray : new AssetTypeByteArray() { size = 0xFFFF };
+            return (type == EnumValueTypes.ByteArray) ? value.asByteArray : new AssetTypeByteArray { size = 0xFFFF };
         }
         public string AsString()
         {
@@ -187,9 +194,6 @@ namespace AssetsTools.NET
                     return value.asDouble.ToString();
                 case EnumValueTypes.String:
                     return Encoding.UTF8.GetString(value.asString);
-                case EnumValueTypes.None:
-                case EnumValueTypes.Array:
-                case EnumValueTypes.ByteArray:
                 default:
                     return "";
             }

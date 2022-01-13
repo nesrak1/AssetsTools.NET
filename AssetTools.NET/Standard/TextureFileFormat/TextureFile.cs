@@ -1,6 +1,7 @@
 ﻿using AssetsTools.NET.Extra;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace AssetsTools.NET
 {
@@ -141,6 +142,102 @@ namespace AssetsTools.NET
             return texture;
         }
 
+        public void WriteTo(AssetTypeValueField baseField)
+        {
+            AssetTypeValueField tempField;
+
+            baseField.Get("m_Name").GetValue().Set(m_Name);
+
+            if (!(tempField = baseField.Get("m_ForcedFallbackFormat")).IsDummy())
+                tempField.GetValue().Set(m_ForcedFallbackFormat);
+
+            if (!(tempField = baseField.Get("m_DownscaleFallback")).IsDummy())
+                tempField.GetValue().Set(m_DownscaleFallback);
+
+            baseField.Get("m_Width").GetValue().Set(m_Width);
+
+            baseField.Get("m_Height").GetValue().Set(m_Height);
+
+            if (!(tempField = baseField.Get("m_CompleteImageSize")).IsDummy())
+                tempField.GetValue().Set(m_CompleteImageSize);
+
+            baseField.Get("m_TextureFormat").GetValue().Set(m_TextureFormat);
+
+            if (!(tempField = baseField.Get("m_MipCount")).IsDummy())
+                tempField.GetValue().Set(m_MipCount);
+
+            if (!(tempField = baseField.Get("m_MipMap")).IsDummy())
+                tempField.GetValue().Set(m_MipMap);
+
+            baseField.Get("m_IsReadable").GetValue().Set(m_IsReadable);
+
+            if (!(tempField = baseField.Get("m_ReadAllowed")).IsDummy())
+                tempField.GetValue().Set(m_ReadAllowed);
+
+            if (!(tempField = baseField.Get("m_StreamingMipmaps")).IsDummy())
+                tempField.GetValue().Set(m_StreamingMipmaps);
+
+            if (!(tempField = baseField.Get("m_StreamingMipmapsPriority")).IsDummy())
+                tempField.GetValue().Set(m_StreamingMipmapsPriority);
+
+            baseField.Get("m_ImageCount").GetValue().Set(m_ImageCount);
+
+            baseField.Get("m_TextureDimension").GetValue().Set(m_TextureDimension);
+
+            AssetTypeValueField textureSettings = baseField.Get("m_TextureSettings");
+
+            textureSettings.Get("m_FilterMode").GetValue().Set(m_TextureSettings.m_FilterMode);
+            textureSettings.Get("m_Aniso").GetValue().Set(m_TextureSettings.m_Aniso);
+            textureSettings.Get("m_MipBias").GetValue().Set(m_TextureSettings.m_MipBias);
+
+            if (!(tempField = textureSettings.Get("m_WrapMode")).IsDummy())
+                tempField.GetValue().Set(m_TextureSettings.m_WrapMode);
+
+            if (!(tempField = textureSettings.Get("m_WrapU")).IsDummy())
+                tempField.GetValue().Set(m_TextureSettings.m_WrapU);
+
+            if (!(tempField = textureSettings.Get("m_WrapV")).IsDummy())
+                tempField.GetValue().Set(m_TextureSettings.m_WrapV);
+
+            if (!(tempField = textureSettings.Get("m_WrapW")).IsDummy())
+                tempField.GetValue().Set(m_TextureSettings.m_WrapW);
+
+            if (!(tempField = baseField.Get("m_LightmapFormat")).IsDummy())
+                tempField.GetValue().Set(m_LightmapFormat);
+
+            if (!(tempField = baseField.Get("m_ColorSpace")).IsDummy())
+                tempField.GetValue().Set(m_ColorSpace);
+
+            AssetTypeValueField imageData = baseField.Get("image data");
+            if (imageData.templateField.valueType == EnumValueTypes.ByteArray)
+            {
+                imageData.GetValue().Set(pictureData);
+            }
+            else
+            {
+                imageData.GetValue().Set(new AssetTypeArray(pictureData.Length));
+
+                AssetTypeValueField[] children = new AssetTypeValueField[pictureData.Length];
+                for (int i = 0; i < pictureData.Length; i++)
+                {
+                    AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(imageData);
+                    child.GetValue().Set(pictureData[i]);
+                    children[i] = child;
+                }
+
+                imageData.SetChildrenList(children);
+            }
+
+            AssetTypeValueField streamData;
+
+            if (!(streamData = baseField.Get("m_StreamData")).IsDummy())
+            {
+                streamData.Get("offset").GetValue().Set(m_StreamData.offset);
+                streamData.Get("size").GetValue().Set(m_StreamData.size);
+                streamData.Get("path").GetValue().Set(m_StreamData.path);
+            }
+        }
+
         //default setting for assetstools
         //usually you have to cd to the assets file
         public byte[] GetTextureData()
@@ -166,7 +263,7 @@ namespace AssetsTools.NET
 
         public byte[] GetTextureData(string rootPath)
         {
-            if (m_StreamData.size != 0 && m_StreamData.path != string.Empty)
+            if ((pictureData == null || pictureData.Length == 0) && !string.IsNullOrEmpty(m_StreamData.path) && m_StreamData.size != 0)
             {
                 string fixedStreamPath = m_StreamData.path;
                 if (!Path.IsPathRooted(fixedStreamPath) && rootPath != null)
@@ -175,7 +272,7 @@ namespace AssetsTools.NET
                 }
                 if (File.Exists(fixedStreamPath))
                 {
-                    Stream stream = File.OpenRead(fixedStreamPath);
+                    using Stream stream = File.OpenRead(fixedStreamPath);
                     stream.Position = (long)m_StreamData.offset;
                     pictureData = new byte[m_StreamData.size];
                     stream.Read(pictureData, 0, (int)m_StreamData.size);
@@ -185,55 +282,98 @@ namespace AssetsTools.NET
                     return null;
                 }
             }
-            int width = m_Width;
-            int height = m_Height;
-            TextureFormat texFmt = (TextureFormat)m_TextureFormat;
-            return GetTextureDataFromBytes(pictureData, texFmt, width, height);
+            return Decode(pictureData, (TextureFormat)m_TextureFormat, m_Width, m_Height);
         }
 
-        public static byte[] GetTextureDataFromBytes(byte[] data, TextureFormat texFmt, int width, int height)
+        public byte[] GetTextureData(string rootPath, AssetBundleFile bundle)
         {
-            switch (texFmt)
+            if ((pictureData == null || pictureData.Length == 0) && m_StreamData.path != null && m_StreamData.path.StartsWith("archive:/") && bundle != null)
             {
-                case TextureFormat.R8:
-                    return RGBADecoders.ReadR8(data, width, height);
-                case TextureFormat.R16:
-                    return RGBADecoders.ReadR16(data, width, height);
-                case TextureFormat.RG16:
-                    return RGBADecoders.ReadRG16(data, width, height);
-                case TextureFormat.RGB24:
-                    return RGBADecoders.ReadRGB24(data, width, height);
-                case TextureFormat.RGB565:
-                    return RGBADecoders.ReadRGB565(data, width, height);
-                case TextureFormat.RGBA32:
-                    return RGBADecoders.ReadRGBA32(data, width, height);
-                case TextureFormat.ARGB32:
-                    return RGBADecoders.ReadARGB32(data, width, height);
-                case TextureFormat.RGBA4444:
-                    return RGBADecoders.ReadRGBA4444(data, width, height);
-                case TextureFormat.ARGB4444:
-                    return RGBADecoders.ReadARGB4444(data, width, height);
-                case TextureFormat.Alpha8:
-                    return RGBADecoders.ReadAlpha8(data, width, height);
-                case TextureFormat.RHalf:
-                    return RGBADecoders.ReadRHalf(data, width, height);
-                case TextureFormat.RGHalf:
-                    return RGBADecoders.ReadRGHalf(data, width, height);
-                case TextureFormat.RGBAHalf:
-                    return RGBADecoders.ReadRGBAHalf(data, width, height);
-                case TextureFormat.DXT1:
-                    return DXTDecoders.ReadDXT1(data, width, height);
-                case TextureFormat.DXT5:
-                    return DXTDecoders.ReadDXT5(data, width, height);
-                case TextureFormat.BC7:
-                    return BC7Decoder.ReadBC7(data, width, height);
-                case TextureFormat.ETC_RGB4:
-                    return ETCDecoders.ReadETC(data, width, height);
-                case TextureFormat.ETC2_RGB4:
-                    return ETCDecoders.ReadETC(data, width, height, true);
-                default:
-                    return null;
+                string resourceFileName = m_StreamData.path.Split('/').Last();
+                int resourceFileIndex = bundle.GetFileIndex(resourceFileName);
+                if (resourceFileIndex >= 0)
+                {
+                    bundle.GetFileRange(resourceFileIndex, out long resourceFileOffset, out _);
+                    pictureData = new byte[m_StreamData.size];
+                    bundle.reader.Position = resourceFileOffset + (long)m_StreamData.offset;
+                    bundle.reader.Read(pictureData, 0, pictureData.Length);
+                }
             }
+
+            return GetTextureData(rootPath);
+        }
+
+        public void SetTextureData(byte[] bgra, int width, int height)
+        {
+            byte[] encoded = Encode(bgra, (TextureFormat)m_TextureFormat, width, height);
+            if (encoded == null)
+                throw new NotSupportedException("The current texture format is not supported for encoding.");
+
+            SetTextureDataRaw(encoded, width, height);
+        }
+
+        public void SetTextureDataRaw(byte[] encodedData, int width, int height)
+        {
+            m_Width = width;
+            m_Height = height;
+            m_StreamData.path = null;
+            m_StreamData.offset = 0;
+            m_StreamData.size = 0;
+            pictureData = encodedData;
+            m_CompleteImageSize = encodedData.Length;
+        }
+
+        [Obsolete("Renamed to " + nameof(Decode))]
+        public static byte[] GetTextureDataFromBytes(byte[] data, TextureFormat format, int width, int height)
+        {
+            return Decode(data, format, width, height);
+        }
+
+        public static byte[] Decode(byte[] data, TextureFormat format, int width, int height)
+        {
+            return format switch
+                   {
+                       TextureFormat.R8 =>        RGBADecoders.ReadR8(data, width, height),
+                       TextureFormat.R16 =>       RGBADecoders.ReadR16(data, width, height),
+                       TextureFormat.RG16 =>      RGBADecoders.ReadRG16(data, width, height),
+                       TextureFormat.RGB24 =>     RGBADecoders.ReadRGB24(data, width, height),
+                       TextureFormat.RGB565 =>    RGBADecoders.ReadRGB565(data, width, height),
+                       TextureFormat.RGBA32 =>    RGBADecoders.ReadRGBA32(data, width, height),
+                       TextureFormat.ARGB32 =>    RGBADecoders.ReadARGB32(data, width, height),
+                       TextureFormat.RGBA4444 =>  RGBADecoders.ReadRGBA4444(data, width, height),
+                       TextureFormat.ARGB4444 =>  RGBADecoders.ReadARGB4444(data, width, height),
+                       TextureFormat.Alpha8 =>    RGBADecoders.ReadAlpha8(data, width, height),
+                       TextureFormat.RHalf =>     RGBADecoders.ReadRHalf(data, width, height),
+                       TextureFormat.RGHalf =>    RGBADecoders.ReadRGHalf(data, width, height),
+                       TextureFormat.RGBAHalf =>  RGBADecoders.ReadRGBAHalf(data, width, height),
+                       TextureFormat.DXT1 =>      DXTDecoders.ReadDXT1(data, width, height),
+                       TextureFormat.DXT5 =>      DXTDecoders.ReadDXT5(data, width, height),
+                       TextureFormat.BC7 =>       BC7Decoder.ReadBC7(data, width, height),
+                       TextureFormat.ETC_RGB4 =>  ETCDecoders.ReadETC(data, width, height),
+                       TextureFormat.ETC2_RGB4 => ETCDecoders.ReadETC(data, width, height, true),
+                       _ => null
+                   };
+        }
+
+        public static byte[] Encode(byte[] data, TextureFormat format, int width, int height)
+        {
+            return format switch
+                   {
+                       TextureFormat.R8 =>       RGBAEncoders.EncodeR8(data, width, height),
+                       TextureFormat.R16 =>      RGBAEncoders.EncodeR16(data, width, height),
+                       TextureFormat.RG16 =>     RGBAEncoders.EncodeRG16(data, width, height),
+                       TextureFormat.RGB24 =>    RGBAEncoders.EncodeRGB24(data, width, height),
+                       TextureFormat.RGB565 =>   RGBAEncoders.EncodeRGB565(data, width, height),
+                       TextureFormat.RGBA32 =>   RGBAEncoders.EncodeRGBA32(data, width, height),
+                       TextureFormat.ARGB32 =>   RGBAEncoders.EncodeARGB32(data, width, height),
+                       TextureFormat.RGBA4444 => RGBAEncoders.EncodeRGBA4444(data, width, height),
+                       TextureFormat.ARGB4444 => RGBAEncoders.EncodeARGB4444(data, width, height),
+                       TextureFormat.Alpha8 =>   RGBAEncoders.EncodeAlpha8(data, width, height),
+                       TextureFormat.RHalf =>    RGBAEncoders.EncodeRHalf(data, width, height),
+                       TextureFormat.RGHalf =>   RGBAEncoders.EncodeRGHalf(data, width, height),
+                       TextureFormat.RGBAHalf => RGBAEncoders.EncodeRGBAHalf(data, width, height),
+                       _ => null
+                   };
         }
     }
 
