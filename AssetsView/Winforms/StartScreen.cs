@@ -655,7 +655,7 @@ namespace AssetsView.Winforms
                 {
                     return;
                 }
-                helper.LoadAssetsFile(currentFile.stream, currentFile.path, true);
+                helper.LoadAssetsFile(currentFile.AssetsStream, currentFile.path, true);
                 UpdateDependencies();
             }
             else
