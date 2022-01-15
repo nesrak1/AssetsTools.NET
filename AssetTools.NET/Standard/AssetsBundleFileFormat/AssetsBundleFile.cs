@@ -178,7 +178,7 @@ namespace AssetsTools.NET
                     {
                         offset = currentOffset,
                         decompressedSize = replacer.GetSize(),
-                        flags = 0x04, //idk it just works (tm)
+                        flags = (uint)(replacer.HasSerializedData() ? 0x04 : 0x00),
                         name = replacer.GetEntryName()
                     };
                     currentOffset += info.decompressedSize;
