@@ -225,6 +225,12 @@ namespace AssetsTools.NET.Extra
             for (int i = 0; i < ofFile.dependencies.Count; i++)
             {
                 string depPath = ofFile.file.dependencies.dependencies[i].assetPath;
+
+                if (depPath == string.Empty)
+                {
+                    continue;
+                }
+
                 if (files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
                 {
                     string absPath = Path.Combine(path, depPath);
