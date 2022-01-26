@@ -148,7 +148,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (DerivesFromUEObject(fieldType))
                 {
-                    SetPPtr(field, false);
+                    SetPPtr(field, true);
                 }
                 else if (fieldType.IsSerializable)
                 {
@@ -266,7 +266,10 @@ namespace AssetsTools.NET.Extra
                 name == "UnityEngine.Rect" ||
                 name == "UnityEngine.Matrix4x4" ||
                 name == "UnityEngine.AnimationCurve" ||
-                name == "UnityEngine.GUIStyle") return true;
+                name == "UnityEngine.GUIStyle" ||
+                name == "UnityEngine.Vector2Int" ||
+                name == "UnityEngine.Vector3Int" ||
+                name == "UnityEngine.BoundsInt") return true;
             return false;
         }
         private bool DerivesFromUEObject(TypeDefinition typeDef)
@@ -315,7 +318,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.name = string.Copy(field.name);
             array.type = "Array";
-            array.valueType = EnumValueTypes.None;
+            array.valueType = EnumValueTypes.Array;
             array.isArray = true;
             array.align = true;
             array.hasValue = false;
@@ -353,7 +356,7 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.name = "Array";
             array.type = "Array";
-            array.valueType = EnumValueTypes.None;
+            array.valueType = EnumValueTypes.Array;
             array.isArray = true;
             array.align = true;
             array.hasValue = false;
@@ -437,6 +440,15 @@ namespace AssetsTools.NET.Extra
                     break;
                 case "GUIStyle":
                     SetGUIStyle(field);
+                    break;
+                case "BoundsInt":
+                    SetAABBInt(field);
+                    break;
+                case "Vector2Int":
+                    SetVec2Int(field);
+                    break;
+                case "Vector3Int":
+                    SetVec3Int(field);
                     break;
                 default:
                     SetSerialized(field, type);
@@ -599,6 +611,41 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField m_StretchHeight = CreateTemplateField("m_StretchHeight", "bool", EnumValueTypes.Bool, false, true);
             field.children = new AssetTypeTemplateField[] {
                 m_Name, m_Normal, m_Hover, m_Active, m_Focused, m_OnNormal, m_OnHover, m_OnActive, m_OnFocused, m_Border, m_Margin, m_Padding, m_Overflow, m_Font, m_FontSize, m_FontStyle, m_Alignment, m_WordWrap, m_RichText, m_TextClipping, m_ImagePosition, m_ContentOffset, m_FixedWidth, m_FixedHeight, m_StretchWidth, m_StretchHeight
+            };
+        }
+        private void SetAABBInt(AssetTypeTemplateField field)
+        {
+            field.childrenCount = 2;
+            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3Int", EnumValueTypes.None, 3, Vec3Int());
+            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3Int", EnumValueTypes.None, 3, Vec3Int());
+            field.children = new AssetTypeTemplateField[] {
+                m_Center, m_Extent
+            };
+        }
+        private AssetTypeTemplateField[] Vec3Int()
+        {
+            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Z = CreateTemplateField("m_Z", "int", EnumValueTypes.Int32);
+            return new AssetTypeTemplateField[] { m_X, m_Y, m_Z };
+        }
+        private void SetVec2Int(AssetTypeTemplateField field)
+        {
+            field.childrenCount = 2;
+            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", EnumValueTypes.Int32);
+            field.children = new AssetTypeTemplateField[] {
+                m_X, m_Y
+            };
+        }
+        private void SetVec3Int(AssetTypeTemplateField field)
+        {
+            field.childrenCount = 3;
+            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", EnumValueTypes.Int32);
+            AssetTypeTemplateField m_Z = CreateTemplateField("m_Z", "int", EnumValueTypes.Int32);
+            field.children = new AssetTypeTemplateField[] {
+                m_X, m_Y, m_Z
             };
         }
         private AssetTypeTemplateField[] String()
