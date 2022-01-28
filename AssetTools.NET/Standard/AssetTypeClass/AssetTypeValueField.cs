@@ -100,6 +100,8 @@
                     return EnumValueTypes.Double;
                 case "bool":
                     return EnumValueTypes.Bool;
+                case "typelessdata":
+                    return EnumValueTypes.ByteArray;
                 default:
                     return EnumValueTypes.None;
             }

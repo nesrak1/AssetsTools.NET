@@ -47,6 +47,12 @@ namespace AssetsTools.NET.Extra
             if (dependencies[depIdx] == null)
             {
                 string depPath = file.dependencies.dependencies[depIdx].assetPath;
+
+                if (depPath == string.Empty)
+                {
+                    return null;
+                }
+
                 int instIndex = am.files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
                 if (instIndex == -1)
                 {

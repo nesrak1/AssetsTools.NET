@@ -214,8 +214,7 @@ namespace AssetsView.Winforms
                             node.Add(prop);
                             PopulateDataGrid(atvfc, prop, info, category);
                         }
-                        else if (evt == EnumValueTypes.Array ||
-                                 evt == EnumValueTypes.ByteArray)
+                        else if (evt == EnumValueTypes.Array)
                         {
                             PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.childrenCount}]");
                             PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.childrenCount}]");
@@ -223,6 +222,14 @@ namespace AssetsView.Winforms
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
                             PopulateDataGrid(atvfc, childProps, info, category, true);
+                        }
+                        else if (evt == EnumValueTypes.ByteArray)
+                        {
+                            PGProperty childProps = new PGProperty("child", null, $"[bytes size: {atvfc.GetValue().AsByteArray().size}]");
+                            PGProperty prop = new PGProperty(key, childProps, $"[bytes size: {atvfc.GetValue().AsByteArray().size}]");
+                            prop.category = category;
+                            SetSelectedStateIfSelected(info, prop);
+                            node.Add(prop);
                         }
                     }
                 }
