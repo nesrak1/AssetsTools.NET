@@ -380,7 +380,7 @@ namespace AssetsTools.NET
             }
             return false;
         }
-        public bool Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType)
+        public bool Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType, bool blockDirAtEnd = true)
         {
             reader.Position = 0;
             writer.Position = 0;
@@ -395,7 +395,7 @@ namespace AssetsTools.NET
                     totalFileSize = 0,
                     compressedSize = 0,
                     decompressedSize = 0,
-                    flags = 0x43
+                    flags = (uint)(0x43 | (blockDirAtEnd ? 0x80 : 0x00))
                 };
 
                 AssetBundleBlockAndDirectoryList06 newBlockAndDirList = new AssetBundleBlockAndDirectoryList06()
@@ -408,127 +408,163 @@ namespace AssetsTools.NET
                     dirInf = bundleInf6.dirInf
                 };
 
+                //write header now and overwrite it later
+                long startPos = writer.Position;
+
+                newHeader.Write(writer);
+                if (newHeader.fileVersion >= 7)
+                    writer.Align16();
+
+                int headerSize = (int)(writer.Position - startPos);
+
+                long totalCompressedSize = 0;
                 List<AssetBundleBlockInfo06> newBlocks = new List<AssetBundleBlockInfo06>();
+                List<Stream> newStreams = new List<Stream>(); //used if blockDirAtEnd == false
 
-                reader.Position = bundleHeader6.GetFileDataOffset();
-                int fileDataLength = (int)(bundleHeader6.totalFileSize - reader.Position);
-                byte[] fileData = reader.ReadBytes(fileDataLength);
+                long fileDataOffset = bundleHeader6.GetFileDataOffset();
+                int fileDataLength = (int)(bundleHeader6.totalFileSize - fileDataOffset);
 
-                //todo, we just write everything to memory and then write to file
-                //we could calculate the blocks we need ahead of time and correctly
-                //size the block listing before this so we can write directly to file
-                byte[] compressedFileData;
+                SegmentStream bundleDataStream = new SegmentStream(reader.BaseStream, fileDataOffset, fileDataLength);
+
                 switch (compType)
                 {
                     case AssetBundleCompressionType.LZMA:
                     {
-                        compressedFileData = SevenZipHelper.Compress(fileData);
-                        newBlocks.Add(new AssetBundleBlockInfo06()
+                        Stream writeStream;
+                        if (blockDirAtEnd)
+                            writeStream = writer.BaseStream;
+                        else
+                            writeStream = GetTempFileStream();
+
+                        long writeStreamStart = writeStream.Position;
+                        SevenZipHelper.Compress(bundleDataStream, writeStream);
+                        uint writeStreamLength = (uint)(writeStream.Position - writeStreamStart);
+
+                        AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
                         {
-                            compressedSize = (uint)compressedFileData.Length,
-                            decompressedSize = (uint)fileData.Length,
+                            compressedSize = writeStreamLength,
+                            decompressedSize = (uint)fileDataLength,
                             flags = 0x41
-                        });
+                        };
+
+                        totalCompressedSize += blockInfo.compressedSize;
+                        newBlocks.Add(blockInfo);
+
+                        if (blockDirAtEnd)
+                            bundleDataStream.CopyToCompat(writer.BaseStream);
+                        else
+                            newStreams.Add(writeStream);
+
                         break;
                     }
                     case AssetBundleCompressionType.LZ4:
                     {
-                        using (var memStreamCom = new MemoryStream())
-                        using (var binaryWriter = new BinaryWriter(memStreamCom))
+                        //compress into 0x20000 blocks
+                        BinaryReader bundleDataReader = new BinaryReader(bundleDataStream);
+                        byte[] uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
+                        while (uncompressedBlock.Length != 0)
                         {
-                            using (var memStreamUnc = new MemoryStream(fileData))
-                            using (var binaryReader = new BinaryReader(memStreamUnc))
+                            Stream writeStream;
+                            if (blockDirAtEnd)
+                                writeStream = writer.BaseStream;
+                            else
+                                writeStream = GetTempFileStream();
+
+                            byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+                            writeStream.Write(compressedBlock, 0, compressedBlock.Length);
+
+                            if (compressedBlock.Length > uncompressedBlock.Length)
                             {
-                                //compress into 0x20000 blocks
-                                byte[] uncompressedBlock = binaryReader.ReadBytes(131072);
-                                while (uncompressedBlock.Length != 0)
+                                AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
                                 {
-                                    byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+                                    compressedSize = (uint)uncompressedBlock.Length,
+                                    decompressedSize = (uint)uncompressedBlock.Length,
+                                    flags = 0x0
+                                };
 
-                                    if (compressedBlock.Length > uncompressedBlock.Length)
-                                    {
-                                        newBlocks.Add(new AssetBundleBlockInfo06()
-                                        {
-                                            compressedSize = (uint)uncompressedBlock.Length,
-                                            decompressedSize = (uint)uncompressedBlock.Length,
-                                            flags = 0x0
-                                        });
-                                        binaryWriter.Write(uncompressedBlock);
-                                    }
-                                    else
-                                    {
-                                        newBlocks.Add(new AssetBundleBlockInfo06()
-                                        {
-                                            compressedSize = (uint)compressedBlock.Length,
-                                            decompressedSize = (uint)uncompressedBlock.Length,
-                                            flags = 0x3
-                                        });
-                                        binaryWriter.Write(compressedBlock);
-                                    }
+                                totalCompressedSize += blockInfo.compressedSize;
 
-                                    uncompressedBlock = binaryReader.ReadBytes(131072);
-                                }
+                                newBlocks.Add(blockInfo);
+                            }
+                            else
+                            {
+                                AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
+                                {
+                                    compressedSize = (uint)compressedBlock.Length,
+                                    decompressedSize = (uint)uncompressedBlock.Length,
+                                    flags = 0x3
+                                };
+
+                                totalCompressedSize += blockInfo.compressedSize;
+
+                                newBlocks.Add(blockInfo);
                             }
 
-                            compressedFileData = memStreamCom.ToArray();
+                            if (blockDirAtEnd)
+                                bundleDataStream.CopyToCompat(writer.BaseStream);
+                            else
+                                newStreams.Add(writeStream);
+
+                            uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                         }
                         break;
                     }
                     case AssetBundleCompressionType.NONE:
                     {
-                        compressedFileData = fileData;
-                        newBlocks.Add(new AssetBundleBlockInfo06()
+                        AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
                         {
-                            compressedSize = (uint)fileData.Length,
-                            decompressedSize = (uint)fileData.Length,
+                            compressedSize = (uint)fileDataLength,
+                            decompressedSize = (uint)fileDataLength,
                             flags = 0x00
-                        });
+                        };
+
+                        totalCompressedSize += blockInfo.compressedSize;
+
+                        newBlocks.Add(blockInfo);
+
+                        if (blockDirAtEnd)
+                            bundleDataStream.CopyToCompat(writer.BaseStream);
+                        else
+                            newStreams.Add(bundleDataStream);
+
                         break;
-                    }
-                    default:
-                    {
-                        return false;
                     }
                 }
 
                 newBlockAndDirList.blockInf = newBlocks.ToArray();
 
                 byte[] bundleInfoBytes;
-                using (var memStream = new MemoryStream())
+                using (MemoryStream memStream = new MemoryStream())
                 {
-                    var afw = new AssetsFileWriter(memStream);
-                    newBlockAndDirList.Write(afw);
+                    AssetsFileWriter infoWriter = new AssetsFileWriter(memStream);
+                    newBlockAndDirList.Write(infoWriter);
                     bundleInfoBytes = memStream.ToArray();
                 }
-
-                if (bundleInfoBytes == null || bundleInfoBytes.Length == 0)
-                    return false;
 
                 //listing is usually lz4 even if the data blocks are lzma
                 byte[] bundleInfoBytesCom = LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
 
-                byte[] bundleHeaderBytes = null;
-                using (var memStream = new MemoryStream())
-                {
-                    var afw = new AssetsFileWriter(memStream);
-                    newHeader.Write(afw);
-                    bundleHeaderBytes = memStream.ToArray();
-                }
-
-                if (bundleHeaderBytes == null || bundleHeaderBytes.Length == 0)
-                    return false;
-
-                uint totalFileSize = (uint)(bundleHeaderBytes.Length + bundleInfoBytesCom.Length + compressedFileData.Length);
+                uint totalFileSize = (uint)(headerSize + bundleInfoBytesCom.Length + totalCompressedSize);
                 newHeader.totalFileSize = totalFileSize;
                 newHeader.decompressedSize = (uint)bundleInfoBytes.Length;
                 newHeader.compressedSize = (uint)bundleInfoBytesCom.Length;
 
+                writer.Write(bundleInfoBytesCom);
+
+                if (!blockDirAtEnd)
+                {
+                    foreach (Stream newStream in newStreams)
+                    {
+                        newStream.Position = 0;
+                        newStream.CopyToCompat(writer.BaseStream);
+                        newStream.Close();
+                    }
+                }
+
+                writer.Position = 0;
                 newHeader.Write(writer);
                 if (newHeader.fileVersion >= 7)
                     writer.Align16();
-
-                writer.Write(bundleInfoBytesCom);
-                writer.Write(compressedFileData);
 
                 return true;
             }
@@ -613,6 +649,13 @@ namespace AssetsTools.NET
             {
                 throw new NotSupportedException();
             }
+        }
+
+        private FileStream GetTempFileStream()
+        {
+            string tempFilePath = Path.GetTempFileName();
+            FileStream tempFileStream = new FileStream(tempFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read, 4096, FileOptions.DeleteOnClose);
+            return tempFileStream;
         }
     }
 
