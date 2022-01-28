@@ -450,9 +450,7 @@ namespace AssetsTools.NET
                         totalCompressedSize += blockInfo.compressedSize;
                         newBlocks.Add(blockInfo);
 
-                        if (blockDirAtEnd)
-                            bundleDataStream.CopyToCompat(writer.BaseStream);
-                        else
+                        if (!blockDirAtEnd)
                             newStreams.Add(writeStream);
 
                         break;
@@ -471,10 +469,11 @@ namespace AssetsTools.NET
                                 writeStream = GetTempFileStream();
 
                             byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
-                            writeStream.Write(compressedBlock, 0, compressedBlock.Length);
 
                             if (compressedBlock.Length > uncompressedBlock.Length)
                             {
+                                writeStream.Write(uncompressedBlock, 0, uncompressedBlock.Length);
+
                                 AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
                                 {
                                     compressedSize = (uint)uncompressedBlock.Length,
@@ -488,6 +487,8 @@ namespace AssetsTools.NET
                             }
                             else
                             {
+                                writeStream.Write(compressedBlock, 0, compressedBlock.Length);
+
                                 AssetBundleBlockInfo06 blockInfo = new AssetBundleBlockInfo06()
                                 {
                                     compressedSize = (uint)compressedBlock.Length,
@@ -500,9 +501,7 @@ namespace AssetsTools.NET
                                 newBlocks.Add(blockInfo);
                             }
 
-                            if (blockDirAtEnd)
-                                bundleDataStream.CopyToCompat(writer.BaseStream);
-                            else
+                            if (!blockDirAtEnd)
                                 newStreams.Add(writeStream);
 
                             uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
@@ -544,21 +543,24 @@ namespace AssetsTools.NET
                 //listing is usually lz4 even if the data blocks are lzma
                 byte[] bundleInfoBytesCom = LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
 
-                uint totalFileSize = (uint)(headerSize + bundleInfoBytesCom.Length + totalCompressedSize);
+                long totalFileSize = headerSize + bundleInfoBytesCom.Length + totalCompressedSize;
                 newHeader.totalFileSize = totalFileSize;
                 newHeader.decompressedSize = (uint)bundleInfoBytes.Length;
                 newHeader.compressedSize = (uint)bundleInfoBytesCom.Length;
 
-                writer.Write(bundleInfoBytesCom);
-
                 if (!blockDirAtEnd)
                 {
+                    writer.Write(bundleInfoBytesCom);
                     foreach (Stream newStream in newStreams)
                     {
                         newStream.Position = 0;
                         newStream.CopyToCompat(writer.BaseStream);
                         newStream.Close();
                     }
+                }
+                else
+                {
+                    writer.Write(bundleInfoBytesCom);
                 }
 
                 writer.Position = 0;
