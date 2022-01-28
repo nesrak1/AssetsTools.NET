@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET</id>
-    <version>2.0.9</version>
+    <version>2.0.10</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -11,7 +11,7 @@
     <icon>icon.png</icon>
     <summary>A port and remake of UABE's AssetsTools to C#</summary>
     <description>A port and remake of UABE's AssetsTools to C#. Read and write assets and bundle files from any Unity 5 and later. For most cases, you'll need the class data file which you can find in the releases section in the AssetsTools.NET Github repo. See the readme for usage and examples.</description>
-    <releaseNotes>v2.0.8/9 - replacer writing, better bundle support, bug fixes</releaseNotes>
+    <releaseNotes>v2.0.10 - tons of bug fixes, memory improvements, texture additions</releaseNotes>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
       <group targetFramework=".NETFramework3.5">

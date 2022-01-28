@@ -560,14 +560,6 @@ If you're parsing the texture manually or have the bytes some other way, you can
 
 All assets are deserialized using a class database (.dat). Each class database includes all fields of most types from a minor release of unity (2018.1, 2018.2, etc.) All supported unity databases are stored in a class package (.tpk). There are updated class packages in the release zips.
 
-#### Licensing
-
-All versions up to 2019.3 are from UABE's original classdata.tpk file which is included under the BY-NC-SA license which is non-commercial. All versions starting at 2019.4 and up come from TypeTreeDumper.
-
-I personally include the tpk in the release of the program and mention it being under BY-NC-SA. If you know the game you are using is 2019.4 and up, you can remove the older versions in UABE's type package editor and you won't have to worry about it. If you're using older unity versions and you don't want to chance it, it may be better to ask the user to [manually download the tpk themselves](https://github.com/DerPopo/UABE/files/4618273/classdata.with.2019.3.9.fix.zip) or create your own cldb with [TypeTreeDumper](https://github.com/DaZombieKiller/TypeTreeDumper). But IANAL, and I don't exactly know what the rules are with including it with differently licensed software.
-
-If you're wondering "why not just use AssetStudio's code", it's for two big reasons. AssetStudio's code is hardcoded c# that would be hard to port over to AssetsTools' format. Also, AssetStudio supports a smaller number of types (~40 at time of writing) vs over 200 of AssetsTools' that can easily be generated for new versions.
-
 ### Noooo it's not working!!
 
 If you're experiencing crashes, it could be many things. If it crashes on file open, the format version may be too new or it could be encrypted (check AssetStudio to see if it can load the file). If it crashes on asset deserialization, a minor unity version may have changed an asset and you'll have to figure out what changed on your own (again, check with AssetStudio to see if it can open the asset). If you have any questions, open an issue or ask on the discord.
