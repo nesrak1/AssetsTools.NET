@@ -480,21 +480,62 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
+                List<ClassDatabaseFile> matchingFiles = new List<ClassDatabaseFile>();
+                List<UnityVersion> matchingVersions = new List<UnityVersion>();
+
                 if (version.StartsWith("U"))
                     version = version.Substring(1);
+
+                UnityVersion versionParsed = new UnityVersion(version);
+
                 for (int i = 0; i < classPackage.files.Count; i++)
                 {
                     ClassDatabaseFile file = classPackage.files[i];
                     for (int j = 0; j < file.header.unityVersions.Length; j++)
                     {
                         string unityVersion = file.header.unityVersions[j];
-                        if (WildcardMatches(version, unityVersion))
+                        if (version == unityVersion)
                         {
                             classFile = file;
                             return classFile;
                         }
+                        else if (WildcardMatches(version, unityVersion))
+                        {
+                            string fullUnityVersion = unityVersion;
+                            if (fullUnityVersion.EndsWith("*"))
+                                fullUnityVersion = file.header.unityVersions[1 - j];
+
+                            matchingFiles.Add(file);
+                            matchingVersions.Add(new UnityVersion(fullUnityVersion));
+                        }
                     }
                 }
+
+                if (matchingFiles.Count == 1)
+                {
+                    classFile = matchingFiles[0];
+                    return classFile;
+                }
+                else if (matchingFiles.Count > 0)
+                {
+                    int selectedIndex = 0;
+                    int patchNumToMatch = versionParsed.patch;
+                    int highestMatchingPatchNum = matchingVersions[selectedIndex].patch;
+
+                    for (int i = 1; i < selectedIndex; i++)
+                    {
+                        int thisPatchNum = matchingVersions[selectedIndex].patch;
+                        if (thisPatchNum > highestMatchingPatchNum && thisPatchNum <= patchNumToMatch)
+                        {
+                            selectedIndex = i;
+                            highestMatchingPatchNum = thisPatchNum;
+                        }
+                    }
+
+                    classFile = matchingFiles[selectedIndex];
+                    return classFile;
+                }
+
                 return null;
             }
 
