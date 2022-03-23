@@ -235,7 +235,7 @@ namespace LZ4ps
 						}
 						if ((ipt < src_LASTLITERALS) && (src[reft] == src[ipt])) ipt++;
 
-					_endCount:
+						_endCount:
 						reft = src_ref;
 
 						while ((startt > startLimit) && (reft > src_base) && (src[startt - 1] == src[reft - 1]))
@@ -295,7 +295,7 @@ namespace LZ4ps
 
 			// Encode MatchLength
 			len = (matchLength - MINMATCH);
-			if (dst_p + (1 + LASTLITERALS) + (length >> 8) > dst_end) return 1; // Check output limit
+			if (dst_p + (1 + LASTLITERALS) + (len >> 8) > dst_end) return 1; // Check output limit
 			if (len >= ML_MASK)
 			{
 				dst[dst_token] += ML_MASK;
