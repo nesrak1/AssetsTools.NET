@@ -351,7 +351,7 @@ namespace AssetsTools.NET.Extra
                         }
                         for (i = 0; i < numSubsets; i++)
                         {
-                            if (partitionSetId == 0)
+                            if (i == 0)
                             {
                                 anchorIndex[i] = 0;
                             }
@@ -359,7 +359,7 @@ namespace AssetsTools.NET.Extra
                             {
                                 anchorIndex[i] = BPTCTables.AnchorIndexSecondSubset[partitionSetId];
                             }
-                            else if (partitionSetId == 1)
+                            else if (i == 1)
                             {
                                 anchorIndex[i] = BPTCTables.AnchorIndexSecondSubsetOfThree[partitionSetId];
                             }
