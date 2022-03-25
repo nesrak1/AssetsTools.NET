@@ -110,9 +110,9 @@ jobs:
     # - name: Remove the pfx
     #  run: Remove-Item -path $env:Winforms_Project_Directory\$env:Signing_Certificate
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+    # Upload a ZIP package: https://github.com/marketplace/actions/upload-a-build-artifact
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: MSIX Package
-        path: ${{ env.Winforms_Project_Directory }}\AppPackages
+        name: AssetsView__${{ matrix.configuration }}
+        path: ${{ env.Winforms_Project_Directory }}\bin\${{ matrix.configuration }}
