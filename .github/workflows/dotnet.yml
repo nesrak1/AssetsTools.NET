@@ -107,8 +107,8 @@ jobs:
         Configuration: ${{ matrix.configuration }}
 
     # Remove the pfx
-    - name: Remove the pfx
-      run: Remove-Item -path $env:Winforms_Project_Directory\$env:Signing_Certificate
+    # - name: Remove the pfx
+    #  run: Remove-Item -path $env:Winforms_Project_Directory\$env:Signing_Certificate
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
     - name: Upload build artifacts
