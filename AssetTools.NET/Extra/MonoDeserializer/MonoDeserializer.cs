@@ -457,7 +457,6 @@ namespace AssetsTools.NET.Extra
         }
         private void SetGradient(AssetTypeTemplateField field)
         {
-            field.childrenCount = 27;
             AssetTypeTemplateField key0, key1, key2, key3, key4, key5, key6, key7;
             if (unityVersion.major > 5 || (unityVersion.major == 5 && unityVersion.minor >= 6))
             {
@@ -500,9 +499,20 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField m_Mode = CreateTemplateField("m_Mode", "int", EnumValueTypes.Int32);
             AssetTypeTemplateField m_NumColorKeys = CreateTemplateField("m_NumColorKeys", "UInt8", EnumValueTypes.UInt8);
             AssetTypeTemplateField m_NumAlphaKeys = CreateTemplateField("m_NumAlphaKeys", "UInt8", EnumValueTypes.UInt8, false, true);
-            field.children = new AssetTypeTemplateField[] {
-                key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_Mode, m_NumColorKeys, m_NumAlphaKeys
-            };
+            if (unityVersion.major > 5 || (unityVersion.major == 5 && unityVersion.minor >= 5))
+            {
+                field.childrenCount = 27;
+                field.children = new AssetTypeTemplateField[] {
+                    key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_Mode, m_NumColorKeys, m_NumAlphaKeys
+                };
+            }
+            else
+            {
+                field.childrenCount = 26;
+                field.children = new AssetTypeTemplateField[] {
+                    key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_NumColorKeys, m_NumAlphaKeys
+                };
+            }
         }
         private AssetTypeTemplateField[] RGBAf()
         {
