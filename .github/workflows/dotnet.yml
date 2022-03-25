@@ -114,5 +114,5 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: AssetsView__${{ matrix.configuration }}
+        name: AssetsView
         path: ${{ env.Winforms_Project_Directory }}\bin\${{ matrix.configuration }}
