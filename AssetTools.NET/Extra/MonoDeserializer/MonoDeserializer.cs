@@ -471,14 +471,14 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                key0 = CreateTemplateField("key0", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key1 = CreateTemplateField("key1", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key2 = CreateTemplateField("key2", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key3 = CreateTemplateField("key3", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key4 = CreateTemplateField("key4", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key5 = CreateTemplateField("key5", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key6 = CreateTemplateField("key6", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
-                key7 = CreateTemplateField("key7", "ColorRGBA", EnumValueTypes.None, 4, RGBA32());
+                key0 = CreateTemplateField("key0", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key1 = CreateTemplateField("key1", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key2 = CreateTemplateField("key2", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key3 = CreateTemplateField("key3", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key4 = CreateTemplateField("key4", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key5 = CreateTemplateField("key5", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key6 = CreateTemplateField("key6", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
+                key7 = CreateTemplateField("key7", "ColorRGBA", EnumValueTypes.None, 1, RGBA32());
             }
             AssetTypeTemplateField ctime0 = CreateTemplateField("ctime0", "UInt16", EnumValueTypes.UInt16);
             AssetTypeTemplateField ctime1 = CreateTemplateField("ctime1", "UInt16", EnumValueTypes.UInt16);
