@@ -57,7 +57,7 @@
 
         public static EnumValueTypes GetValueTypeByTypeName(string type)
         {
-            type = type.ToLower();
+            type = type.ToLowerInvariant();
             switch (type)
             {
                 case "string":
