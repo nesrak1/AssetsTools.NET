@@ -90,38 +90,68 @@ namespace AssetsTools.NET.Extra
         private void RecursiveTypeLoad(ModuleDefinition module, string typeName, List<AssetTypeTemplateField> attf)
         {
             TypeDefinition type = module.GetTypes().First(t => t.FullName.Equals(typeName));
-            RecursiveTypeLoad(type, attf);
+            RecursiveTypeLoad(new TypeDefWithSelfRef(type), attf);
         }
-        private void RecursiveTypeLoad(TypeDefinition type, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
         {
-            string baseName = type.BaseType.FullName;
+            RecursiveTypeLoad(type, attf, GetGenericTypeDict(type));
+        }
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, Dictionary<string, TypeDefWithSelfRef> genericArguments)
+        {
+            string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
                 baseName != "UnityEngine.MonoBehaviour" &&
                 baseName != "UnityEngine.ScriptableObject")
             {
-                TypeDefinition typeDef = type.BaseType.Resolve();
-                RecursiveTypeLoad(typeDef, attf);
+                TypeDefWithSelfRef typeDef = new TypeDefWithSelfRef(type.typeDef.BaseType);
+                RecursiveTypeLoad(typeDef, attf, GetGenericTypeDict(typeDef, genericArguments));
             }
 
-            attf.AddRange(ReadTypes(type));
+            attf.AddRange(ReadTypes(type, genericArguments));
         }
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefinition type)
+        private Dictionary<string, TypeDefWithSelfRef> GetGenericTypeDict(TypeDefWithSelfRef type)
         {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
+            Dictionary<string, TypeDefWithSelfRef> typeDefDict = new Dictionary<string, TypeDefWithSelfRef>();
+            return GetGenericTypeDict(type, typeDefDict);
+        }
+        private Dictionary<string, TypeDefWithSelfRef> GetGenericTypeDict(TypeDefWithSelfRef type, Dictionary<string, TypeDefWithSelfRef> genericArguments)
+        {
+            TypeDefWithSelfRef castTypeDef = type;
+            if (type.typeRef.IsArray)
+            {
+                castTypeDef = new TypeDefWithSelfRef(((ArrayType)type.typeRef).ElementType);
+            }
+
+            if (castTypeDef.typeRef is GenericInstanceType genType)
+            {
+                for (int i = 0; i < genType.GenericArguments.Count; i++)
+                {
+                    if (!genericArguments.ContainsKey(genType.ElementType.GenericParameters[i].Name))
+                    {
+                        genericArguments.Add(genType.ElementType.GenericParameters[i].Name, new TypeDefWithSelfRef(genType.GenericArguments[i]));
+                    }
+                }
+            }
+
+            return genericArguments;
+        }
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, Dictionary<string, TypeDefWithSelfRef> genericArguments)
+        {
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, genericArguments);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 FieldDefinition fieldDef = acceptableFields[i];
-                TypeReference fieldTypeRef = fieldDef.FieldType;
-                TypeDefinition fieldType = fieldTypeRef.Resolve();
+                TypeDefWithSelfRef fieldTypeDef = GetGenericTypeDef(fieldDef.FieldType, genericArguments);
+                TypeDefinition fieldType = fieldTypeDef.typeDef;
                 string fieldTypeName = fieldType.Name;
                 bool isArrayOrList = false;
 
-                if (fieldTypeRef.MetadataType == MetadataType.Array)
+                if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
                 {
-                    ArrayType arrType = (ArrayType)fieldTypeRef;
+                    ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
                     isArrayOrList = arrType.IsVector;
                 }
                 else if (fieldType.FullName == "System.Collections.Generic.List`1")
@@ -152,7 +182,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (fieldType.IsSerializable)
                 {
-                    SetSerialized(field, fieldType);
+                    SetSerialized(field, fieldTypeDef.typeRef);
                 }
 
                 if (fieldType.IsEnum)
@@ -174,10 +204,24 @@ namespace AssetsTools.NET.Extra
             }
             return localChildren;
         }
-        private List<FieldDefinition> GetAcceptableFields(TypeDefinition typeDef)
+        private TypeDefWithSelfRef GetGenericTypeDef(TypeReference typeRef, Dictionary<string, TypeDefWithSelfRef> genericArguments)
+        {
+            TypeDefWithSelfRef ft = new TypeDefWithSelfRef(typeRef);
+
+            if (typeRef.IsGenericParameter)
+            {
+                if (genericArguments.TryGetValue(typeRef.Name, out TypeDefWithSelfRef genericArg))
+                {
+                    ft = genericArg;
+                }
+            }
+
+            return ft;
+        }
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, Dictionary<string, TypeDefWithSelfRef> genericArguments)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
-            foreach (FieldDefinition f in typeDef.Fields)
+            foreach (FieldDefinition f in typeDef.typeDef.Fields)
             {
                 if (HasFlag(f.Attributes, FieldAttributes.Public) ||
                     f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))) //field is public or has exception attribute
@@ -187,12 +231,10 @@ namespace AssetsTools.NET.Extra
                         !f.IsInitOnly &&
                         !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
-                        TypeReference ft = f.FieldType;
-                        if (f.FieldType.IsArray)
-                        {
-                            ft = ft.GetElementType();
-                        }
-                        TypeDefinition ftd = ft.Resolve();
+                        TypeDefWithSelfRef ft = GetGenericTypeDef(f.FieldType, genericArguments);
+
+
+                        TypeDefinition ftd = ft.typeDef;
                         if (ftd != null)
                         {
                             if (ftd.IsPrimitive ||
@@ -408,10 +450,10 @@ namespace AssetsTools.NET.Extra
                 fileID, pathID
             };
         }
-        private void SetSerialized(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSerialized(AssetTypeTemplateField field, TypeReference type)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, types);
+            RecursiveTypeLoad(new TypeDefWithSelfRef(type), types);
             field.childrenCount = types.Count;
             field.children = types.ToArray();
         }
