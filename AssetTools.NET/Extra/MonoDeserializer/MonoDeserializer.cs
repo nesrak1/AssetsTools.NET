@@ -94,10 +94,6 @@ namespace AssetsTools.NET.Extra
         }
         private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
         {
-            RecursiveTypeLoad(type, attf, GetGenericTypeDict(type));
-        }
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, Dictionary<string, TypeDefWithSelfRef> genericArguments)
-        {
             string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
@@ -105,46 +101,21 @@ namespace AssetsTools.NET.Extra
                 baseName != "UnityEngine.ScriptableObject")
             {
                 TypeDefWithSelfRef typeDef = new TypeDefWithSelfRef(type.typeDef.BaseType);
-                RecursiveTypeLoad(typeDef, attf, GetGenericTypeDict(typeDef, genericArguments));
+                typeDef.AssignTypeParams(type);
+                RecursiveTypeLoad(typeDef, attf);
             }
 
-            attf.AddRange(ReadTypes(type, genericArguments));
+            attf.AddRange(ReadTypes(type));
         }
-        private Dictionary<string, TypeDefWithSelfRef> GetGenericTypeDict(TypeDefWithSelfRef type)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type)
         {
-            Dictionary<string, TypeDefWithSelfRef> typeDefDict = new Dictionary<string, TypeDefWithSelfRef>();
-            return GetGenericTypeDict(type, typeDefDict);
-        }
-        private Dictionary<string, TypeDefWithSelfRef> GetGenericTypeDict(TypeDefWithSelfRef type, Dictionary<string, TypeDefWithSelfRef> genericArguments)
-        {
-            TypeDefWithSelfRef castTypeDef = type;
-            if (type.typeRef.IsArray)
-            {
-                castTypeDef = new TypeDefWithSelfRef(((ArrayType)type.typeRef).ElementType);
-            }
-
-            if (castTypeDef.typeRef is GenericInstanceType genType)
-            {
-                for (int i = 0; i < genType.GenericArguments.Count; i++)
-                {
-                    if (!genericArguments.ContainsKey(genType.ElementType.GenericParameters[i].Name))
-                    {
-                        genericArguments.Add(genType.ElementType.GenericParameters[i].Name, new TypeDefWithSelfRef(genType.GenericArguments[i]));
-                    }
-                }
-            }
-
-            return genericArguments;
-        }
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, Dictionary<string, TypeDefWithSelfRef> genericArguments)
-        {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, genericArguments);
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 FieldDefinition fieldDef = acceptableFields[i];
-                TypeDefWithSelfRef fieldTypeDef = GetGenericTypeDef(fieldDef.FieldType, genericArguments);
+                TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
                 TypeDefinition fieldType = fieldTypeDef.typeDef;
                 string fieldTypeName = fieldType.Name;
                 bool isArrayOrList = false;
@@ -182,7 +153,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (fieldType.IsSerializable)
                 {
-                    SetSerialized(field, fieldTypeDef.typeRef);
+                    SetSerialized(field, fieldTypeDef);
                 }
 
                 if (fieldType.IsEnum)
@@ -218,7 +189,7 @@ namespace AssetsTools.NET.Extra
 
             return ft;
         }
-        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, Dictionary<string, TypeDefWithSelfRef> genericArguments)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
             foreach (FieldDefinition f in typeDef.typeDef.Fields)
@@ -231,8 +202,8 @@ namespace AssetsTools.NET.Extra
                         !f.IsInitOnly &&
                         !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
-                        TypeDefWithSelfRef ft = GetGenericTypeDef(f.FieldType, genericArguments);
-
+                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+                        //ft.SolidifyType()
 
                         TypeDefinition ftd = ft.typeDef;
                         if (ftd != null)
@@ -450,10 +421,10 @@ namespace AssetsTools.NET.Extra
                 fileID, pathID
             };
         }
-        private void SetSerialized(AssetTypeTemplateField field, TypeReference type)
+        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(new TypeDefWithSelfRef(type), types);
+            RecursiveTypeLoad(type, types);
             field.childrenCount = types.Count;
             field.children = types.ToArray();
         }
