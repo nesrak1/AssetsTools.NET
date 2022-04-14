@@ -116,8 +116,7 @@ namespace AssetsTools.NET.Extra
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 FieldDefinition fieldDef = acceptableFields[i];
                 TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
-                TypeDefinition fieldType = fieldTypeDef.typeDef;
-                string fieldTypeName = fieldType.Name;
+                string fieldTypeName = fieldTypeDef.typeDef.Name;
                 bool isArrayOrList = false;
 
                 if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
@@ -125,38 +124,38 @@ namespace AssetsTools.NET.Extra
                     ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
                     isArrayOrList = arrType.IsVector;
                 }
-                else if (fieldType.FullName == "System.Collections.Generic.List`1")
+                else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldType = ((GenericInstanceType)fieldDef.FieldType).GenericArguments[0].Resolve();
-                    fieldTypeName = fieldType.Name;
+                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
+                    fieldTypeName = fieldTypeDef.typeDef.Name;
                     isArrayOrList = true;
                 }
 
                 field.name = fieldDef.Name;
                 field.type = ConvertBaseToPrimitive(fieldTypeName);
-                if (IsPrimitiveType(fieldType))
+                if (IsPrimitiveType(fieldTypeDef))
                 {
                     field.childrenCount = 0;
                     field.children = new AssetTypeTemplateField[] { };
                 }
-                else if (fieldType.Name.Equals("String"))
+                else if (fieldTypeDef.typeDef.Name.Equals("String"))
                 {
                     SetString(field);
                 }
-                else if (IsSpecialUnityType(fieldType))
+                else if (IsSpecialUnityType(fieldTypeDef))
                 {
-                    SetSpecialUnity(field, fieldType);
+                    SetSpecialUnity(field, fieldTypeDef);
                 }
-                else if (DerivesFromUEObject(fieldType))
+                else if (DerivesFromUEObject(fieldTypeDef))
                 {
                     SetPPtr(field, true);
                 }
-                else if (fieldType.IsSerializable)
+                else if (fieldTypeDef.typeDef.IsSerializable)
                 {
                     SetSerialized(field, fieldTypeDef);
                 }
 
-                if (fieldType.IsEnum)
+                if (fieldTypeDef.typeDef.IsEnum)
                 {
                     field.valueType = EnumValueTypes.Int32;
                 }
@@ -231,10 +230,10 @@ namespace AssetsTools.NET.Extra
             }
             return name;
         }
-        private bool IsPrimitiveType(TypeDefinition typeDef)
+        private bool IsPrimitiveType(TypeDefWithSelfRef typeDef)
         {
-            string name = typeDef.FullName;
-            if (typeDef.IsEnum ||
+            string name = typeDef.typeDef.FullName;
+            if (typeDef.typeDef.IsEnum ||
                 name == "System.Boolean" ||
                 name == "System.Int64" ||
                 name == "System.Int16" ||
@@ -249,9 +248,9 @@ namespace AssetsTools.NET.Extra
                 name == "System.Int32") return true;
             return false;
         }
-        private bool IsSpecialUnityType(TypeDefinition typeDef)
+        private bool IsSpecialUnityType(TypeDefWithSelfRef typeDef)
         {
-            string name = typeDef.FullName;
+            string name = typeDef.typeDef.FullName;
             if (name == "UnityEngine.Color" ||
                 name == "UnityEngine.Color32" ||
                 name == "UnityEngine.Gradient" ||
@@ -270,15 +269,15 @@ namespace AssetsTools.NET.Extra
                 name == "UnityEngine.BoundsInt") return true;
             return false;
         }
-        private bool DerivesFromUEObject(TypeDefinition typeDef)
+        private bool DerivesFromUEObject(TypeDefWithSelfRef typeDef)
         {
-            if (typeDef.IsInterface)
+            if (typeDef.typeDef.IsInterface)
                 return false;
-            if (typeDef.BaseType.FullName == "UnityEngine.Object" ||
-                typeDef.FullName == "UnityEngine.Object")
+            if (typeDef.typeDef.BaseType.FullName == "UnityEngine.Object" ||
+                typeDef.typeDef.FullName == "UnityEngine.Object")
                 return true;
-            if (typeDef.BaseType.FullName != "System.Object")
-                return DerivesFromUEObject(typeDef.BaseType.Resolve());
+            if (typeDef.typeDef.BaseType.FullName != "System.Object")
+                return DerivesFromUEObject(typeDef.typeDef.BaseType.Resolve());
             return false;
         }
         private bool TypeAligns(EnumValueTypes valueType)
@@ -414,9 +413,9 @@ namespace AssetsTools.NET.Extra
             field.children = types.ToArray();
         }
         #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
-            switch (type.Name)
+            switch (type.typeDef.Name)
             {
                 case "Gradient":
                     SetGradient(field);
