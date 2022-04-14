@@ -90,7 +90,7 @@ namespace AssetsTools.NET.Extra
         private void RecursiveTypeLoad(ModuleDefinition module, string typeName, List<AssetTypeTemplateField> attf)
         {
             TypeDefinition type = module.GetTypes().First(t => t.FullName.Equals(typeName));
-            RecursiveTypeLoad(new TypeDefWithSelfRef(type), attf);
+            RecursiveTypeLoad(type, attf);
         }
         private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
         {
@@ -100,7 +100,7 @@ namespace AssetsTools.NET.Extra
                 baseName != "UnityEngine.MonoBehaviour" &&
                 baseName != "UnityEngine.ScriptableObject")
             {
-                TypeDefWithSelfRef typeDef = new TypeDefWithSelfRef(type.typeDef.BaseType);
+                TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
                 typeDef.AssignTypeParams(type);
                 RecursiveTypeLoad(typeDef, attf);
             }
@@ -175,20 +175,6 @@ namespace AssetsTools.NET.Extra
             }
             return localChildren;
         }
-        private TypeDefWithSelfRef GetGenericTypeDef(TypeReference typeRef, Dictionary<string, TypeDefWithSelfRef> genericArguments)
-        {
-            TypeDefWithSelfRef ft = new TypeDefWithSelfRef(typeRef);
-
-            if (typeRef.IsGenericParameter)
-            {
-                if (genericArguments.TryGetValue(typeRef.Name, out TypeDefWithSelfRef genericArg))
-                {
-                    ft = genericArg;
-                }
-            }
-
-            return ft;
-        }
         private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
@@ -203,7 +189,6 @@ namespace AssetsTools.NET.Extra
                         !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
                         TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
-                        //ft.SolidifyType()
 
                         TypeDefinition ftd = ft.typeDef;
                         if (ftd != null)
