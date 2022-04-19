@@ -92,21 +92,22 @@ namespace AssetsTools.NET.Extra
             TypeDefinition type = module.GetTypes().First(t => t.FullName.Equals(typeName));
             RecursiveTypeLoad(type, attf);
         }
-        private void RecursiveTypeLoad(TypeDefinition type, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
         {
-            string baseName = type.BaseType.FullName;
+            string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
                 baseName != "UnityEngine.MonoBehaviour" &&
                 baseName != "UnityEngine.ScriptableObject")
             {
-                TypeDefinition typeDef = type.BaseType.Resolve();
+                TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
+                typeDef.AssignTypeParams(type);
                 RecursiveTypeLoad(typeDef, attf);
             }
 
             attf.AddRange(ReadTypes(type));
         }
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefinition type)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type)
         {
             List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
@@ -114,48 +115,47 @@ namespace AssetsTools.NET.Extra
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 FieldDefinition fieldDef = acceptableFields[i];
-                TypeReference fieldTypeRef = fieldDef.FieldType;
-                TypeDefinition fieldType = fieldTypeRef.Resolve();
-                string fieldTypeName = fieldType.Name;
+                TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
+                string fieldTypeName = fieldTypeDef.typeDef.Name;
                 bool isArrayOrList = false;
 
-                if (fieldTypeRef.MetadataType == MetadataType.Array)
+                if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
                 {
-                    ArrayType arrType = (ArrayType)fieldTypeRef;
+                    ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
                     isArrayOrList = arrType.IsVector;
                 }
-                else if (fieldType.FullName == "System.Collections.Generic.List`1")
+                else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldType = ((GenericInstanceType)fieldDef.FieldType).GenericArguments[0].Resolve();
-                    fieldTypeName = fieldType.Name;
+                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
+                    fieldTypeName = fieldTypeDef.typeDef.Name;
                     isArrayOrList = true;
                 }
 
                 field.name = fieldDef.Name;
                 field.type = ConvertBaseToPrimitive(fieldTypeName);
-                if (IsPrimitiveType(fieldType))
+                if (IsPrimitiveType(fieldTypeDef))
                 {
                     field.childrenCount = 0;
                     field.children = new AssetTypeTemplateField[] { };
                 }
-                else if (fieldType.Name.Equals("String"))
+                else if (fieldTypeDef.typeDef.Name.Equals("String"))
                 {
                     SetString(field);
                 }
-                else if (IsSpecialUnityType(fieldType))
+                else if (IsSpecialUnityType(fieldTypeDef))
                 {
-                    SetSpecialUnity(field, fieldType);
+                    SetSpecialUnity(field, fieldTypeDef);
                 }
-                else if (DerivesFromUEObject(fieldType))
+                else if (DerivesFromUEObject(fieldTypeDef))
                 {
                     SetPPtr(field, true);
                 }
-                else if (fieldType.IsSerializable)
+                else if (fieldTypeDef.typeDef.IsSerializable)
                 {
-                    SetSerialized(field, fieldType);
+                    SetSerialized(field, fieldTypeDef);
                 }
 
-                if (fieldType.IsEnum)
+                if (fieldTypeDef.typeDef.IsEnum)
                 {
                     field.valueType = EnumValueTypes.Int32;
                 }
@@ -174,10 +174,10 @@ namespace AssetsTools.NET.Extra
             }
             return localChildren;
         }
-        private List<FieldDefinition> GetAcceptableFields(TypeDefinition typeDef)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
-            foreach (FieldDefinition f in typeDef.Fields)
+            foreach (FieldDefinition f in typeDef.typeDef.Fields)
             {
                 if (HasFlag(f.Attributes, FieldAttributes.Public) ||
                     f.CustomAttributes.Any(a => a.AttributeType.Name.Equals("SerializeField"))) //field is public or has exception attribute
@@ -187,12 +187,9 @@ namespace AssetsTools.NET.Extra
                         !f.IsInitOnly &&
                         !f.HasConstant) //field is not public, has exception attribute, readonly, or const
                     {
-                        TypeReference ft = f.FieldType;
-                        if (f.FieldType.IsArray)
-                        {
-                            ft = ft.GetElementType();
-                        }
-                        TypeDefinition ftd = ft.Resolve();
+                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+
+                        TypeDefinition ftd = ft.typeDef;
                         if (ftd != null)
                         {
                             if (ftd.IsPrimitive ||
@@ -233,10 +230,10 @@ namespace AssetsTools.NET.Extra
             }
             return name;
         }
-        private bool IsPrimitiveType(TypeDefinition typeDef)
+        private bool IsPrimitiveType(TypeDefWithSelfRef typeDef)
         {
-            string name = typeDef.FullName;
-            if (typeDef.IsEnum ||
+            string name = typeDef.typeDef.FullName;
+            if (typeDef.typeDef.IsEnum ||
                 name == "System.Boolean" ||
                 name == "System.Int64" ||
                 name == "System.Int16" ||
@@ -251,9 +248,9 @@ namespace AssetsTools.NET.Extra
                 name == "System.Int32") return true;
             return false;
         }
-        private bool IsSpecialUnityType(TypeDefinition typeDef)
+        private bool IsSpecialUnityType(TypeDefWithSelfRef typeDef)
         {
-            string name = typeDef.FullName;
+            string name = typeDef.typeDef.FullName;
             if (name == "UnityEngine.Color" ||
                 name == "UnityEngine.Color32" ||
                 name == "UnityEngine.Gradient" ||
@@ -272,15 +269,15 @@ namespace AssetsTools.NET.Extra
                 name == "UnityEngine.BoundsInt") return true;
             return false;
         }
-        private bool DerivesFromUEObject(TypeDefinition typeDef)
+        private bool DerivesFromUEObject(TypeDefWithSelfRef typeDef)
         {
-            if (typeDef.IsInterface)
+            if (typeDef.typeDef.IsInterface)
                 return false;
-            if (typeDef.BaseType.FullName == "UnityEngine.Object" ||
-                typeDef.FullName == "UnityEngine.Object")
+            if (typeDef.typeDef.BaseType.FullName == "UnityEngine.Object" ||
+                typeDef.typeDef.FullName == "UnityEngine.Object")
                 return true;
-            if (typeDef.BaseType.FullName != "System.Object")
-                return DerivesFromUEObject(typeDef.BaseType.Resolve());
+            if (typeDef.typeDef.BaseType.FullName != "System.Object")
+                return DerivesFromUEObject(typeDef.typeDef.BaseType.Resolve());
             return false;
         }
         private bool TypeAligns(EnumValueTypes valueType)
@@ -408,7 +405,7 @@ namespace AssetsTools.NET.Extra
                 fileID, pathID
             };
         }
-        private void SetSerialized(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
             RecursiveTypeLoad(type, types);
@@ -416,9 +413,9 @@ namespace AssetsTools.NET.Extra
             field.children = types.ToArray();
         }
         #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefinition type)
+        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
-            switch (type.Name)
+            switch (type.typeDef.Name)
             {
                 case "Gradient":
                     SetGradient(field);
