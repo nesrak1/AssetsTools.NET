@@ -6,7 +6,7 @@ namespace AssetsTools.NET
 {
     public class AssetsFileWriter : BinaryWriter
     {
-        public bool bigEndian = true;
+        public bool BigEndian { get; set; } = false;
 
         public AssetsFileWriter(string filePath)
             : base(File.Open(filePath, FileMode.Create, FileAccess.Write))
@@ -32,7 +32,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write((short)ReverseShort((ushort)val));
+                if (BigEndian) base.Write((short)ReverseShort((ushort)val));
                 else base.Write(val);
             }
         }
@@ -40,7 +40,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write(ReverseShort(val));
+                if (BigEndian) base.Write(ReverseShort(val));
                 else base.Write(val);
             }
         }
@@ -48,7 +48,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write((int)ReverseInt((uint)val));
+                if (BigEndian) base.Write((int)ReverseInt((uint)val));
                 else base.Write(val);
             }
         }
@@ -56,7 +56,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write(ReverseInt(val));
+                if (BigEndian) base.Write(ReverseInt(val));
                 else base.Write(val);
             }
         }
@@ -64,7 +64,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write((long)ReverseLong((ulong)val));
+                if (BigEndian) base.Write((long)ReverseLong((ulong)val));
                 else base.Write(val);
             }
         }
@@ -72,7 +72,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write(ReverseLong(val));
+                if (BigEndian) base.Write(ReverseLong(val));
                 else base.Write(val);
             }
         }
@@ -84,7 +84,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write(BitConverter.GetBytes(ReverseInt(val)), 1, 3);
+                if (BigEndian) base.Write(BitConverter.GetBytes(ReverseInt(val)), 1, 3);
                 else base.Write(BitConverter.GetBytes(val), 0, 3);
             }
         }
@@ -92,7 +92,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                if (bigEndian) base.Write(BitConverter.GetBytes((int)ReverseInt((uint)val)), 1, 3);
+                if (BigEndian) base.Write(BitConverter.GetBytes((int)ReverseInt((uint)val)), 1, 3);
                 else base.Write(BitConverter.GetBytes(val), 0, 3);
             }
         }

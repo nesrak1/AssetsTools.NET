@@ -3,36 +3,29 @@ using System.Linq;
 
 namespace AssetsTools.NET.Extra
 {
-    public static class C2T5
+    public static class ClassDatabaseToTypeTree
     {
-        public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, string name)
+        public static TypeTreeType Convert(ClassDatabaseFile classes, string name)
         {
             ClassDatabaseType type = AssetHelper.FindAssetClassByName(classes, name);
-            return Cldb2TypeTree(classes, type);
+            return Convert(classes, type);
         }
 
-        public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, int id)
+        public static TypeTreeType Convert(ClassDatabaseFile classes, int id)
         {
-            ClassDatabaseType type = AssetHelper.FindAssetClassByID(classes, (uint)id);
-            return Cldb2TypeTree(classes, type);
+            ClassDatabaseType type = AssetHelper.FindAssetClassByID(classes, id);
+            return Convert(classes, type);
         }
 
-        public static Type_0D Cldb2TypeTree(ClassDatabaseFile classes, ClassDatabaseType type)
+        public static TypeTreeType Convert(ClassDatabaseFile classes, ClassDatabaseType type)
         {
-            Type_0D type0d = new Type_0D()
+            TypeTreeType type0d = new TypeTreeType()
             {
-                classId = type.classId,
-                typeFieldsExCount = (uint)type.fields.Count,
-                scriptIndex = 0xFFFF,
-                unknown16_1 = 0,
-                scriptHash1 = 0,
-                scriptHash2 = 0,
-                scriptHash3 = 0,
-                scriptHash4 = 0,
-                typeHash1 = 0,
-                typeHash2 = 0,
-                typeHash3 = 0,
-                typeHash4 = 0
+                TypeId = type.classId,
+                ScriptTypeIndex = 0xFFFF,
+                IsStrippedType = false,
+                ScriptIdHash = new Hash128(),
+                TypeHash = new Hash128()
             };
             string stringTable = "";
             Dictionary<string, uint> strTableList = new Dictionary<string, uint>();
@@ -41,7 +34,7 @@ namespace AssetsTools.NET.Extra
             uint strTablePos = 0;
             uint defTablePos = 0;
 
-            string[] defaultTable = Type_0D.strTable.Substring(Type_0D.strTable.Length - 1).Split('\0');
+            string[] defaultTable = TypeTreeType.COMMON_STRING_TABLE.Substring(TypeTreeType.COMMON_STRING_TABLE.Length - 1).Split('\0');
             foreach (string entry in defaultTable)
             {
                 if (entry != "")
@@ -51,7 +44,7 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
-            List<TypeField_0D> field0ds = new List<TypeField_0D>();
+            List<TypeTreeNode> nodes = new List<TypeTreeNode>();
             for (int i = 0; i < type.fields.Count; i++)
             {
                 ClassDatabaseTypeField field = type.fields[i];
@@ -90,16 +83,16 @@ namespace AssetsTools.NET.Extra
                     strTablePos += (uint)typeName.Length + 1;
                 }
 
-                field0ds.Add(new TypeField_0D()
+                nodes.Add(new TypeTreeNode()
                 {
-                    depth = field.depth,
-                    flags = field.flags2,
-                    index = (uint)i,
-                    isArray = field.isArray,
-                    nameStringOffset = fieldNamePos,
-                    size = field.size,
-                    typeStringOffset = typeNamePos,
-                    version = field.version
+                    Level = field.depth,
+                    MetaFlags = field.flags2,
+                    Index = (uint)i,
+                    TypeFlags = field.isArray,
+                    NameStrOffset = fieldNamePos,
+                    ByteSize = field.size,
+                    TypeStrOffset = typeNamePos,
+                    Version = field.version
                 });
             }
 
@@ -109,9 +102,8 @@ namespace AssetsTools.NET.Extra
                 stringTable += entry.Key + '\0';
             }
 
-            type0d.stringTable = stringTable;
-            type0d.stringTableLen = (uint)stringTable.Length;
-            type0d.typeFieldsEx = field0ds.ToArray();
+            type0d.StringBuffer = stringTable;
+            type0d.Nodes = nodes;
             return type0d;
         }
     }

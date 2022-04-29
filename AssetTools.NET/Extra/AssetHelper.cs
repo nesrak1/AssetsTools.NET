@@ -1,17 +1,8 @@
-﻿////////////////////////////
-//   ASSETSTOOLS.NET PLUGINS
-//   Hey, watch out! This   
-//   library isn't done yet.
-//   You've been warned!    
-
-using System;
-using System.Collections.Generic;
-
-namespace AssetsTools.NET.Extra
+﻿namespace AssetsTools.NET.Extra
 {
     public static class AssetHelper
     {
-        public static uint FixAudioID(uint id)
+        public static int FixAudioID(int id)
         {
             if (id == 0xf1)      //AudioMixerController
                 id = 0xf0;       //AudioMixer
@@ -22,12 +13,12 @@ namespace AssetsTools.NET.Extra
             return id;
         }
 
-        public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, uint id)
+        public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, int id)
         {
             id = FixAudioID(id);
             foreach (ClassDatabaseType type in cldb.classes)
             {
-                if ((uint)type.classId == id)
+                if (type.classId == id)
                     return type;
             }
             return null;
@@ -43,89 +34,89 @@ namespace AssetsTools.NET.Extra
             return null;
         }
 
-        public static Type_0D FindTypeTreeTypeByID(TypeTree typeTree, uint id)
+        public static TypeTreeType FindTypeTreeTypeByID(AssetsFileMetadata metadata, int id)
         {
-            foreach (Type_0D type in typeTree.unity5Types)
+            foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                if ((uint)type.classId == id)
+                if (type.TypeId == id)
                     return type;
             }
             return null;
         }
 
-        public static Type_0D FindTypeTreeTypeByID(TypeTree typeTree, uint id, ushort scriptIndex)
+        public static TypeTreeType FindTypeTreeTypeByID(AssetsFileMetadata metadata, int id, ushort scriptIndex)
         {
-            foreach (Type_0D type in typeTree.unity5Types)
+            foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
                 //5.5+
-                if ((uint)type.classId == id && type.scriptIndex == scriptIndex)
+                if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
                     return type;
                 //5.4-
-                if (type.classId < 0 && id == 0x72 && (type.scriptIndex - 0x10000 == type.classId))
+                if (type.TypeId < 0 && id == 0x72 && (type.ScriptTypeIndex - 0x10000 == type.TypeId))
                     return type;
             }
             return null;
         }
 
-        public static Type_0D FindTypeTreeTypeByScriptIndex(TypeTree typeTree, ushort scriptIndex)
+        public static TypeTreeType FindTypeTreeTypeByScriptIndex(AssetsFileMetadata metadata, ushort scriptIndex)
         {
-            foreach (Type_0D type in typeTree.unity5Types)
+            foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                if (type.scriptIndex == scriptIndex)
+                if (type.ScriptTypeIndex == scriptIndex)
                     return type;
             }
             return null;
         }
 
-        public static Type_0D FindTypeTreeTypeByName(TypeTree typeTree, string name)
+        public static TypeTreeType FindTypeTreeTypeByName(AssetsFileMetadata metadata, string name)
         {
-            foreach (Type_0D type in typeTree.unity5Types)
+            foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                if (type.typeFieldsEx[0].GetTypeString(type.stringTable) == name)
+                if (type.Nodes[0].GetTypeString(type.StringBuffer) == name)
                     return type;
             }
             return null;
         }
 
-        public static ushort GetScriptIndex(AssetsFile file, AssetFileInfoEx info)
+        public static ushort GetScriptIndex(AssetsFile file, AssetFileInfo info)
         {
-            if (file.header.format < 0x10)
-                return info.scriptIndex;
+            if (file.Header.Version < 0x10)
+                return info.ScriptTypeIndex;
             else
-                return file.typeTree.unity5Types[info.curFileTypeOrIndex].scriptIndex;
+                return file.Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
         }
 
-        public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfoEx info)
+        public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfo info)
         {
-            ClassDatabaseType type = FindAssetClassByID(cldb, info.curFileType);
-            AssetsFileReader reader = file.reader;
+            ClassDatabaseType type = FindAssetClassByID(cldb, info.TypeId);
+            AssetsFileReader reader = file.Reader;
 
-            if (file.typeTree.hasTypeTree)
+            if (file.Metadata.TypeTreeNotStripped)
             {
                 ushort scriptId = GetScriptIndex(file, info);
 
-                Type_0D ttType = FindTypeTreeTypeByID(file.typeTree, info.curFileType, scriptId);
+                TypeTreeType ttType = FindTypeTreeTypeByID(file.Metadata, info.TypeId, scriptId);
 
-                string ttTypeName = ttType.typeFieldsEx[0].GetTypeString(ttType.stringTable);
-                if (ttType.typeFieldsEx.Length == 0) return type.name.GetString(cldb); //fallback to cldb
-                if (ttType.typeFieldsEx.Length > 1 && ttType.typeFieldsEx[1].GetNameString(ttType.stringTable) == "m_Name")
+                string ttTypeName = ttType.Nodes[0].GetTypeString(ttType.StringBuffer);
+                if (ttType.Nodes.Count == 0) return type.name.GetString(cldb); // fallback to cldb
+                if (ttType.Nodes.Count > 1 && ttType.Nodes[1].GetNameString(ttType.StringBuffer) == "m_Name")
                 {
-                    reader.Position = info.absoluteFilePos;
+                    reader.Position = info.AbsoluteByteStart;
                     return reader.ReadCountStringInt32();
                 }
-                //todo, use the typetree since we have it already, there could be extra fields
+                // todo, use the typetree since we have it already, there could be extra fields
                 else if (ttTypeName == "GameObject")
                 {
-                    reader.Position = info.absoluteFilePos;
+                    reader.Position = info.AbsoluteByteStart;
                     int size = reader.ReadInt32();
-                    int componentSize = file.header.format > 0x10 ? 0x0c : 0x10;
+                    int componentSize = file.Header.Version > 0x10 ? 0x0c : 0x10;
                     reader.Position += size * componentSize;
                     reader.Position += 0x04;
                     return reader.ReadCountStringInt32();
                 }
                 else if (ttTypeName == "MonoBehaviour")
                 {
-                    reader.Position = info.absoluteFilePos;
+                    reader.Position = info.AbsoluteByteStart;
                     reader.Position += 0x1c;
                     string name = reader.ReadCountStringInt32();
                     if (name != "")
@@ -140,21 +131,21 @@ namespace AssetsTools.NET.Extra
             if (type.fields.Count == 0) return type.name.GetString(cldb);
             if (type.fields.Count > 1 && type.fields[1].fieldName.GetString(cldb) == "m_Name")
             {
-                reader.Position = info.absoluteFilePos;
+                reader.Position = info.AbsoluteByteStart;
                 return reader.ReadCountStringInt32();
             }
             else if (typeName == "GameObject")
             {
-                reader.Position = info.absoluteFilePos;
+                reader.Position = info.AbsoluteByteStart;
                 int size = reader.ReadInt32();
-                int componentSize = file.header.format > 0x10 ? 0x0c : 0x10;
+                int componentSize = file.Header.Version > 0x10 ? 0x0c : 0x10;
                 reader.Position += size * componentSize;
                 reader.Position += 0x04;
                 return reader.ReadCountStringInt32();
             }
             else if (typeName == "MonoBehaviour")
             {
-                reader.Position = info.absoluteFilePos;
+                reader.Position = info.AbsoluteByteStart;
                 reader.Position += 0x1c;
                 string name = reader.ReadCountStringInt32();
                 if (name != "")
@@ -163,87 +154,6 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return typeName;
-        }
-
-        //no classdatabase but may not work
-        public static string GetAssetNameFastNaive(AssetsFile file, AssetFileInfoEx info)
-        {
-            AssetsFileReader reader = file.reader;
-
-            if (AssetsFileExtra.HasName(info.curFileType))
-            {
-                reader.Position = info.absoluteFilePos;
-                return reader.ReadCountStringInt32();
-            }
-            else if (info.curFileType == 0x01)
-            {
-                reader.Position = info.absoluteFilePos;
-                int size = reader.ReadInt32();
-                int componentSize = file.header.format > 0x10 ? 0xC : 0x10;
-                reader.Position += size * componentSize;
-                reader.Position += 4;
-                return reader.ReadCountStringInt32();
-            }
-            else if (info.curFileType == 0x72)
-            {
-                reader.Position = info.absoluteFilePos;
-                reader.Position += 28;
-                string name = reader.ReadCountStringInt32();
-                if (name != "")
-                {
-                    return name;
-                }
-            }
-            return string.Empty;
-        }
-
-        public static AssetFileInfoEx GetAssetInfo(this AssetsFileTable table, string name, bool caseSensitive = true)
-        {
-            if (!caseSensitive)
-                name = name.ToLower();
-            for (int i = 0; i < table.assetFileInfo.Length; i++)
-            {
-                AssetFileInfoEx info = table.assetFileInfo[i];
-                string infoName = GetAssetNameFastNaive(table.file, info);
-                if (!caseSensitive)
-                    infoName = infoName.ToLower();
-                if (infoName == name)
-                {
-                    return info;
-                }
-            }
-            return null;
-        }
-
-        public static AssetFileInfoEx GetAssetInfo(this AssetsFileTable table, string name, uint typeId, bool caseSensitive = true)
-        {
-            if (!caseSensitive)
-                name = name.ToLower();
-            for (int i = 0; i < table.assetFileInfo.Length; i++)
-            {
-                AssetFileInfoEx info = table.assetFileInfo[i];
-                string infoName = GetAssetNameFastNaive(table.file, info);
-                if (!caseSensitive)
-                    infoName = infoName.ToLower();
-                if (info.curFileType == typeId && infoName == name)
-                {
-                    return info;
-                }
-            }
-            return null;
-        }
-
-        public static List<AssetFileInfoEx> GetAssetsOfType(this AssetsFileTable table, int typeId)
-        {
-            List<AssetFileInfoEx> infos = new List<AssetFileInfoEx>();
-            foreach (AssetFileInfoEx info in table.assetFileInfo)
-            {
-                if (info.curFileType == typeId)
-                {
-                    infos.Add(info);
-                }
-            }
-            return infos;
         }
     }
 }

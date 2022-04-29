@@ -95,19 +95,19 @@ namespace AssetsView.Winforms
             foreach (string fileName in fileNames)
             {
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                inst.table.GenerateQuickLookupTree();
-                am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-                foreach (AssetFileInfoEx inf in inst.table.GetAssetsOfType(0x73))
+                inst.file.GenerateQuickLookupTree();
+                am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
+                foreach (AssetFileInfo inf in inst.file.GetAssetsOfType(0x73))
                 {
-                    AssetsFileReader fr = new AssetsFileReader(inst.file.readerPar);
+                    AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                     fr.bigEndian = false;
-                    fr.Position = inf.absoluteFilePos;
+                    fr.Position = inf.AbsoluteByteStart;
                     fr.ReadCountStringInt32(); fr.Align();
                     fr.Position += 20;
                     string m_ClassName = fr.ReadCountStringInt32(); fr.Align();
                     string m_Namespace = fr.ReadCountStringInt32(); fr.Align();
                     string m_AssemblyName = fr.ReadCountStringInt32(); fr.Align();
-                    AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.index);
+                    AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.PathId);
                     ScriptInfo scriptInfo = new ScriptInfo(m_AssemblyName, m_Namespace, m_ClassName);
                     assetIds.Add(assetId);
                     monoScriptToInfo.Add(assetId, scriptInfo);
@@ -119,20 +119,20 @@ namespace AssetsView.Winforms
             {
                 //don't worry, this doesn't load them twice
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                foreach (AssetFileInfoEx inf in inst.table.GetAssetsOfType(0x72))
+                foreach (AssetFileInfo inf in inst.file.GetAssetsOfType(0x72))
                 {
-                    AssetsFileReader fr = new AssetsFileReader(inst.file.readerPar);
+                    AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                     fr.bigEndian = false;
-                    fr.Position = inf.absoluteFilePos;
+                    fr.Position = inf.AbsoluteByteStart;
                     fr.Position += 16;
                     int m_FileID = fr.ReadInt32();
                     long m_PathID = fr.ReadInt64();
                     string refFileName = fileName;
                     if (m_FileID != 0)
-                        refFileName = inst.file.dependencies.dependencies[m_FileID - 1].assetPath;
+                        refFileName = inst.file.Metadata.Externals[m_FileID - 1].PathName;
 
                     AssetID scriptId = new AssetID(Path.GetFileName(refFileName), m_PathID);
-                    AssetID selfId = new AssetID(Path.GetFileName(fileName), inf.index);
+                    AssetID selfId = new AssetID(Path.GetFileName(fileName), inf.PathId);
                     if (monoScriptRefs.ContainsKey(scriptId))
                     {
                         monoScriptRefs[scriptId].Add(selfId);

@@ -1,5 +1,6 @@
 ﻿using AssetsTools.NET.Extra;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -51,92 +52,92 @@ namespace AssetsTools.NET
             TextureFile texture = new TextureFile();
             AssetTypeValueField tempField;
 
-            texture.m_Name = baseField.Get("m_Name").GetValue().AsString();
+            texture.m_Name = baseField["m_Name"].AsString;
 
-            if (!(tempField = baseField.Get("m_ForcedFallbackFormat")).IsDummy())
-                texture.m_ForcedFallbackFormat = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_ForcedFallbackFormat"]).IsDummy)
+                texture.m_ForcedFallbackFormat = tempField.AsInt;
 
-            if (!(tempField = baseField.Get("m_DownscaleFallback")).IsDummy())
-                texture.m_DownscaleFallback = tempField.GetValue().AsBool();
+            if (!(tempField = baseField["m_DownscaleFallback"]).IsDummy)
+                texture.m_DownscaleFallback = tempField.AsBool;
 
-            texture.m_Width = baseField.Get("m_Width").GetValue().AsInt();
+            texture.m_Width = baseField["m_Width"].AsInt;
 
-            texture.m_Height = baseField.Get("m_Height").GetValue().AsInt();
+            texture.m_Height = baseField["m_Height"].AsInt;
 
-            if (!(tempField = baseField.Get("m_CompleteImageSize")).IsDummy())
-                texture.m_CompleteImageSize = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_CompleteImageSize"]).IsDummy)
+                texture.m_CompleteImageSize = tempField.AsInt;
 
-            texture.m_TextureFormat = baseField.Get("m_TextureFormat").GetValue().AsInt();
+            texture.m_TextureFormat = baseField["m_TextureFormat"].AsInt;
 
-            if (!(tempField = baseField.Get("m_MipCount")).IsDummy())
-                texture.m_MipCount = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_MipCount"]).IsDummy)
+                texture.m_MipCount = tempField.AsInt;
 
-            if (!(tempField = baseField.Get("m_MipMap")).IsDummy())
-                texture.m_MipMap = tempField.GetValue().AsBool();
+            if (!(tempField = baseField["m_MipMap"]).IsDummy)
+                texture.m_MipMap = tempField.AsBool;
 
-            texture.m_IsReadable = baseField.Get("m_IsReadable").GetValue().AsBool();
+            texture.m_IsReadable = baseField["m_IsReadable"].AsBool;
 
-            if (!(tempField = baseField.Get("m_ReadAllowed")).IsDummy())
-                texture.m_ReadAllowed = tempField.GetValue().AsBool();
+            if (!(tempField = baseField["m_ReadAllowed"]).IsDummy)
+                texture.m_ReadAllowed = tempField.AsBool;
 
-            if (!(tempField = baseField.Get("m_StreamingMipmaps")).IsDummy())
-                texture.m_StreamingMipmaps = tempField.GetValue().AsBool();
+            if (!(tempField = baseField["m_StreamingMipmaps"]).IsDummy)
+                texture.m_StreamingMipmaps = tempField.AsBool;
 
-            if (!(tempField = baseField.Get("m_StreamingMipmapsPriority")).IsDummy())
-                texture.m_StreamingMipmapsPriority = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_StreamingMipmapsPriority"]).IsDummy)
+                texture.m_StreamingMipmapsPriority = tempField.AsInt;
 
-            texture.m_ImageCount = baseField.Get("m_ImageCount").GetValue().AsInt();
+            texture.m_ImageCount = baseField["m_ImageCount"].AsInt;
 
-            texture.m_TextureDimension = baseField.Get("m_TextureDimension").GetValue().AsInt();
+            texture.m_TextureDimension = baseField["m_TextureDimension"].AsInt;
 
-            AssetTypeValueField textureSettings = baseField.Get("m_TextureSettings");
+            AssetTypeValueField textureSettings = baseField["m_TextureSettings"];
 
-            texture.m_TextureSettings.m_FilterMode = textureSettings.Get("m_FilterMode").GetValue().AsInt();
+            texture.m_TextureSettings.m_FilterMode = textureSettings["m_FilterMode"].AsInt;
 
-            texture.m_TextureSettings.m_Aniso = textureSettings.Get("m_Aniso").GetValue().AsInt();
+            texture.m_TextureSettings.m_Aniso = textureSettings["m_Aniso"].AsInt;
 
-            texture.m_TextureSettings.m_MipBias = textureSettings.Get("m_MipBias").GetValue().AsFloat();
+            texture.m_TextureSettings.m_MipBias = textureSettings["m_MipBias"].AsFloat;
 
-            if (!(tempField = textureSettings.Get("m_WrapMode")).IsDummy())
-                texture.m_TextureSettings.m_WrapMode = tempField.GetValue().AsInt();
+            if (!(tempField = textureSettings["m_WrapMode"]).IsDummy)
+                texture.m_TextureSettings.m_WrapMode = tempField.AsInt;
 
-            if (!(tempField = textureSettings.Get("m_WrapU")).IsDummy())
-                texture.m_TextureSettings.m_WrapU = tempField.GetValue().AsInt();
+            if (!(tempField = textureSettings["m_WrapU"]).IsDummy)
+                texture.m_TextureSettings.m_WrapU = tempField.AsInt;
 
-            if (!(tempField = textureSettings.Get("m_WrapV")).IsDummy())
-                texture.m_TextureSettings.m_WrapV = tempField.GetValue().AsInt();
+            if (!(tempField = textureSettings["m_WrapV"]).IsDummy)
+                texture.m_TextureSettings.m_WrapV = tempField.AsInt;
 
-            if (!(tempField = textureSettings.Get("m_WrapW")).IsDummy())
-                texture.m_TextureSettings.m_WrapW = tempField.GetValue().AsInt();
+            if (!(tempField = textureSettings["m_WrapW"]).IsDummy)
+                texture.m_TextureSettings.m_WrapW = tempField.AsInt;
 
-            if (!(tempField = baseField.Get("m_LightmapFormat")).IsDummy())
-                texture.m_LightmapFormat = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_LightmapFormat"]).IsDummy)
+                texture.m_LightmapFormat = tempField.AsInt;
 
-            if (!(tempField = baseField.Get("m_ColorSpace")).IsDummy())
-                texture.m_ColorSpace = tempField.GetValue().AsInt();
+            if (!(tempField = baseField["m_ColorSpace"]).IsDummy)
+                texture.m_ColorSpace = tempField.AsInt;
 
-            AssetTypeValueField imageData = baseField.Get("image data");
-            if (imageData.templateField.valueType == EnumValueTypes.ByteArray)
+            AssetTypeValueField imageData = baseField["image data"];
+            if (imageData.TemplateField.ValueType == AssetValueType.ByteArray)
             {
-                texture.pictureData = imageData.GetValue().AsByteArray().data;
+                texture.pictureData = imageData.AsByteArray;
             }
             else
             {
-                int imageDataSize = imageData.GetValue().AsArray().size;
+                int imageDataSize = imageData.Children.Count;
                 texture.pictureData = new byte[imageDataSize];
                 for (int i = 0; i < imageDataSize; i++)
                 {
-                    texture.pictureData[i] = (byte)imageData[i].GetValue().AsInt();
+                    texture.pictureData[i] = (byte)imageData[i].AsInt;
                 }
             }
 
             AssetTypeValueField streamData;
 
-            if (!(streamData = baseField.Get("m_StreamData")).IsDummy())
+            if (!(streamData = baseField["m_StreamData"]).IsDummy)
             {
-                texture.m_StreamData.offset = streamData.Get("offset").GetValue().AsUInt64();
-                texture.m_StreamData.size = streamData.Get("size").GetValue().AsUInt();
-                texture.m_StreamData.path = streamData.Get("path").GetValue().AsString();
+                texture.m_StreamData.offset = streamData["offset"].AsULong;
+                texture.m_StreamData.size = streamData["size"].AsUInt;
+                texture.m_StreamData.path = streamData["path"].AsString;
             }
 
             return texture;
@@ -146,95 +147,95 @@ namespace AssetsTools.NET
         {
             AssetTypeValueField tempField;
 
-            baseField.Get("m_Name").GetValue().Set(m_Name);
+            baseField["m_Name"].AsString = m_Name;
 
-            if (!(tempField = baseField.Get("m_ForcedFallbackFormat")).IsDummy())
-                tempField.GetValue().Set(m_ForcedFallbackFormat);
+            if (!(tempField = baseField["m_ForcedFallbackFormat"]).IsDummy)
+                tempField.AsInt = m_ForcedFallbackFormat;
 
-            if (!(tempField = baseField.Get("m_DownscaleFallback")).IsDummy())
-                tempField.GetValue().Set(m_DownscaleFallback);
+            if (!(tempField = baseField["m_DownscaleFallback"]).IsDummy)
+                tempField.AsBool = m_DownscaleFallback;
 
-            baseField.Get("m_Width").GetValue().Set(m_Width);
+            baseField["m_Width"].AsInt = m_Width;
 
-            baseField.Get("m_Height").GetValue().Set(m_Height);
+            baseField["m_Height"].AsInt = m_Height;
 
-            if (!(tempField = baseField.Get("m_CompleteImageSize")).IsDummy())
-                tempField.GetValue().Set(m_CompleteImageSize);
+            if (!(tempField = baseField["m_CompleteImageSize"]).IsDummy)
+                tempField.AsInt = m_CompleteImageSize;
 
-            baseField.Get("m_TextureFormat").GetValue().Set(m_TextureFormat);
+            baseField["m_TextureFormat"].AsInt = m_TextureFormat;
 
-            if (!(tempField = baseField.Get("m_MipCount")).IsDummy())
-                tempField.GetValue().Set(m_MipCount);
+            if (!(tempField = baseField["m_MipCount"]).IsDummy)
+                tempField.AsInt = m_MipCount;
 
-            if (!(tempField = baseField.Get("m_MipMap")).IsDummy())
-                tempField.GetValue().Set(m_MipMap);
+            if (!(tempField = baseField["m_MipMap"]).IsDummy)
+                tempField.AsBool = m_MipMap;
 
-            baseField.Get("m_IsReadable").GetValue().Set(m_IsReadable);
+            baseField["m_IsReadable"].AsBool = m_IsReadable;
 
-            if (!(tempField = baseField.Get("m_ReadAllowed")).IsDummy())
-                tempField.GetValue().Set(m_ReadAllowed);
+            if (!(tempField = baseField["m_ReadAllowed"]).IsDummy)
+                tempField.AsBool = m_ReadAllowed;
 
-            if (!(tempField = baseField.Get("m_StreamingMipmaps")).IsDummy())
-                tempField.GetValue().Set(m_StreamingMipmaps);
+            if (!(tempField = baseField["m_StreamingMipmaps"]).IsDummy)
+                tempField.AsBool = m_StreamingMipmaps;
 
-            if (!(tempField = baseField.Get("m_StreamingMipmapsPriority")).IsDummy())
-                tempField.GetValue().Set(m_StreamingMipmapsPriority);
+            if (!(tempField = baseField["m_StreamingMipmapsPriority"]).IsDummy)
+                tempField.AsInt = m_StreamingMipmapsPriority;
 
-            baseField.Get("m_ImageCount").GetValue().Set(m_ImageCount);
+            baseField["m_ImageCount"].AsInt = m_ImageCount;
 
-            baseField.Get("m_TextureDimension").GetValue().Set(m_TextureDimension);
+            baseField["m_TextureDimension"].AsInt = m_TextureDimension;
 
-            AssetTypeValueField textureSettings = baseField.Get("m_TextureSettings");
+            AssetTypeValueField textureSettings = baseField["m_TextureSettings"];
 
-            textureSettings.Get("m_FilterMode").GetValue().Set(m_TextureSettings.m_FilterMode);
-            textureSettings.Get("m_Aniso").GetValue().Set(m_TextureSettings.m_Aniso);
-            textureSettings.Get("m_MipBias").GetValue().Set(m_TextureSettings.m_MipBias);
+            textureSettings["m_FilterMode"].AsInt = m_TextureSettings.m_FilterMode;
+            textureSettings["m_Aniso"].AsInt = m_TextureSettings.m_Aniso;
+            textureSettings["m_MipBias"].AsFloat = m_TextureSettings.m_MipBias;
 
-            if (!(tempField = textureSettings.Get("m_WrapMode")).IsDummy())
-                tempField.GetValue().Set(m_TextureSettings.m_WrapMode);
+            if (!(tempField = textureSettings["m_WrapMode"]).IsDummy)
+                tempField.AsInt = m_TextureSettings.m_WrapMode;
 
-            if (!(tempField = textureSettings.Get("m_WrapU")).IsDummy())
-                tempField.GetValue().Set(m_TextureSettings.m_WrapU);
+            if (!(tempField = textureSettings["m_WrapU"]).IsDummy)
+                tempField.AsInt = m_TextureSettings.m_WrapU;
 
-            if (!(tempField = textureSettings.Get("m_WrapV")).IsDummy())
-                tempField.GetValue().Set(m_TextureSettings.m_WrapV);
+            if (!(tempField = textureSettings["m_WrapV"]).IsDummy)
+                tempField.AsInt = m_TextureSettings.m_WrapV;
 
-            if (!(tempField = textureSettings.Get("m_WrapW")).IsDummy())
-                tempField.GetValue().Set(m_TextureSettings.m_WrapW);
+            if (!(tempField = textureSettings["m_WrapW"]).IsDummy)
+                tempField.AsInt = m_TextureSettings.m_WrapW;
 
-            if (!(tempField = baseField.Get("m_LightmapFormat")).IsDummy())
-                tempField.GetValue().Set(m_LightmapFormat);
+            if (!(tempField = baseField["m_LightmapFormat"]).IsDummy)
+                tempField.AsInt = m_LightmapFormat;
 
-            if (!(tempField = baseField.Get("m_ColorSpace")).IsDummy())
-                tempField.GetValue().Set(m_ColorSpace);
+            if (!(tempField = baseField["m_ColorSpace"]).IsDummy)
+                tempField.AsInt = m_ColorSpace;
 
-            AssetTypeValueField imageData = baseField.Get("image data");
-            if (imageData.templateField.valueType == EnumValueTypes.ByteArray)
+            AssetTypeValueField imageData = baseField["image data"];
+            if (imageData.TemplateField.ValueType == AssetValueType.ByteArray)
             {
-                imageData.GetValue().Set(pictureData);
+                imageData.AsByteArray = pictureData;
             }
             else
             {
-                imageData.GetValue().Set(new AssetTypeArray(pictureData.Length));
+                imageData.AsArray = new AssetTypeArrayInfo(pictureData.Length);
 
-                AssetTypeValueField[] children = new AssetTypeValueField[pictureData.Length];
+                List<AssetTypeValueField> children = new List<AssetTypeValueField>(pictureData.Length);
                 for (int i = 0; i < pictureData.Length; i++)
                 {
                     AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(imageData);
-                    child.GetValue().Set(pictureData[i]);
+                    child.AsByte = pictureData[i];
                     children[i] = child;
                 }
 
-                imageData.SetChildrenList(children);
+                imageData.Children = children;
             }
 
             AssetTypeValueField streamData;
 
-            if (!(streamData = baseField.Get("m_StreamData")).IsDummy())
+            if (!(streamData = baseField["m_StreamData"]).IsDummy)
             {
-                streamData.Get("offset").GetValue().Set(m_StreamData.offset);
-                streamData.Get("size").GetValue().Set(m_StreamData.size);
-                streamData.Get("path").GetValue().Set(m_StreamData.path);
+                streamData["offset"].AsULong = m_StreamData.offset;
+                streamData["size"].AsUInt = m_StreamData.size;
+                streamData["path"].AsString = m_StreamData.path;
             }
         }
 
@@ -254,7 +255,7 @@ namespace AssetsTools.NET
         public byte[] GetTextureData(AssetsFile file)
         {
             string path = null;
-            if (file.readerPar is FileStream fs)
+            if (file.Reader.BaseStream is FileStream fs)
             {
                 path = Path.GetDirectoryName(fs.Name);
             }
@@ -295,8 +296,8 @@ namespace AssetsTools.NET
                 {
                     bundle.GetFileRange(resourceFileIndex, out long resourceFileOffset, out _);
                     pictureData = new byte[m_StreamData.size];
-                    bundle.reader.Position = resourceFileOffset + (long)m_StreamData.offset;
-                    bundle.reader.Read(pictureData, 0, pictureData.Length);
+                    bundle.Reader.Position = resourceFileOffset + (long)m_StreamData.offset;
+                    bundle.Reader.Read(pictureData, 0, pictureData.Length);
                 }
             }
 
@@ -332,48 +333,48 @@ namespace AssetsTools.NET
         public static byte[] Decode(byte[] data, TextureFormat format, int width, int height)
         {
             return format switch
-                   {
-                       TextureFormat.R8 =>        RGBADecoders.ReadR8(data, width, height),
-                       TextureFormat.R16 =>       RGBADecoders.ReadR16(data, width, height),
-                       TextureFormat.RG16 =>      RGBADecoders.ReadRG16(data, width, height),
-                       TextureFormat.RGB24 =>     RGBADecoders.ReadRGB24(data, width, height),
-                       TextureFormat.RGB565 =>    RGBADecoders.ReadRGB565(data, width, height),
-                       TextureFormat.RGBA32 =>    RGBADecoders.ReadRGBA32(data, width, height),
-                       TextureFormat.ARGB32 =>    RGBADecoders.ReadARGB32(data, width, height),
-                       TextureFormat.RGBA4444 =>  RGBADecoders.ReadRGBA4444(data, width, height),
-                       TextureFormat.ARGB4444 =>  RGBADecoders.ReadARGB4444(data, width, height),
-                       TextureFormat.Alpha8 =>    RGBADecoders.ReadAlpha8(data, width, height),
-                       TextureFormat.RHalf =>     RGBADecoders.ReadRHalf(data, width, height),
-                       TextureFormat.RGHalf =>    RGBADecoders.ReadRGHalf(data, width, height),
-                       TextureFormat.RGBAHalf =>  RGBADecoders.ReadRGBAHalf(data, width, height),
-                       TextureFormat.DXT1 =>      DXTDecoders.ReadDXT1(data, width, height),
-                       TextureFormat.DXT5 =>      DXTDecoders.ReadDXT5(data, width, height),
-                       TextureFormat.BC7 =>       BC7Decoder.ReadBC7(data, width, height),
-                       TextureFormat.ETC_RGB4 =>  ETCDecoders.ReadETC(data, width, height),
-                       TextureFormat.ETC2_RGB4 => ETCDecoders.ReadETC(data, width, height, true),
-                       _ => null
-                   };
+            {
+                TextureFormat.R8 =>        RGBADecoders.ReadR8(data, width, height),
+                TextureFormat.R16 =>       RGBADecoders.ReadR16(data, width, height),
+                TextureFormat.RG16 =>      RGBADecoders.ReadRG16(data, width, height),
+                TextureFormat.RGB24 =>     RGBADecoders.ReadRGB24(data, width, height),
+                TextureFormat.RGB565 =>    RGBADecoders.ReadRGB565(data, width, height),
+                TextureFormat.RGBA32 =>    RGBADecoders.ReadRGBA32(data, width, height),
+                TextureFormat.ARGB32 =>    RGBADecoders.ReadARGB32(data, width, height),
+                TextureFormat.RGBA4444 =>  RGBADecoders.ReadRGBA4444(data, width, height),
+                TextureFormat.ARGB4444 =>  RGBADecoders.ReadARGB4444(data, width, height),
+                TextureFormat.Alpha8 =>    RGBADecoders.ReadAlpha8(data, width, height),
+                TextureFormat.RHalf =>     RGBADecoders.ReadRHalf(data, width, height),
+                TextureFormat.RGHalf =>    RGBADecoders.ReadRGHalf(data, width, height),
+                TextureFormat.RGBAHalf =>  RGBADecoders.ReadRGBAHalf(data, width, height),
+                TextureFormat.DXT1 =>      DXTDecoders.ReadDXT1(data, width, height),
+                TextureFormat.DXT5 =>      DXTDecoders.ReadDXT5(data, width, height),
+                TextureFormat.BC7 =>       BC7Decoder.ReadBC7(data, width, height),
+                TextureFormat.ETC_RGB4 =>  ETCDecoders.ReadETC(data, width, height),
+                TextureFormat.ETC2_RGB4 => ETCDecoders.ReadETC(data, width, height, true),
+                _ => null
+            };
         }
 
         public static byte[] Encode(byte[] data, TextureFormat format, int width, int height)
         {
             return format switch
-                   {
-                       TextureFormat.R8 =>       RGBAEncoders.EncodeR8(data, width, height),
-                       TextureFormat.R16 =>      RGBAEncoders.EncodeR16(data, width, height),
-                       TextureFormat.RG16 =>     RGBAEncoders.EncodeRG16(data, width, height),
-                       TextureFormat.RGB24 =>    RGBAEncoders.EncodeRGB24(data, width, height),
-                       TextureFormat.RGB565 =>   RGBAEncoders.EncodeRGB565(data, width, height),
-                       TextureFormat.RGBA32 =>   RGBAEncoders.EncodeRGBA32(data, width, height),
-                       TextureFormat.ARGB32 =>   RGBAEncoders.EncodeARGB32(data, width, height),
-                       TextureFormat.RGBA4444 => RGBAEncoders.EncodeRGBA4444(data, width, height),
-                       TextureFormat.ARGB4444 => RGBAEncoders.EncodeARGB4444(data, width, height),
-                       TextureFormat.Alpha8 =>   RGBAEncoders.EncodeAlpha8(data, width, height),
-                       TextureFormat.RHalf =>    RGBAEncoders.EncodeRHalf(data, width, height),
-                       TextureFormat.RGHalf =>   RGBAEncoders.EncodeRGHalf(data, width, height),
-                       TextureFormat.RGBAHalf => RGBAEncoders.EncodeRGBAHalf(data, width, height),
-                       _ => null
-                   };
+            {
+                TextureFormat.R8 =>       RGBAEncoders.EncodeR8(data, width, height),
+                TextureFormat.R16 =>      RGBAEncoders.EncodeR16(data, width, height),
+                TextureFormat.RG16 =>     RGBAEncoders.EncodeRG16(data, width, height),
+                TextureFormat.RGB24 =>    RGBAEncoders.EncodeRGB24(data, width, height),
+                TextureFormat.RGB565 =>   RGBAEncoders.EncodeRGB565(data, width, height),
+                TextureFormat.RGBA32 =>   RGBAEncoders.EncodeRGBA32(data, width, height),
+                TextureFormat.ARGB32 =>   RGBAEncoders.EncodeARGB32(data, width, height),
+                TextureFormat.RGBA4444 => RGBAEncoders.EncodeRGBA4444(data, width, height),
+                TextureFormat.ARGB4444 => RGBAEncoders.EncodeARGB4444(data, width, height),
+                TextureFormat.Alpha8 =>   RGBAEncoders.EncodeAlpha8(data, width, height),
+                TextureFormat.RHalf =>    RGBAEncoders.EncodeRHalf(data, width, height),
+                TextureFormat.RGHalf =>   RGBAEncoders.EncodeRGHalf(data, width, height),
+                TextureFormat.RGBAHalf => RGBAEncoders.EncodeRGBAHalf(data, width, height),
+                _ => null
+            };
         }
     }
 

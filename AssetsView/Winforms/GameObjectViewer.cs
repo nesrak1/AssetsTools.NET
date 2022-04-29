@@ -34,9 +34,9 @@ namespace AssetsView.Winforms
             valueGrid.PropertySort = PropertySort.Categorized;
 
             ClassDatabaseFile classFile = helper.classFile;
-            AssetFileInfoEx info = inst.table.GetAssetInfo(selectedId);
+            AssetFileInfo info = inst.file.GetAssetInfo(selectedId);
             AssetTypeTemplateField typeTemplate = helper.GetTemplateBaseField(inst.file, info);
-            string typeName = typeTemplate.type;
+            string typeName = typeTemplate.Type;
 
             if (typeName == "GameObject")
             {
@@ -47,27 +47,27 @@ namespace AssetsView.Winforms
             }
             else
             {
-                bool hasGameObjectField = typeTemplate.children.Any(f => f.name == "m_GameObject");
+                bool hasGameObjectField = typeTemplate.Children.Any(f => f.Name == "m_GameObject");
                 if (hasGameObjectField)
                 {
-                    AssetTypeValueField firstBaseField = helper.GetTypeInstance(inst.file, info).GetBaseField();
-                    AssetExternal firstExt = helper.GetExtAsset(inst, firstBaseField.Get("m_GameObject"));
+                    AssetTypeValueField firstBaseField = helper.GetBaseField(inst.file, info);
+                    AssetExternal firstExt = helper.GetExtAsset(inst, firstBaseField["m_GameObject"]);
                     if (firstExt.info != null)
                     {
-                        selectedGameObjectId = firstExt.info.index;
+                        selectedGameObjectId = firstExt.info.PathId;
                         AssetExternal rootExt = GetRootGameObject(firstExt);
                         PopulateHierarchyTree(null, rootExt);
                     }
                     else
                     {
                         TreeNode node = goTree.Nodes.Add($"[{typeName} (parentless)]");
-                        node.Tag = helper.GetExtAsset(inst, 0, info.index);
+                        node.Tag = helper.GetExtAsset(inst, 0, info.PathId);
                     }
                 }
                 else
                 {
                     TreeNode node = goTree.Nodes.Add($"[{typeName}]");
-                    node.Tag = helper.GetExtAsset(inst, 0, info.index);
+                    node.Tag = helper.GetExtAsset(inst, 0, info.PathId);
                 }
             }
             GetSelectedNodeData();
@@ -75,13 +75,13 @@ namespace AssetsView.Winforms
 
         private AssetExternal GetRootGameObject(AssetExternal ext)
         {
-            AssetExternal transformExt = helper.GetExtAsset(inst, ext.instance.GetBaseField().Get("m_Component").Get("Array")[0].GetLastChild());
+            AssetExternal transformExt = helper.GetExtAsset(inst, ext.baseField["m_Component.Array"][0].GetLastChild());
             while (true)
             {
-                AssetExternal parentExt = helper.GetExtAsset(inst, transformExt.instance.GetBaseField().Get("m_Father"));
-                if (parentExt.instance == null)
+                AssetExternal parentExt = helper.GetExtAsset(inst, transformExt.baseField["m_Father"]);
+                if (parentExt.baseField == null)
                 {
-                    AssetExternal gameObjectExt = helper.GetExtAsset(inst, transformExt.instance.GetBaseField().Get("m_GameObject"));
+                    AssetExternal gameObjectExt = helper.GetExtAsset(inst, transformExt.baseField["m_GameObject"]);
                     return gameObjectExt;
                 }
                 transformExt = parentExt;
@@ -98,8 +98,8 @@ namespace AssetsView.Winforms
 
                 if (nodeTag is AssetExternal ext)
                 {
-                    AssetTypeValueField baseField = ext.instance.GetBaseField();
-                    string typeName = baseField.templateField.type;
+                    AssetTypeValueField baseField = ext.baseField;
+                    string typeName = baseField.TemplateField.Type;
                     if (typeName == "GameObject")
                     {
                         PGProperty dataRoot = LoadGameObjectData(baseField);
@@ -117,7 +117,7 @@ namespace AssetsView.Winforms
                     else
                     {
                         PGProperty root = new PGProperty("root");
-                        LoadComponentData(root, ext.instance.GetBaseField(), ext.info, 0, 0);
+                        LoadComponentData(root, ext.baseField, ext.info, 0, 0);
                         valueGrid.SelectedObject = root;
                     }
                 }
@@ -128,24 +128,24 @@ namespace AssetsView.Winforms
         private PGProperty LoadGameObjectData(AssetTypeValueField field)
         {
             PGProperty root = new PGProperty("root");
-            AssetTypeValueField components = field.Get("m_Component").Get("Array");
-            int componentSize = components.GetValue().AsArray().size;
+            AssetTypeValueField components = field["m_Component.Array"];
+            int componentSize = components.Children.Count;
             for (int i = 0; i < componentSize; i++)
             {
                 AssetTypeValueField componentPtr = components[i].GetLastChild();
                 if (ModifierKeys == Keys.Shift)
                 {
                     AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
-                    if (ext.instance != null)
-                        LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
+                    if (ext.baseField != null)
+                        LoadComponentData(root, ext.baseField, ext.info, i, componentSize);
                 }
                 else
                 {
                     try
                     {
                         AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
-                        if (ext.instance != null)
-                            LoadComponentData(root, ext.instance.GetBaseField(), ext.info, i, componentSize);
+                        if (ext.baseField != null)
+                            LoadComponentData(root, ext.baseField, ext.info, i, componentSize);
                     }
                     catch
                     {
@@ -160,9 +160,9 @@ namespace AssetsView.Winforms
             return root;
         }
 
-        private void LoadComponentData(PGProperty root, AssetTypeValueField baseField, AssetFileInfoEx info, int index, int size)
+        private void LoadComponentData(PGProperty root, AssetTypeValueField baseField, AssetFileInfo info, int index, int size)
         {
-            string className = AssetHelper.FindAssetClassByID(helper.classFile, info.curFileType)
+            string className = AssetHelper.FindAssetClassByID(helper.classFile, info.TypeId)
                 .name.GetString(helper.classFile);
             AssetTypeValueField targetBaseField = baseField;
             if (className == "MonoBehaviour")
@@ -178,55 +178,55 @@ namespace AssetsView.Winforms
             PopulateDataGrid(targetBaseField, root, info, category);
         }
 
-        private void PopulateDataGrid(AssetTypeValueField atvf, PGProperty node, AssetFileInfoEx info, string category, bool arrayChildren = false)
+        private void PopulateDataGrid(AssetTypeValueField atvf, PGProperty node, AssetFileInfo info, string category, bool arrayChildren = false)
         {
-            if (atvf.childrenCount == 0)
+            if (atvf.Children == null || atvf.Children.Count == 0)
                 return;
         
             string arrayName = string.Empty;
-            if (arrayChildren && atvf.childrenCount > 0)
-                arrayName = atvf.children[0].templateField.name;
+            if (arrayChildren && atvf.Children.Count > 0)
+                arrayName = atvf.Children[0].TemplateField.Name;
         
-            for (int i = 0; i < atvf.childrenCount; i++)
+            for (int i = 0; i < atvf.Children.Count; i++)
             {
-                AssetTypeValueField atvfc = atvf.children[i];
+                AssetTypeValueField atvfc = atvf.Children[i];
                 if (atvfc == null)
                     return;
         
                 string key;
                 if (!arrayChildren)
-                    key = atvfc.GetName();
+                    key = atvfc.TemplateField.Name;
                 else
                     key = $"{arrayName}[{i}]";
         
-                EnumValueTypes evt;
-                if (atvfc.GetValue() != null)
+                AssetValueType evt;
+                if (atvfc.Value != null)
                 {
-                    evt = atvfc.GetValue().GetValueType();
-                    if (evt != EnumValueTypes.None)
+                    evt = atvfc.Value.ValueType;
+                    if (evt != AssetValueType.None)
                     {
                         if (1 <= (int)evt && (int)evt <= 12)
                         {
-                            string value = atvfc.GetValue().AsString();
+                            string value = atvfc.AsString;
                             PGProperty prop = new PGProperty(key, value);
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
                             PopulateDataGrid(atvfc, prop, info, category);
                         }
-                        else if (evt == EnumValueTypes.Array)
+                        else if (evt == AssetValueType.Array)
                         {
-                            PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.childrenCount}]");
-                            PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.childrenCount}]");
+                            PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.Children.Count}]");
+                            PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.Children.Count}]");
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
                             PopulateDataGrid(atvfc, childProps, info, category, true);
                         }
-                        else if (evt == EnumValueTypes.ByteArray)
+                        else if (evt == AssetValueType.ByteArray)
                         {
-                            PGProperty childProps = new PGProperty("child", null, $"[bytes size: {atvfc.GetValue().AsByteArray().size}]");
-                            PGProperty prop = new PGProperty(key, childProps, $"[bytes size: {atvfc.GetValue().AsByteArray().size}]");
+                            PGProperty childProps = new PGProperty("child", null, $"[bytes size: {atvfc.AsByteArray.Length}]");
+                            PGProperty prop = new PGProperty(key, childProps, $"[bytes size: {atvfc.AsByteArray.Length}]");
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
@@ -236,19 +236,19 @@ namespace AssetsView.Winforms
                 else
                 {
                     PGProperty childProps;
-                    if (atvfc.childrenCount == 2)
+                    if (atvfc.Children.Count == 2)
                     {
-                        AssetTypeValueField fileId = atvfc.children[0];
-                        AssetTypeValueField pathId = atvfc.children[1];
-                        string fileIdName = fileId.templateField.name;
-                        string fileIdType = fileId.templateField.type;
-                        string pathIdName = pathId.templateField.name;
-                        string pathIdType = pathId.templateField.type;
+                        AssetTypeValueField fileId = atvfc.Children[0];
+                        AssetTypeValueField pathId = atvfc.Children[1];
+                        string fileIdName = fileId.TemplateField.Name;
+                        string fileIdType = fileId.TemplateField.Type;
+                        string pathIdName = pathId.TemplateField.Name;
+                        string pathIdType = pathId.TemplateField.Type;
                         if (fileIdName == "m_FileID" && fileIdType == "int" &&
                             pathIdName == "m_PathID" && pathIdType == "SInt64")
                         {
-                            int fileIdValue = fileId.GetValue().AsInt();
-                            long pathIdValue = pathId.GetValue().AsInt64();
+                            int fileIdValue = fileId.AsInt;
+                            long pathIdValue = pathId.AsLong;
                             childProps = new PGProperty("child", "", $"[fileid: {fileIdValue}, pathid: {pathIdValue}]");
                         }
                         else
@@ -269,9 +269,9 @@ namespace AssetsView.Winforms
             }
         }
 
-        private void SetSelectedStateIfSelected(AssetFileInfoEx info, PGProperty prop)
+        private void SetSelectedStateIfSelected(AssetFileInfo info, PGProperty prop)
         {
-            if (info.index == selectedId)
+            if (info.PathId == selectedId)
             {
                 prop.description = "SELECTEDCOMPONENT";
             }
@@ -279,16 +279,16 @@ namespace AssetsView.Winforms
 
         private void PopulateHierarchyTree(TreeNode node, AssetExternal ext)
         {
-            AssetTypeValueField baseField = ext.instance.GetBaseField();
-            long thisId = ext.info.index;
+            AssetTypeValueField baseField = ext.baseField;
+            long thisId = ext.info.PathId;
 
             TreeNode newNode;
             if (node == null)
-                newNode = goTree.Nodes.Add(baseField.Get("m_Name").GetValue().AsString());
+                newNode = goTree.Nodes.Add(baseField["m_Name"].AsString);
             else
-                newNode = node.Nodes.Add(baseField.Get("m_Name").GetValue().AsString());
+                newNode = node.Nodes.Add(baseField["m_Name"].AsString);
 
-            if (!baseField.Get("m_IsActive").GetValue().AsBool())
+            if (!baseField["m_IsActive"].AsBool)
                 newNode.ForeColor = Color.DarkRed;
 
             newNode.Tag = ext;
@@ -298,22 +298,22 @@ namespace AssetsView.Winforms
             }
 
             AssetTypeValueField children =
-                helper.GetExtAsset(inst, baseField.Get("m_Component").Get("Array")[0].GetLastChild()).instance
-                                                  .GetBaseField().Get("m_Children").Get("Array");
+                helper.GetExtAsset(inst, baseField["m_Component.Array"][0].GetLastChild()).baseField["m_Children.Array"];
 
-            for (int i = 0; i < children.childrenCount; i++)
+            for (int i = 0; i < children.Children.Count; i++)
             {
                 AssetExternal childExternal = helper.GetExtAsset(inst, children[i]);
-                AssetExternal gameObjExt = helper.GetExtAsset(inst, childExternal.instance.GetBaseField().Get("m_GameObject"));
+                AssetExternal gameObjExt = helper.GetExtAsset(inst, childExternal.baseField["m_GameObject"]);
                 PopulateHierarchyTree(newNode, gameObjExt);
             }
         }
         private string GetClassName(AssetsManager manager, AssetsFileInstance inst, AssetTypeValueField baseField)
         {
-            AssetTypeInstance scriptAti = manager.GetExtAsset(inst, baseField.Get("m_Script")).instance;
-            if (scriptAti == null)
+            AssetTypeValueField scriptBaseField = manager.GetExtAsset(inst, baseField["m_Script"]).baseField;
+            if (scriptBaseField == null)
                 return "Unknown class name";
-            return scriptAti.GetBaseField().Get("m_Name").GetValue().AsString();
+
+            return scriptBaseField["m_Name"].AsString;
         }
 
         private void goTree_AfterSelect(object sender, TreeViewEventArgs e)
@@ -351,7 +351,7 @@ namespace AssetsView.Winforms
                     MessageBox.Show("Dependency could not be loaded. Maybe the file couldn't be loaded or doesn't exist?", "Assets View");
                     return;
                 }
-                GameObjectViewer view = new GameObjectViewer(helper, ext.file, ext.info.index);
+                GameObjectViewer view = new GameObjectViewer(helper, ext.file, ext.info.PathId);
                 view.Show();
             }
         }

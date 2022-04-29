@@ -1,8 +1,8 @@
 ﻿namespace AssetsTools.NET
 {
-    public struct AssetTypeArray
+    public struct AssetTypeArrayInfo
     {
-        public AssetTypeArray(int size)
+        public AssetTypeArrayInfo(int size)
         {
             this.size = size;
         }

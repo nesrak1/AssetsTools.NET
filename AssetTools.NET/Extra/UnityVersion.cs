@@ -18,7 +18,7 @@ namespace AssetsTools.NET.Extra
             major = int.Parse(versionSplit[0]);
             minor = int.Parse(versionSplit[1]);
 
-            int verTypeIndex = versionSplit[2].IndexOfAny(new[] { 'f', 'p', 'a', 'b' });
+            int verTypeIndex = versionSplit[2].IndexOfAny(new[] { 'f', 'p', 'a', 'b', 'c' });
             if (verTypeIndex != -1)
             {
                 type = versionSplit[2][verTypeIndex].ToString();
@@ -27,7 +27,7 @@ namespace AssetsTools.NET.Extra
                 string patchNumString = versionSplit[2].Substring(verTypeIndex + 1);
                 if (!int.TryParse(patchNumString, out typeNum))
                 {
-                    //sometimes pesky custom engine versions add text to the end
+                    // sometimes pesky custom engine versions add text to the end
                     string newPatchNumString = "";
                     for (int i = 0; i < patchNumString.Length; i++)
                     {

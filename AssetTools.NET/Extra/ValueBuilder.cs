@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace AssetsTools.NET.Extra
 {
@@ -9,30 +6,30 @@ namespace AssetsTools.NET.Extra
     {
         public static AssetTypeValueField DefaultValueFieldFromArrayTemplate(AssetTypeValueField arrayField)
         {
-            return DefaultValueFieldFromArrayTemplate(arrayField.templateField);
+            return DefaultValueFieldFromArrayTemplate(arrayField.TemplateField);
         }
         public static AssetTypeValueField DefaultValueFieldFromArrayTemplate(AssetTypeTemplateField arrayField)
         {
-            if (!arrayField.isArray)
+            if (!arrayField.IsArray)
                 return null;
 
-            AssetTypeTemplateField templateField = arrayField.children[1];
+            AssetTypeTemplateField templateField = arrayField.Children[1];
             return DefaultValueFieldFromTemplate(templateField);
         }
 
         public static AssetTypeValueField DefaultValueFieldFromTemplate(AssetTypeTemplateField templateField)
         {
-            AssetTypeTemplateField[] templateChildren = templateField.children;
-            AssetTypeValueField[] valueChildren;
-            if (templateField.isArray ||
-                templateField.valueType == EnumValueTypes.String)
+            List<AssetTypeTemplateField> templateChildren = templateField.Children;
+            List<AssetTypeValueField> valueChildren;
+
+            if (templateField.IsArray || templateField.ValueType == AssetValueType.String)
             {
-                valueChildren = new AssetTypeValueField[0];
+                valueChildren = new List<AssetTypeValueField>(0);
             }
             else
             {
-                valueChildren = new AssetTypeValueField[templateChildren.Length];
-                for (int i = 0; i < templateChildren.Length; i++)
+                valueChildren = new List<AssetTypeValueField>(templateChildren.Count);
+                for (int i = 0; i < templateChildren.Count; i++)
                 {
                     valueChildren[i] = DefaultValueFieldFromTemplate(templateChildren[i]);
                 }
@@ -42,10 +39,9 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeValueField root = new AssetTypeValueField()
             {
-                children = valueChildren,
-                childrenCount = valueChildren.Length,
-                templateField = templateField,
-                value = defaultValue
+                Children = valueChildren,
+                TemplateField = templateField,
+                Value = defaultValue
             };
             return root;
         }
@@ -53,49 +49,49 @@ namespace AssetsTools.NET.Extra
         public static AssetTypeValue DefaultValueFromTemplate(AssetTypeTemplateField templateField)
         {
             object obj;
-            switch (templateField.valueType)
+            switch (templateField.ValueType)
             {
-                case EnumValueTypes.Int8:
+                case AssetValueType.Int8:
                     obj = (sbyte)0; break;
-                case EnumValueTypes.UInt8:
+                case AssetValueType.UInt8:
                     obj = (byte)0; break;
-                case EnumValueTypes.Bool:
+                case AssetValueType.Bool:
                     obj = false; break;
-                case EnumValueTypes.Int16:
+                case AssetValueType.Int16:
                     obj = (short)0; break;
-                case EnumValueTypes.UInt16:
+                case AssetValueType.UInt16:
                     obj = (ushort)0; break;
-                case EnumValueTypes.Int32:
+                case AssetValueType.Int32:
                     obj = 0; break;
-                case EnumValueTypes.UInt32:
+                case AssetValueType.UInt32:
                     obj = 0u; break;
-                case EnumValueTypes.Int64:
+                case AssetValueType.Int64:
                     obj = 0L; break;
-                case EnumValueTypes.UInt64:
+                case AssetValueType.UInt64:
                     obj = 0uL; break;
-                case EnumValueTypes.Float:
+                case AssetValueType.Float:
                     obj = 0f; break;
-                case EnumValueTypes.Double:
+                case AssetValueType.Double:
                     obj = 0d; break;
-                case EnumValueTypes.String:
+                case AssetValueType.String:
                     obj = string.Empty; break;
-                case EnumValueTypes.Array:
-                    obj = new AssetTypeArray(); break;
-                case EnumValueTypes.ByteArray:
-                    obj = new AssetTypeByteArray(); break;
+                case AssetValueType.Array:
+                    obj = new AssetTypeArrayInfo(); break;
+                case AssetValueType.ByteArray:
+                    obj = new byte[0]; break;
                 default:
                     obj = null; break;
             }
-            if (obj == null && templateField.isArray)
+            if (obj == null && templateField.IsArray)
             {
-                //arrays don't usually have their type set,
-                //so we have to check .isArray instead
-                obj = new AssetTypeArray();
-                return new AssetTypeValue(EnumValueTypes.Array, obj);
+                // arrays don't usually have their type set,
+                // so we have to check .IsArray instead
+                obj = new AssetTypeArrayInfo();
+                return new AssetTypeValue(AssetValueType.Array, obj);
             }
             else
             {
-                return new AssetTypeValue(templateField.valueType, obj);
+                return new AssetTypeValue(templateField.ValueType, obj);
             }
         }
     }

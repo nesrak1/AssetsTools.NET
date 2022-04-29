@@ -6,9 +6,7 @@ namespace AssetsTools.NET
 {
     public class AssetsFileReader : BinaryReader
     {
-        //todo, this should default to bigEndian = false
-        //since it's more likely little endian than big endian
-        public bool bigEndian = true;
+        public bool bigEndian = false;
 
         public AssetsFileReader(string filePath)
             : base(File.OpenRead(filePath))

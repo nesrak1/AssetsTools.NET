@@ -2,12 +2,39 @@
 {
     public class AssetPPtr
     {
-        public AssetPPtr(int fileID, long pathID)
+        public string FilePath { get; set; }
+        public int FileId { get; set; }
+        public long PathId { get; set; }
+
+        public AssetPPtr()
         {
-            this.fileID = fileID;
-            this.pathID = pathID;
+            FilePath = string.Empty;
+            FileId = 0;
+            PathId = 0;
         }
-        public int fileID;
-        public long pathID;
+
+        public AssetPPtr(int fileId, long pathId)
+        {
+            FilePath = string.Empty;
+            FileId = fileId;
+            PathId = pathId;
+        }
+
+        public AssetPPtr(string fileName, int fileId, long pathId)
+        {
+            FilePath = fileName;
+            FileId = fileId;
+            PathId = pathId;
+        }
+
+        public bool HasFilePath()
+        {
+            return FilePath != string.Empty && FilePath != null;
+        }
+
+        public void SetFilePathFromFile(AssetsFile file)
+        {
+            FilePath = file.Metadata.Externals[FileId].PathName;
+        }
     }
 }

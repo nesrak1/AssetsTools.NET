@@ -55,7 +55,7 @@ namespace AssetsTools.NET
         }
         public void Write(AssetsFileWriter writer)
         {
-            writer.bigEndian = false;
+            writer.BigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(header));
             writer.Write(fileVersion);
             if (fileVersion == 4)

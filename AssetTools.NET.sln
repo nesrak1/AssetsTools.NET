@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsTools.NET", "AssetTools.NET\AssetsTools.NET.csproj", "{E09D5AC2-1A2E-4EC1-94AD-3F5E22F17658}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsView", "AssetsView\AssetsView.csproj", "{42D1011E-A1FB-424D-BB4E-C858EB088E9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld", "HelloWorld\HelloWorld.csproj", "{45108769-20DA-4CFC-AC00-98FD12EFAE6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{42D1011E-A1FB-424D-BB4E-C858EB088E9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{42D1011E-A1FB-424D-BB4E-C858EB088E9C}.Release|x64.ActiveCfg = Release|Any CPU
 		{42D1011E-A1FB-424D-BB4E-C858EB088E9C}.Release|x64.Build.0 = Release|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Debug|x64.Build.0 = Debug|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|x64.ActiveCfg = Release|Any CPU
+		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

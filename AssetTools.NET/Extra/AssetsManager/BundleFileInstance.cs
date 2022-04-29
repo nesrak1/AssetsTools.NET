@@ -10,15 +10,15 @@ namespace AssetsTools.NET.Extra
         public AssetBundleFile file;
         public List<AssetsFileInstance> loadedAssetsFiles;
 
-        public Stream BundleStream => file.reader.BaseStream;
+        public Stream BundleStream => file.Reader.BaseStream;
 
         public BundleFileInstance(Stream stream, string filePath, string root, bool unpackIfPacked)
         {
             path = Path.GetFullPath(filePath);
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetBundleFile();
-            file.Read(new AssetsFileReader(stream), true);
-            if (file.bundleHeader6 != null && file.bundleHeader6.GetCompressionType() != 0 && unpackIfPacked)
+            file.Read(new AssetsFileReader(stream));
+            if (file.Header != null && file.Header.GetCompressionType() != 0 && unpackIfPacked)
             {
                 file = BundleHelper.UnpackBundle(file);
             }

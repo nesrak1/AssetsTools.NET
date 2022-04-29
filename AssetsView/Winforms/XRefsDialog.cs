@@ -48,16 +48,16 @@ namespace AssetsView.Winforms
                     {
                         AssetsFileInstance xrefInst = am.files[instIndex];
                         AssetsFile xrefFile = xrefInst.file;
-                        AssetFileInfoEx xrefInf = xrefInst.table.GetAssetInfo(id.pathID);
-                        uint fixedId = AssetHelper.FixAudioID(xrefInf.curFileType);
-                        bool hasTypeTree = xrefFile.typeTree.hasTypeTree;
+                        AssetFileInfo xrefInf = xrefInst.file.GetAssetInfo(id.pathID);
+                        int fixedId = AssetHelper.FixAudioID(xrefInf.TypeId);
+                        bool hasTypeTree = xrefFile.Metadata.TypeTreeNotStripped;
 
                         string assetName = AssetHelper.GetAssetNameFast(xrefFile, am.classFile, xrefInf);
                         string typeName;
                         if (hasTypeTree)
                         {
-                            Type_0D xrefType = AssetHelper.FindTypeTreeTypeByID(xrefFile.typeTree, fixedId);
-                            typeName = xrefType.typeFieldsEx[0].GetTypeString(xrefType.stringTable);
+                            TypeTreeType xrefType = AssetHelper.FindTypeTreeTypeByID(xrefFile.Metadata, fixedId);
+                            typeName = xrefType.Nodes[0].GetTypeString(xrefType.StringBuffer);
                         }
                         else
                         {

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
@@ -11,22 +9,20 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetsFile file;
-        public AssetsFileTable table;
         public List<AssetsFileInstance> dependencies = new List<AssetsFileInstance>();
         public BundleFileInstance parentBundle = null;
-        //for monobehaviours
+        // for monobehaviours
         public Dictionary<uint, string> monoIdToName = new Dictionary<uint, string>();
 
-        public Stream AssetsStream => file.readerPar;
+        public Stream AssetsStream => file.Reader.BaseStream;
 
         public AssetsFileInstance(Stream stream, string filePath, string root)
         {
             path = Path.GetFullPath(filePath);
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetsFile(new AssetsFileReader(stream));
-            table = new AssetsFileTable(file);
             dependencies.AddRange(
-                Enumerable.Range(0, file.dependencies.dependencyCount)
+                Enumerable.Range(0, file.Metadata.Externals.Count)
                           .Select(d => (AssetsFileInstance)null)
             );
         }
@@ -35,9 +31,8 @@ namespace AssetsTools.NET.Extra
             path = stream.Name;
             name = Path.Combine(root, Path.GetFileName(path));
             file = new AssetsFile(new AssetsFileReader(stream));
-            table = new AssetsFileTable(file);
             dependencies.AddRange(
-                Enumerable.Range(0, file.dependencies.dependencyCount)
+                Enumerable.Range(0, file.Metadata.Externals.Count)
                           .Select(d => (AssetsFileInstance)null)
             );
         }
@@ -46,7 +41,7 @@ namespace AssetsTools.NET.Extra
         {
             if (dependencies[depIdx] == null)
             {
-                string depPath = file.dependencies.dependencies[depIdx].assetPath;
+                string depPath = file.Metadata.Externals[depIdx].PathName;
 
                 if (depPath == string.Empty)
                 {
@@ -59,6 +54,7 @@ namespace AssetsTools.NET.Extra
                     string pathDir = Path.GetDirectoryName(path);
                     string absPath = Path.Combine(pathDir, depPath);
                     string localAbsPath = Path.Combine(pathDir, Path.GetFileName(depPath));
+
                     if (File.Exists(absPath))
                     {
                         dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);

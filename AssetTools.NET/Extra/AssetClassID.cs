@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AssetsTools.NET.Extra
+﻿namespace AssetsTools.NET.Extra
 {
     public enum AssetClassID
     {
@@ -156,7 +152,7 @@ namespace AssetsTools.NET.Extra
         NavMeshObsolete = 194,
         NavMeshAgent = 195,
         NavMeshSettings = 196,
-        LightProbesLegacy = 197, //originally LightProbes
+        LightProbesLegacy = 197, // originally LightProbes
         ParticleSystem = 198,
         ParticleSystemRenderer = 199,
         ShaderVariantCollection = 200,

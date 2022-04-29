@@ -9,16 +9,16 @@ namespace AssetsView.Util
     {
         public static bool AllDependenciesLoaded(AssetsManager am, AssetsFileInstance afi)
         {
-            foreach (AssetsFileDependency dep in afi.file.dependencies.dependencies)
+            foreach (AssetsFileExternal dep in afi.file.Metadata.Externals)
             {
-                string absAssetPath = dep.assetPath;
+                string absAssetPath = dep.PathName;
                 if (absAssetPath.StartsWith("archive:/"))
                 {
                     return false; //todo
                 }
                 if (!Path.IsPathRooted(absAssetPath))
                 {
-                    absAssetPath = Path.Combine(Path.GetDirectoryName(afi.path), dep.assetPath);
+                    absAssetPath = Path.Combine(Path.GetDirectoryName(afi.path), dep.PathName);
                 }
                 if (!am.files.Any(d => d != null && Path.GetFileName(d.path).ToLower() == Path.GetFileName(absAssetPath).ToLower()))
                 {
@@ -28,12 +28,12 @@ namespace AssetsView.Util
             return true;
         }
 
-        //used as sort of a hack to handle both second and component
-        //in m_Component which both have the pptr as the last field
-        //(pre 5.5 has a first and second while post 5.5 has component)
+        // used as sort of a hack to handle both second and component
+        // in m_Component which both have the pptr as the last field
+        // (pre 5.5 has a first and second while post 5.5 has component)
         public static AssetTypeValueField GetLastChild(this AssetTypeValueField atvf)
         {
-            return atvf[atvf.childrenCount - 1];
+            return atvf[atvf.Children.Count - 1];
         }
     }
 }

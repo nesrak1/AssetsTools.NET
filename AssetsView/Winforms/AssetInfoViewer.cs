@@ -14,16 +14,16 @@ namespace AssetsView.Winforms
     public partial class AssetInfoViewer : Form
     {
         //assets
-        public AssetInfoViewer(uint type, long pos, uint size, long id, ushort mbid, string name, string typeName, string resourcesPath)
+        public AssetInfoViewer(int type, long pos, uint size, long id, ushort mbid, string name, string typeName, string resourcesPath)
         {
             InitializeComponent();
             properties.Items.Clear();
 
             AddProperty("Name", name);
-            AddProperty("Type", $"{typeName} (0x{type.ToString("X2")})");
+            AddProperty("Type", $"{typeName} (0x{type:X2})");
             if (resourcesPath != string.Empty)
                 AddProperty("Path", resourcesPath);
-            AddProperty("Position", $"0x{pos.ToString("X2")}");
+            AddProperty("Position", $"0x{pos:X2}");
             AddProperty("Size", size.ToString());
             AddProperty("ID", (id).ToString());
             if (mbid != 0xFFFF)

@@ -12,41 +12,43 @@ namespace AssetsTools.NET.Extra
 
             AssetsFileHeader header = new AssetsFileHeader()
             {
-                metadataSize = 0,
-                fileSize = -1,
-                format = formatVersion,
-                firstFileOffset = -1,
-                endianness = 0,
-                unknown = new byte[] { 0, 0, 0 }
+                MetadataSize = 0,
+                FileSize = -1,
+                Version = formatVersion,
+                DataOffset = -1,
+                Endianness = false
             };
 
-            TypeTree typeTree = new TypeTree()
+            AssetsFileMetadata metadata = new AssetsFileMetadata()
             {
-                unityVersion = engineVersion,
-                version = typeTreeVersion,
-                hasTypeTree = hasTypeTree,
-                fieldCount = 0,
-                unity5Types = new List<Type_0D>()
+                UnityVersion = engineVersion,
+                TargetPlatform = typeTreeVersion,
+                TypeTreeNotStripped = hasTypeTree,
+                TypeTreeTypes = new List<TypeTreeType>(),
+                AssetInfos = new List<AssetFileInfo>(),
+                ScriptTypes = new List<AssetPPtr>(),
+                Externals = new List<AssetsFileExternal>(),
+                RefTypes = new List<AssetsTypeReference>()
             };
 
             header.Write(writer);
-            typeTree.Write(writer, formatVersion);
+            metadata.Write(writer, formatVersion);
 
-            writer.Write((uint)0); //AssetCount
+            writer.Write((uint)0); // AssetCount
             writer.Align();
 
-            //preload table and dependencies
+            // preload table and dependencies
             writer.Write((uint)0);
             writer.Write((uint)0);
 
-            //secondaryTypeCount
-            if (header.format >= 0x14)
+            // secondaryTypeCount
+            if (header.Version >= 0x14)
             {
                 writer.Write(0);
             }
 
             uint metadataSize = (uint)(writer.Position - 0x13);
-            if (header.format >= 0x16)
+            if (header.Version >= 0x16)
             {
                 metadataSize -= 0x1c;
             }
@@ -68,9 +70,9 @@ namespace AssetsTools.NET.Extra
 
             long endPosition = writer.Position;
 
-            header.fileSize = endPosition;
-            header.firstFileOffset = endPosition;
-            header.metadataSize = metadataSize;
+            header.FileSize = endPosition;
+            header.DataOffset = endPosition;
+            header.MetadataSize = metadataSize;
 
             writer.Position = 0;
             header.Write(writer);

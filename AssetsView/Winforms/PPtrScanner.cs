@@ -80,21 +80,21 @@ namespace AssetsView.Winforms
                 bw.ReportProgress(0, (float)i / fileNames.Count);
                 bw.ReportProgress(1, fileName);
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
+                am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
                 int j = 0;
-                foreach (AssetFileInfoEx inf in inst.table.assetFileInfo)
+                foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
-                    if (j % 500 == 0) bw.ReportProgress(2, (float)j / inst.table.assetFileInfoCount);
+                    if (j % 500 == 0) bw.ReportProgress(2, (float)j / inst.file.Metadata.AssetInfos.Count);
 
-                    AssetID id = new AssetID(Path.GetFileName(inst.name), inf.index);
+                    AssetID id = new AssetID(Path.GetFileName(inst.name), inf.PathId);
                     AssetTypeValueField baseField;
-                    if (inf.curFileType == 0x72)
+                    if (inf.TypeId == 0x72)
                     {
                         baseField = am.GetMonoBaseFieldCached(inst, inf, Path.Combine(dirName, "Managed"));
                     }
                     else
                     {
-                        baseField = am.GetTypeInstance(inst.file, inf).GetBaseField();
+                        baseField = am.GetBaseField(inst.file, inf);
                     }
 
                     RecurseReferences(inst, id, baseField);
@@ -108,23 +108,23 @@ namespace AssetsView.Winforms
 
         private void RecurseReferences(AssetsFileInstance inst, AssetID thisId, AssetTypeValueField field, int depth = 0)
         {
-            foreach (AssetTypeValueField child in field.children)
+            foreach (AssetTypeValueField child in field.Children)
             {
                 //not a value (ie not an int)
-                if (!child.templateField.hasValue || child.templateField.isArray)
+                if (!child.TemplateField.HasValue || child.TemplateField.IsArray)
                 {
                     //not null
                     if (child == null)
                         return;
                     //not array of values either
-                    if (child.templateField.isArray && child.templateField.children[1].valueType != EnumValueTypes.ValueType_None)
+                    if (child.TemplateField.IsArray && child.TemplateField.Children[1].ValueType != AssetValueType.None)
                         continue;
-                    string typeName = child.templateField.type;
+                    string typeName = child.TemplateField.Type;
                     //is a pptr
-                    if (typeName.StartsWith("PPtr<") && typeName.EndsWith(">") && child.childrenCount == 2)
+                    if (typeName.StartsWith("PPtr<") && typeName.EndsWith(">") && child.Children.Count == 2)
                     {
-                        int fileId = child.Get("m_FileID").GetValue().AsInt();
-                        long pathId = child.Get("m_PathID").GetValue().AsInt64();
+                        int fileId = child.Get("m_FileID").AsInt;
+                        long pathId = child.Get("m_PathID").AsLong;
 
                         //not a null pptr
                         if (pathId == 0)
@@ -200,7 +200,7 @@ namespace AssetsView.Winforms
             if (fileId == 0)
                 fileName = inst.path;
             else
-                fileName = inst.file.dependencies.dependencies[fileId - 1].assetPath;
+                fileName = inst.file.Metadata.Externals[fileId - 1].PathName;
             return new AssetID(Path.GetFileName(fileName), pathId);
         }
 

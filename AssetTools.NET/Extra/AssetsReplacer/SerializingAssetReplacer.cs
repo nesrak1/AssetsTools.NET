@@ -10,14 +10,14 @@ namespace AssetsTools.NET.Extra
     {
         private readonly AssetsManager manager;
         private readonly AssetsFile assetsFile;
-        private readonly AssetFileInfoEx asset;
+        private readonly AssetFileInfo asset;
 
-        protected SerializingAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfoEx asset)
+        protected SerializingAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfo asset)
             : this(manager, assetsFile.file, asset)
         {
         }
 
-        protected SerializingAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfoEx asset)
+        protected SerializingAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfo asset)
         {
             this.manager = manager;
             this.assetsFile = assetsFile;
@@ -31,12 +31,12 @@ namespace AssetsTools.NET.Extra
 
         public override long GetPathID()
         {
-            return asset.index;
+            return asset.PathId;
         }
 
         public override int GetClassID()
         {
-            return (int)asset.curFileType;
+            return asset.TypeId;
         }
 
         public override ushort GetMonoScriptID()
@@ -46,7 +46,7 @@ namespace AssetsTools.NET.Extra
 
         public override long Write(AssetsFileWriter writer)
         {
-            AssetTypeValueField baseField = manager.GetTypeInstance(assetsFile, asset).GetBaseField();
+            AssetTypeValueField baseField = manager.GetBaseField(assetsFile, asset);
             Modify(baseField);
             baseField.Write(writer);
             return writer.Position;

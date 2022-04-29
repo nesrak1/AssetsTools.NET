@@ -122,8 +122,8 @@ namespace AssetsTools.NET
             writer.Write(preloadList.Count);
             for (int i = 0; i < preloadList.Count; i++)
             {
-                writer.Write(preloadList[i].fileID);
-                writer.Write(preloadList[i].pathID);
+                writer.Write(preloadList[i].FileId);
+                writer.Write(preloadList[i].PathId);
             }
 
             //flag1, unknown

@@ -65,18 +65,18 @@ namespace AssetsView.Winforms
             foreach (string fileName in fileNames)
             {
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                inst.table.GenerateQuickLookupTree();
-                am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-                foreach (AssetFileInfoEx inf in inst.table.assetFileInfo)
+                inst.file.GenerateQuickLookupTree();
+                am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
+                foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
-                    AssetsFileReader fr = new AssetsFileReader(inst.file.readerPar);
+                    AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                     fr.bigEndian = false;
-                    fr.Position = inf.absoluteFilePos;
-                    byte[] data = fr.ReadBytes((int)inf.curFileSize);
+                    fr.Position = inf.AbsoluteByteStart;
+                    byte[] data = fr.ReadBytes((int)inf.ByteSize);
                     int location = SearchBytes(data, searchQuery);
                     if (location != -1)
                     {
-                        AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.index);
+                        AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.PathId);
                         if (fileMatches.ContainsKey(fileName))
                         {
                             fileMatches[fileName].Add(assetId);
@@ -107,15 +107,15 @@ namespace AssetsView.Winforms
             foreach (string fileName in fileNames)
             {
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                inst.table.GenerateQuickLookupTree();
-                am.LoadClassDatabaseFromPackage(inst.file.typeTree.unityVersion);
-                foreach (AssetFileInfoEx inf in inst.table.assetFileInfo)
+                inst.file.GenerateQuickLookupTree();
+                am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
+                foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
-                    if (inf.curFileOffset >= searchPosition && searchPosition < (inf.curFileOffset + inf.curFileSize))
+                    if (inf.AbsoluteByteStart >= searchPosition && searchPosition < (inf.AbsoluteByteStart + inf.ByteSize))
                     {
                         if (fileMatches.ContainsKey(fileName))
                         {
-                            AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.index);
+                            AssetID assetId = new AssetID(Path.GetFileName(fileName), inf.PathId);
                             fileMatches[fileName].Add(assetId);
                         }
                         else

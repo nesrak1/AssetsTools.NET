@@ -20,19 +20,19 @@ namespace AssetsView.Winforms
 
         private void AssetInfo_Load(object sender, EventArgs e)
         {
-            AssetsFileHeader header = file.header;
-            TypeTree typeTree = file.typeTree;
+            AssetsFileHeader header = file.Header;
+            AssetsFileMetadata metadata = file.Metadata;
             //header
-            hdr_mds.Text = header.metadataSize.ToString();
-            hdr_fs.Text = header.fileSize.ToString();
-            hdr_fmt.Text = $"{header.format.ToString()} (0x{header.format.ToString("x")})";
-            hdr_ffo.Text = $"{header.firstFileOffset.ToString()} (0x{header.firstFileOffset.ToString("x")})";
-            hdr_en.Text = header.endianness == 1 ? "big endian" : "little endian";
-            hdr_uvr.Text = typeTree.unityVersion;
-            hdr_ver.Text = $"{typeTree.version.ToString()} (0x{typeTree.version.ToString("x")})";
-            hdr_htt.Text = typeTree.hasTypeTree == true ? "true" : "false";
+            hdr_mds.Text = header.MetadataSize.ToString();
+            hdr_fs.Text = header.FileSize.ToString();
+            hdr_fmt.Text = $"{header.Version} (0x{header.Version:x})";
+            hdr_ffo.Text = $"{header.DataOffset} (0x{header.DataOffset:x})";
+            hdr_en.Text = header.Endianness ? "big endian" : "little endian";
+            hdr_uvr.Text = metadata.UnityVersion;
+            hdr_ver.Text = $"{metadata.TargetPlatform} (0x{metadata.TargetPlatform:x})";
+            hdr_htt.Text = metadata.TypeTreeNotStripped ? "true" : "false";
             //type tree
-            if (!typeTree.hasTypeTree)
+            if (!metadata.TypeTreeNotStripped)
             {
                 ttr_tree.Nodes.Add("There is no type tree data available.");
             }
@@ -40,97 +40,97 @@ namespace AssetsView.Winforms
             {
                 ttr_tree.Nodes.Add("Select a type to show the type tree data.");
             }
-            foreach (Type_0D type in typeTree.unity5Types)
+            foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                if (type.typeFieldsExCount == 0)
+                if (type.Nodes.Count == 0)
                 {
-                    ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.classId);
-                    ttr_list.Items.Add($"[{cldt.name.GetString(cldb)}] (0x{type.classId.ToString("x")})");
+                    ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.TypeId);
+                    ttr_list.Items.Add($"[{cldt.name.GetString(cldb)}] (0x{type.TypeId.ToString("x")})");
                 }
                 else
                 {
-                    TypeField_0D baseField = type.typeFieldsEx[0];
-                    ttr_list.Items.Add($"{baseField.GetTypeString(type.stringTable)} (0x{type.classId.ToString("x")})");
+                    TypeTreeNode baseField = type.Nodes[0];
+                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBuffer)} (0x{type.TypeId.ToString("x")})");
                 }
             }
             //preload list
-            foreach (AssetPPtr pptr in file.preloadTable.items)
+            foreach (AssetPPtr pptr in metadata.ScriptTypes)
             {
                 string pptrFileName = "[self]";
-                if (pptr.fileID != 0)
-                    pptrFileName = file.dependencies.dependencies[pptr.fileID-1].assetPath;
-                plt_list.Items.Add(new ListViewItem(new[] { pptrFileName, pptr.pathID.ToString() }));
+                if (pptr.FileId != 0)
+                    pptrFileName = metadata.Externals[pptr.FileId - 1].PathName;
+                plt_list.Items.Add(new ListViewItem(new[] { pptrFileName, pptr.PathId.ToString() }));
             }
             plt_list.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
             //dependencies
-            foreach (AssetsFileDependency dep in file.dependencies.dependencies)
+            foreach (AssetsFileExternal dep in metadata.Externals)
             {
                 string guid = string.Empty;
-                if (dep.guid.mostSignificant != 0 || dep.guid.leastSignificant != 0)
+                if (dep.Guid.mostSignificant != 0 || dep.Guid.leastSignificant != 0)
                 {
-                    guid = $"{dep.guid.mostSignificant.ToString("x8")}{dep.guid.leastSignificant.ToString("x8")}";
+                    guid = $"{dep.Guid.mostSignificant:x8}{dep.Guid.leastSignificant:x8}";
                 }
-                dep_list.Items.Add(new ListViewItem(new[] { dep.assetPath, "0x" + dep.type.ToString(), guid }));
+                dep_list.Items.Add(new ListViewItem(new[] { dep.PathName, "0x" + dep.Type.ToString(), guid }));
             }
             dep_list.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
         private void Ttr_list_SelectedIndexChanged(object sender, EventArgs e)
         {
-            TypeTree typeTree = file.typeTree;
-            Type_0D type = typeTree.unity5Types[ttr_list.SelectedIndex];
-            if (type.typeFieldsExCount == 0)
+            AssetsFileMetadata metadata = file.Metadata;
+            TypeTreeType type = metadata.TypeTreeTypes[ttr_list.SelectedIndex];
+            if (type.Nodes.Count == 0)
             {
-                ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.classId);
+                ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.TypeId);
                 ttr_type.Text = cldt.name.GetString(cldb);
             }
             else
             {
-                TypeField_0D baseField = type.typeFieldsEx[0];
-                ttr_type.Text = baseField.GetTypeString(type.stringTable);
+                TypeTreeNode baseField = type.Nodes[0];
+                ttr_type.Text = baseField.GetTypeString(type.StringBuffer);
             }
-            ttr_typeid.Text = type.classId.ToString();
-            ttr_scriptid.Text = type.scriptIndex.ToString();
+            ttr_typeid.Text = type.TypeId.ToString();
+            ttr_scriptid.Text = type.ScriptTypeIndex.ToString();
 
-            if (type.typeHash1 != 0 || type.typeHash2 != 0 || type.typeHash3 != 0 || type.typeHash4 != 0)
-                ttr_hash.Text = $"{type.typeHash1.ToString("x8")}{type.typeHash2.ToString("x8")}{type.typeHash3.ToString("x8")}{type.typeHash4.ToString("x8")}";
+            if (!type.TypeHash.IsZero())
+                ttr_hash.Text = $"{type.TypeHash}";
             else
                 ttr_hash.Text = "";
 
-            if (type.scriptHash1 != 0 || type.scriptHash2 != 0 || type.scriptHash3 != 0 || type.scriptHash4 != 0)
-                ttr_monohash.Text = $"{type.scriptHash1.ToString("x8")}{type.scriptHash2.ToString("x8")}{type.scriptHash3.ToString("x8")}{type.scriptHash4.ToString("x8")}";
+            if (!type.ScriptIdHash.IsZero())
+                ttr_monohash.Text = $"{type.ScriptIdHash}";
             else
                 ttr_monohash.Text = "";
 
-            if (typeTree.hasTypeTree)
+            if (metadata.TypeTreeNotStripped)
                 GenerateTtrTree(type);
         }
 
-        private void GenerateTtrTree(Type_0D type)
+        private void GenerateTtrTree(TypeTreeType type)
         {
             ttr_tree.Nodes.Clear();
             List<TreeNode> treeNodeStack = new List<TreeNode>();
-            TypeField_0D baseField = type.typeFieldsEx[0];
+            TypeTreeNode baseField = type.Nodes[0];
             TreeNode rootNode = ttr_tree.Nodes.Add(TypeFieldToString(baseField, type));
             rootNode.Tag = baseField;
             treeNodeStack.Add(rootNode);
-            for (int i = 1; i < type.typeFieldsEx.Length; i++)
+            for (int i = 1; i < type.Nodes.Count; i++)
             {
-                TypeField_0D field = type.typeFieldsEx[i];
-                TreeNode parentNode = treeNodeStack[field.depth - 1];
+                TypeTreeNode field = type.Nodes[i];
+                TreeNode parentNode = treeNodeStack[field.Level - 1];
                 TreeNode node = parentNode.Nodes.Add(TypeFieldToString(field, type));
                 node.Tag = field;
-                if (treeNodeStack.Count > field.depth)
-                    treeNodeStack[field.depth] = node;
+                if (treeNodeStack.Count > field.Level)
+                    treeNodeStack[field.Level] = node;
                 else
                     treeNodeStack.Add(node);
             }
         }
 
-        private string TypeFieldToString(TypeField_0D field, Type_0D type)
+        private string TypeFieldToString(TypeTreeNode node, TypeTreeType type)
         {
-            string stringTable = type.stringTable;
-            return $"{field.GetTypeString(stringTable)} {field.GetNameString(stringTable)}";
+            string stringTable = type.StringBuffer;
+            return $"{node.GetTypeString(stringTable)} {node.GetNameString(stringTable)}";
         }
 
         private void ttr_tree_AfterSelect(object sender, TreeViewEventArgs e)
@@ -138,13 +138,13 @@ namespace AssetsView.Winforms
             TreeNode node = e.Node;
             if (node.Tag != null)
             {
-                TypeField_0D field = (TypeField_0D)node.Tag;
-                ttr_version.Text = field.version.ToString();
-                ttr_depth.Text = field.depth.ToString();
-                ttr_isarray.Text = (field.isArray == 1).ToString().ToLower();
-                ttr_size.Text = field.size.ToString();
-                ttr_index.Text = field.index.ToString();
-                ttr_flags.Text = "0x" + field.flags.ToString("X4");
+                TypeTreeNode field = (TypeTreeNode)node.Tag;
+                ttr_version.Text = field.Version.ToString();
+                ttr_depth.Text = field.Level.ToString();
+                ttr_isarray.Text = (field.TypeFlags == 1).ToString().ToLower();
+                ttr_size.Text = field.ByteSize.ToString();
+                ttr_index.Text = field.Index.ToString();
+                ttr_flags.Text = "0x" + field.TypeFlags.ToString("X4");
             }
             else
             {

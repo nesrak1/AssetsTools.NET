@@ -39,7 +39,7 @@ namespace AssetsTools.NET
         }
         public void Write(AssetsFileWriter writer)
         {
-            writer.bigEndian = false;
+            writer.BigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(magic));
             writer.Write(fileVersion);
             writer.Write(compressionType);

@@ -1,110 +1,282 @@
-﻿namespace AssetsTools.NET
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace AssetsTools.NET
 {
     public class AssetTypeValueField
     {
-        public AssetTypeTemplateField templateField;
+        public AssetTypeTemplateField TemplateField { get; set; }
+        public AssetTypeValue Value { get; set; }
+        public List<AssetTypeValueField> Children { get; set; }
 
-        public int childrenCount;
-        public AssetTypeValueField[] children;
-        public AssetTypeValue value;
+        public bool IsDummy { get; set; }
 
-        public void Read(AssetTypeValue value, AssetTypeTemplateField template, AssetTypeValueField[] children)
+        public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField() { IsDummy = true };
+
+        public void Read(AssetTypeValue value, AssetTypeTemplateField templateField, List<AssetTypeValueField> children)
         {
-            templateField = template;
-            this.childrenCount = children.Length;
-            this.children = children;
-            this.value = value;
+            Value = value;
+            TemplateField = templateField;
+            Children = children;
+            IsDummy = false;
         }
 
         public AssetTypeValueField this[string name]
         {
             get
             {
-                foreach (AssetTypeValueField atvf in children)
+                if (IsDummy)
                 {
-                    if (atvf.templateField.name == name)
-                    {
-                        return atvf;
-                    }
+                    throw new DummyFieldAccessException("Cannot access fields of a dummy field!");
                 }
-                return AssetTypeInstance.GetDummyAssetTypeField();
+
+                if (name.Contains("."))
+                {
+                    string[] splitNames = name.Split('.');
+                    AssetTypeValueField field = this;
+                    foreach (string splitName in splitNames)
+                    {
+                        bool foundChild = false;
+
+                        foreach (AssetTypeValueField child in field.Children)
+                        {
+                            if (child.TemplateField.Name == splitName)
+                            {
+                                foundChild = true;
+                                field = child;
+                            }
+                        }
+
+                        if (!foundChild)
+                        {
+                            return DUMMY_FIELD;
+                        }
+                    }
+                    return field;
+                }
+                else
+                {
+                    foreach (AssetTypeValueField child in Children)
+                    {
+                        if (child.TemplateField.Name == name)
+                        {
+                            return child;
+                        }
+                    }
+                    return DUMMY_FIELD;
+                }
             }
-            set { }
         }
 
         public AssetTypeValueField this[int index]
         {
-            get { return children[index]; }
-            set { }
+            get
+            {
+                if (IsDummy)
+                {
+                    throw new DummyFieldAccessException("Cannot access fields of a dummy field!");
+                }
+
+                return Children[index];
+            }
         }
 
-        public AssetTypeValueField Get(string name) { return (this)[name]; }
-        public AssetTypeValueField Get(int index) { return (this)[index]; }
+        public AssetTypeValueField Get(string name) => this[name];
+        public AssetTypeValueField Get(int index) => this[index];
 
-        public string GetName() { return templateField.name; }
-        public string GetFieldType() { return templateField.type; }
-        public AssetTypeValue GetValue() { return value; }
-        public AssetTypeTemplateField GetTemplateField() { return templateField; }
-        public AssetTypeValueField[] GetChildrenList() { return children; }
-        public void SetChildrenList(AssetTypeValueField[] children) { this.children = children; this.childrenCount = children.Length; }
-
-        public int GetChildrenCount() { return childrenCount; }
-
-        public bool IsDummy()
+        public static AssetValueType GetValueTypeByTypeName(string type)
         {
-            return childrenCount == -1;
-        }
-
-        public static EnumValueTypes GetValueTypeByTypeName(string type)
-        {
-            type = type.ToLower();
             switch (type)
             {
                 case "string":
-                    return EnumValueTypes.String;
-                case "sint8":
-                case "sbyte":
-                    return EnumValueTypes.Int8;
-                case "uint8":
+                    return AssetValueType.String;
+                case "SInt8":
                 case "char":
-                case "byte":
-                    return EnumValueTypes.UInt8;
-                case "sint16":
+                    return AssetValueType.Int8;
+                case "UInt8":
+                case "unsigned char":
+                    return AssetValueType.UInt8;
+                case "SInt16":
                 case "short":
-                    return EnumValueTypes.Int16;
-                case "uint16":
+                    return AssetValueType.Int16;
+                case "UInt16":
                 case "unsigned short":
-                case "ushort":
-                    return EnumValueTypes.UInt16;
-                case "sint32":
+                    return AssetValueType.UInt16;
+                case "SInt32":
                 case "int":
-                    return EnumValueTypes.Int32;
-                case "type*":
-                    return EnumValueTypes.Int32;
-                case "uint32":
+                case "Type*":
+                    return AssetValueType.Int32;
+                case "UInt32":
                 case "unsigned int":
-                case "uint":
-                    return EnumValueTypes.UInt32;
-                case "sint64":
+                    return AssetValueType.UInt32;
+                case "SInt64":
                 case "long":
-                    return EnumValueTypes.Int64;
-                case "uint64":
-                case "unsigned long":
-                case "ulong":
-                case "filesize":
-                    return EnumValueTypes.UInt64;
-                case "single":
+                    return AssetValueType.Int64;
+                case "UInt64":
+                case "unsigned long long":
+                case "FileSize":
+                    return AssetValueType.UInt64;
                 case "float":
-                    return EnumValueTypes.Float;
+                    return AssetValueType.Float;
                 case "double":
-                    return EnumValueTypes.Double;
+                    return AssetValueType.Double;
                 case "bool":
-                    return EnumValueTypes.Bool;
-                case "typelessdata":
-                    return EnumValueTypes.ByteArray;
+                    return AssetValueType.Bool;
+                case "Array":
+                    return AssetValueType.Array;
+                case "TypelessData":
+                    return AssetValueType.ByteArray;
                 default:
-                    return EnumValueTypes.None;
+                    return AssetValueType.None;
             }
         }
+
+        public void Write(AssetsFileWriter writer, int depth = 0)
+        {
+            if (TemplateField.IsArray)
+            {
+                if (TemplateField.ValueType == AssetValueType.ByteArray)
+                {
+                    byte[] byteArray = AsByteArray;
+
+                    writer.Write(byteArray.Length);
+                    writer.Write(byteArray);
+
+                    if (TemplateField.IsAligned)
+                    {
+                        writer.Align();
+                    }
+                }
+                else
+                {
+                    int arraySize = Children.Count;
+
+                    writer.Write(arraySize);
+                    for (int i = 0; i < arraySize; i++)
+                    {
+                        this[i].Write(writer, depth + 1);
+                    }
+
+                    if (TemplateField.IsAligned)
+                    {
+                        writer.Align();
+                    }
+                }
+            }
+            else
+            {
+                if (Children.Count == 0)
+                {
+                    switch (TemplateField.ValueType)
+                    {
+                        case AssetValueType.Int8:
+                            writer.Write(AsSByte);
+
+                            if (TemplateField.IsAligned)
+                            {
+                                writer.Align();
+                            }
+                            break;
+                        case AssetValueType.UInt8:
+                            writer.Write(AsByte);
+
+                            if (TemplateField.IsAligned)
+                            {
+                                writer.Align();
+                            }
+                            break;
+                        case AssetValueType.Bool:
+                            writer.Write(AsBool);
+
+                            if (TemplateField.IsAligned)
+                            {
+                                writer.Align();
+                            }
+                            break;
+                        case AssetValueType.Int16:
+                            writer.Write(AsShort);
+
+                            if (TemplateField.IsAligned)
+                            {
+                                writer.Align();
+                            }
+                            break;
+                        case AssetValueType.UInt16:
+                            writer.Write(AsUShort);
+
+                            if (TemplateField.IsAligned)
+                            {
+                                writer.Align();
+                            }
+                            break;
+                        case AssetValueType.Int32:
+                            writer.Write(AsInt);
+                            break;
+                        case AssetValueType.UInt32:
+                            writer.Write(AsUInt);
+                            break;
+                        case AssetValueType.Int64:
+                            writer.Write(AsLong);
+                            break;
+                        case AssetValueType.UInt64:
+                            writer.Write(AsULong);
+                            break;
+                        case AssetValueType.Float:
+                            writer.Write(AsFloat);
+                            break;
+                        case AssetValueType.Double:
+                            writer.Write(AsDouble);
+                            break;
+                        case AssetValueType.String:
+                            writer.Write(AsString.Length);
+                            writer.Write(AsString);
+                            writer.Align();
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < Children.Count; i++)
+                    {
+                        this[i].Write(writer, depth + 1);
+                    }
+
+                    if (TemplateField.IsAligned)
+                    {
+                        writer.Align();
+                    }
+                }
+            }
+        }
+
+        public byte[] WriteToByteArray(bool bigEndian = false)
+        {
+            byte[] data;
+            using (MemoryStream ms = new MemoryStream())
+            using (AssetsFileWriter w = new AssetsFileWriter(ms))
+            {
+                w.BigEndian = bigEndian;
+                Write(w);
+                data = ms.ToArray();
+            }
+            return data;
+        }
+
+        // for conveience
+        public bool AsBool { get => Value.AsBool; set => Value.AsBool = value; }
+        public sbyte AsSByte { get => Value.AsSByte; set => Value.AsSByte = value; }
+        public byte AsByte { get => Value.AsByte; set => Value.AsByte = value; }
+        public short AsShort { get => Value.AsShort; set => Value.AsShort = value; }
+        public ushort AsUShort { get => Value.AsUShort; set => Value.AsUShort = value; }
+        public int AsInt { get => Value.AsInt; set => Value.AsInt = value; }
+        public uint AsUInt { get => Value.AsUInt; set => Value.AsUInt = value; }
+        public long AsLong { get => Value.AsLong; set => Value.AsLong = value; }
+        public ulong AsULong { get => Value.AsULong; set => Value.AsULong = value; }
+        public float AsFloat { get => Value.AsFloat; set => Value.AsFloat = value; }
+        public double AsDouble { get => Value.AsDouble; set => Value.AsDouble = value; }
+        public string AsString { get => Value.AsString; set => Value.AsString = value; }
+        public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
+        public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
     }
 }

@@ -27,7 +27,7 @@ namespace AssetsView.Winforms
             fileName = Path.GetFileName(filePath);
             inst = helper.LoadBundleFile(filePath, false);
             file = inst.file;
-            uint compressionMethod = file.bundleHeader6.GetCompressionType();
+            uint compressionMethod = file.Header.GetCompressionType();
             if (compressionMethod == 0)
             {
                 justThisFile.Enabled = true;
@@ -94,11 +94,11 @@ namespace AssetsView.Winforms
             {
                 try
                 {
-                    file.reader.Position = 0;
-                    file.Unpack(file.reader, new AssetsFileWriter(stream));
+                    file.Reader.Position = 0;
+                    file.Unpack(new AssetsFileWriter(stream));
                     stream.Position = 0;
                     file = new AssetBundleFile();
-                    file.Read(new AssetsFileReader(stream), false);
+                    file.Read(new AssetsFileReader(stream));
                     inst.file = file;
                 }
                 catch (Exception ex)
@@ -160,11 +160,11 @@ namespace AssetsView.Winforms
             {
                 try
                 {
-                    file.reader.Position = 0;
-                    file.Pack(file.reader, new AssetsFileWriter(stream), comp);
+                    file.Reader.Position = 0;
+                    file.Pack(file.Reader, new AssetsFileWriter(stream), comp);
                     stream.Position = 0;
                     file = new AssetBundleFile();
-                    file.Read(new AssetsFileReader(stream), false);
+                    file.Read(new AssetsFileReader(stream));
                     inst.file = file;
                 }
                 catch (Exception ex)
