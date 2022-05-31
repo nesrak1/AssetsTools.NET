@@ -517,7 +517,7 @@ var bun = am.LoadBundleFile("bundle.unity3d");
 var assetInst = am.LoadAssetsFileFromBundle(bun, 0, true);
 
 var abInfo = assetInst.table.GetAssetsOfType((int)AssetClassID.AssetBundle)[0];
-var abBf = am.GetTypeInstance(assetInst, rsrcInfo).GetBaseField();
+var abBf = am.GetTypeInstance(assetInst, abInfo).GetBaseField();
 
 var m_Container = abBf.Get("m_Container").Get("Array");
 foreach (var data in m_Container.children)
