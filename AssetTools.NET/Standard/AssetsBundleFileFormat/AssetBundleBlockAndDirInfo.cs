@@ -1,4 +1,6 @@
-﻿namespace AssetsTools.NET
+﻿using System;
+
+namespace AssetsTools.NET
 {
     public class AssetBundleBlockAndDirInfo
     {
@@ -43,7 +45,15 @@
 
         public void Write(AssetsFileWriter writer)
         {
-            writer.Write(Hash.data);
+            if (Hash.data == null)
+            {
+                writer.Write((ulong)0);
+                writer.Write((ulong)0);
+            }
+            else
+            {
+                writer.Write(Hash.data);
+            }
 
             int blockCount = BlockInfos.Length;
             writer.Write(blockCount);

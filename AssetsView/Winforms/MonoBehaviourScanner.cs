@@ -100,7 +100,7 @@ namespace AssetsView.Winforms
                 foreach (AssetFileInfo inf in inst.file.GetAssetsOfType(0x73))
                 {
                     AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
-                    fr.bigEndian = false;
+                    fr.BigEndian = false;
                     fr.Position = inf.AbsoluteByteStart;
                     fr.ReadCountStringInt32(); fr.Align();
                     fr.Position += 20;
@@ -122,7 +122,7 @@ namespace AssetsView.Winforms
                 foreach (AssetFileInfo inf in inst.file.GetAssetsOfType(0x72))
                 {
                     AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
-                    fr.bigEndian = false;
+                    fr.BigEndian = false;
                     fr.Position = inf.AbsoluteByteStart;
                     fr.Position += 16;
                     int m_FileID = fr.ReadInt32();

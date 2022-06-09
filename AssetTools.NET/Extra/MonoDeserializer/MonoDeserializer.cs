@@ -45,7 +45,7 @@ namespace AssetsTools.NET.Extra
         {
             AssetsFile file = inst.file;
             AssetTypeTemplateField baseFieldTemp = new AssetTypeTemplateField();
-            baseFieldTemp.FromClassDatabase(am.classFile, AssetHelper.FindAssetClassByID(am.classFile, info.TypeId));
+            baseFieldTemp.FromClassDatabase(am.classDatabase, AssetHelper.FindAssetClassByID(am.classDatabase, info.TypeId));
 
             AssetTypeValueField baseField = baseFieldTemp.MakeValue(file.Reader, info.AbsoluteByteStart);
 
@@ -701,12 +701,12 @@ namespace AssetsTools.NET.Extra
 
         private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType)
         {
-            return CreateTemplateField(name, type, valueType, false, false, null);
+            return CreateTemplateField(name, type, valueType, false, false, new List<AssetTypeTemplateField>(0));
         }
 
         private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType, bool isArray, bool align)
         {
-            return CreateTemplateField(name, type, valueType, isArray, align, null);
+            return CreateTemplateField(name, type, valueType, isArray, align, new List<AssetTypeTemplateField>(0));
         }
 
         private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType, List<AssetTypeTemplateField> children)

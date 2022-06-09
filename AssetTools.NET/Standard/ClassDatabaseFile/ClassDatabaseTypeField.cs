@@ -1,53 +1,46 @@
-﻿namespace AssetsTools.NET
-{
-    public struct ClassDatabaseTypeField
-    {
-        public ClassDatabaseFileString typeName;
-        public ClassDatabaseFileString fieldName;
-        public byte depth;
-        public byte isArray;
-        public int size;
-        public ushort version;
-        public uint flags2;
+﻿using System.Collections.Generic;
 
-        public void Read(AssetsFileReader reader, int version)
+namespace AssetsTools.NET
+{
+    public class ClassDatabaseTypeNode
+    {
+        public ushort TypeName { get; set; }
+        public ushort FieldName { get; set; }
+        public int ByteSize { get; set; }
+        public ushort Version { get; set; }
+        public byte TypeFlags { get; set; }
+        public uint MetaFlag { get; set; }
+        public List<ClassDatabaseTypeNode> Children { get; set; }
+
+        public void Read(AssetsFileReader reader)
         {
-            typeName = new ClassDatabaseFileString();
-            typeName.Read(reader);
-            fieldName = new ClassDatabaseFileString();
-            fieldName.Read(reader);
-            depth = reader.ReadByte();
-            isArray = reader.ReadByte();
-            size = reader.ReadInt32();
-            switch (version)
+            TypeName = reader.ReadUInt16();
+            FieldName = reader.ReadUInt16();
+            ByteSize = reader.ReadInt32();
+            TypeFlags = reader.ReadByte();
+            MetaFlag = reader.ReadUInt32();
+            
+            int childrenCount = reader.ReadUInt16();
+            Children = new List<ClassDatabaseTypeNode>(childrenCount);
+            for (int i = 0; i < childrenCount; i++)
             {
-                case 1:
-                    flags2 = reader.ReadUInt32();
-                    break;
-                case 3:
-                case 4:
-                    this.version = reader.ReadUInt16();
-                    flags2 = reader.ReadUInt32();
-                    break;
+                ClassDatabaseTypeNode child = new ClassDatabaseTypeNode();
+                child.Read(reader);
+                Children.Add(child);
             }
         }
-        public void Write(AssetsFileWriter writer, int version)
+
+        public void Write(AssetsFileWriter writer)
         {
-            typeName.Write(writer);
-            fieldName.Write(writer);
-            writer.Write(depth);
-            writer.Write(isArray);
-            writer.Write(size);
-            switch (version)
+            writer.Write(TypeName);
+            writer.Write(FieldName);
+            writer.Write(ByteSize);
+            writer.Write(TypeFlags);
+            writer.Write(MetaFlag);
+
+            for (int i = 0; i < Children.Count; i++)
             {
-                case 1:
-                    writer.Write(flags2);
-                    break;
-                case 3:
-                case 4:
-                    writer.Write(this.version);
-                    writer.Write(flags2);
-                    break;
+                Children[i].Write(writer);
             }
         }
     }

@@ -6,7 +6,7 @@ namespace AssetsTools.NET
 {
     public class AssetsFileReader : BinaryReader
     {
-        public bool bigEndian = false;
+        public bool BigEndian { get; set; } = false;
 
         public AssetsFileReader(string filePath)
             : base(File.OpenRead(filePath))
@@ -22,21 +22,21 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                return bigEndian ? (short)ReverseShort((ushort)base.ReadInt16()) : base.ReadInt16();
+                return BigEndian ? (short)ReverseShort((ushort)base.ReadInt16()) : base.ReadInt16();
             }
         }
         public override ushort ReadUInt16()
         {
             unchecked
             {
-                return bigEndian ? ReverseShort(base.ReadUInt16()) : base.ReadUInt16();
+                return BigEndian ? ReverseShort(base.ReadUInt16()) : base.ReadUInt16();
             }
         }
         public int ReadInt24()
         {
             unchecked
             {
-                return bigEndian ? (int)ReverseInt((uint)System.BitConverter.ToInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
+                return BigEndian ? (int)ReverseInt((uint)System.BitConverter.ToInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
                     System.BitConverter.ToInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0);
             }
         }
@@ -44,7 +44,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                return bigEndian ? ReverseInt(System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
+                return BigEndian ? ReverseInt(System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
                     System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0);
             }
         }
@@ -52,28 +52,28 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                return bigEndian ? (int)ReverseInt((uint)base.ReadInt32()) : base.ReadInt32();
+                return BigEndian ? (int)ReverseInt((uint)base.ReadInt32()) : base.ReadInt32();
             }
         }
         public override uint ReadUInt32()
         {
             unchecked
             {
-                return bigEndian ? ReverseInt(base.ReadUInt32()) : base.ReadUInt32();
+                return BigEndian ? ReverseInt(base.ReadUInt32()) : base.ReadUInt32();
             }
         }
         public override long ReadInt64()
         {
             unchecked
             {
-                return bigEndian ? (long)ReverseLong((ulong)base.ReadInt64()) : base.ReadInt64();
+                return BigEndian ? (long)ReverseLong((ulong)base.ReadInt64()) : base.ReadInt64();
             }
         }
         public override ulong ReadUInt64()
         {
             unchecked
             {
-                return bigEndian ? ReverseLong(base.ReadUInt64()) : base.ReadUInt64();
+                return BigEndian ? ReverseLong(base.ReadUInt64()) : base.ReadUInt64();
             }
         }
         public ushort ReverseShort(ushort value)

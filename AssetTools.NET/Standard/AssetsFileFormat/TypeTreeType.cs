@@ -72,7 +72,7 @@ namespace AssetsTools.NET
                 {
                     TypeTreeNode typefield0d = new TypeTreeNode();
                     typefield0d.Read(reader, version);
-                    Nodes[i] = typefield0d;
+                    Nodes.Add(typefield0d);
                 }
                 StringBufferBytes = reader.ReadBytes(stringBufferLen);
                 if (version >= 21)

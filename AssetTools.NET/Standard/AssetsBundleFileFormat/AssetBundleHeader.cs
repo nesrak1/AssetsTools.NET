@@ -29,7 +29,7 @@ namespace AssetsTools.NET
 
         public void Read(AssetsFileReader reader)
         {
-            reader.bigEndian = true;
+            reader.BigEndian = true;
             Signature = reader.ReadNullTerminated();
             Version = reader.ReadUInt32();
             GenerationVersion = reader.ReadNullTerminated();
@@ -54,7 +54,6 @@ namespace AssetsTools.NET
             writer.WriteNullTerminated(EngineVersion);
             if (Signature == "UnityFS")
             {
-                FileStreamHeader = new AssetBundleFSHeader();
                 FileStreamHeader.Write(writer);
             }
             else
@@ -97,6 +96,7 @@ namespace AssetsTools.NET
                 }
             }
         }
+
         public long GetFileDataOffset()
         {
             if (Signature != "UnityFS")
@@ -119,6 +119,7 @@ namespace AssetsTools.NET
             return ret;
         }
 
+        // todo: enum
         public byte GetCompressionType()
         {
             if (Signature != "UnityFS")

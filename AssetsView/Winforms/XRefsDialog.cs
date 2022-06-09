@@ -52,7 +52,7 @@ namespace AssetsView.Winforms
                         int fixedId = AssetHelper.FixAudioID(xrefInf.TypeId);
                         bool hasTypeTree = xrefFile.Metadata.TypeTreeNotStripped;
 
-                        string assetName = AssetHelper.GetAssetNameFast(xrefFile, am.classFile, xrefInf);
+                        string assetName = AssetHelper.GetAssetNameFast(xrefFile, am.classDatabase, xrefInf);
                         string typeName;
                         if (hasTypeTree)
                         {
@@ -61,8 +61,8 @@ namespace AssetsView.Winforms
                         }
                         else
                         {
-                            ClassDatabaseType xrefType = AssetHelper.FindAssetClassByID(am.classFile, fixedId);
-                            typeName = xrefType.name.GetString(am.classFile);
+                            ClassDatabaseType xrefType = AssetHelper.FindAssetClassByID(am.classDatabase, fixedId);
+                            typeName = am.classDatabase.GetString(xrefType.Name);
                         }
                         xrefList.Items.Add(new ListBoxInfo($"{id.fileName} {id.pathID} ({typeName} {assetName})", id));
                     }

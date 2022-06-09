@@ -127,48 +127,5 @@ namespace AssetsTools.NET.Extra
             }
             return null;
         }
-
-        public static void UnpackInfoOnly(this AssetBundleFile bundle)
-        {
-            AssetsFileReader reader = bundle.Reader;
-
-            // todo, exceptions
-
-            reader.Position = bundle.Header.GetBundleInfoOffset();
-            MemoryStream blocksInfoStream;
-            AssetsFileReader memReader;
-            int compressedSize = (int)bundle.Header.FileStreamHeader.CompressedSize;
-            switch (bundle.Header.GetCompressionType())
-            {
-                case 1:
-                    using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
-                    {
-                        blocksInfoStream = SevenZipHelper.StreamDecompress(mstream);
-                    }
-                    break;
-                case 2:
-                case 3:
-                    byte[] uncompressedBytes = new byte[bundle.Header.FileStreamHeader.CompressedSize];
-                    using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
-                    {
-                        var decoder = new Lz4DecoderStream(mstream);
-                        decoder.Read(uncompressedBytes, 0, (int)bundle.Header.FileStreamHeader.CompressedSize);
-                        decoder.Dispose();
-                    }
-                    blocksInfoStream = new MemoryStream(uncompressedBytes);
-                    break;
-                default:
-                    blocksInfoStream = null;
-                    break;
-            }
-            if (bundle.Header.GetCompressionType() != 0)
-            {
-                using (memReader = new AssetsFileReader(blocksInfoStream))
-                {
-                    memReader.Position = 0;
-                    bundle.BlockAndDirInfo.Read(memReader);
-                }
-            }
-        }
     }
 }

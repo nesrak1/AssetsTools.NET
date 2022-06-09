@@ -1,110 +1,136 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
-    public static class ClassDatabaseToTypeTree
+    public class ClassDatabaseToTypeTree
     {
-        public static TypeTreeType Convert(ClassDatabaseFile classes, string name)
+        private ClassDatabaseFile cldbFile;
+        private uint stringTablePos;
+        private Dictionary<string, uint> stringTableLookup;
+        private Dictionary<string, uint> commonStringTableLookup;
+        private List<TypeTreeNode> typeTreeNodes;
+
+        public static TypeTreeType Convert(ClassDatabaseFile classes, string name, bool preferEditor = false)
         {
             ClassDatabaseType type = AssetHelper.FindAssetClassByName(classes, name);
-            return Convert(classes, type);
+            return Convert(classes, type, preferEditor);
         }
 
-        public static TypeTreeType Convert(ClassDatabaseFile classes, int id)
+        public static TypeTreeType Convert(ClassDatabaseFile classes, int id, bool preferEditor = false)
         {
             ClassDatabaseType type = AssetHelper.FindAssetClassByID(classes, id);
-            return Convert(classes, type);
+            return Convert(classes, type, preferEditor);
         }
 
-        public static TypeTreeType Convert(ClassDatabaseFile classes, ClassDatabaseType type)
+        public static TypeTreeType Convert(ClassDatabaseFile classes, ClassDatabaseType type, bool preferEditor = false)
+        {
+            ClassDatabaseToTypeTree converter = new ClassDatabaseToTypeTree();
+            return converter.ConvertInternal(classes, type, preferEditor);
+        }
+
+        private TypeTreeType ConvertInternal(ClassDatabaseFile classes, ClassDatabaseType type, bool preferEditor = false)
         {
             TypeTreeType type0d = new TypeTreeType()
             {
-                TypeId = type.classId,
-                ScriptTypeIndex = 0xFFFF,
+                TypeId = type.ClassId,
+                ScriptTypeIndex = 0xffff,
                 IsStrippedType = false,
                 ScriptIdHash = new Hash128(),
                 TypeHash = new Hash128()
             };
-            string stringTable = "";
-            Dictionary<string, uint> strTableList = new Dictionary<string, uint>();
-            Dictionary<string, uint> defTableList = new Dictionary<string, uint>();
 
-            uint strTablePos = 0;
-            uint defTablePos = 0;
+            cldbFile = classes;
 
-            string[] defaultTable = TypeTreeType.COMMON_STRING_TABLE.Substring(TypeTreeType.COMMON_STRING_TABLE.Length - 1).Split('\0');
-            foreach (string entry in defaultTable)
+            stringTablePos = 0;
+            stringTableLookup = new Dictionary<string, uint>();
+            commonStringTableLookup = new Dictionary<string, uint>();
+            typeTreeNodes = new List<TypeTreeNode>();
+            InitializeDefaultStringTableIndices();
+
+            ClassDatabaseTypeNode node = type.GetPreferredNode(preferEditor);
+            ConvertFields(node, 0);
+
+            StringBuilder stringTableBuilder = new StringBuilder();
+            List<KeyValuePair<string, uint>> sortedStringTable = stringTableLookup.OrderBy(n => n.Value).ToList();
+            foreach (KeyValuePair<string, uint> entry in sortedStringTable)
             {
-                if (entry != "")
-                {
-                    defTableList.Add(entry, defTablePos);
-                    defTablePos += (uint)entry.Length + 1;
-                }
+                stringTableBuilder.Append(entry.Key + '\0');
             }
 
-            List<TypeTreeNode> nodes = new List<TypeTreeNode>();
-            for (int i = 0; i < type.fields.Count; i++)
-            {
-                ClassDatabaseTypeField field = type.fields[i];
-                string fieldName = field.fieldName.GetString(classes);
-                string typeName = field.typeName.GetString(classes);
-                uint fieldNamePos = 0xFFFFFFFF;
-                uint typeNamePos = 0xFFFFFFFF;
-
-                if (strTableList.ContainsKey(fieldName))
-                {
-                    fieldNamePos = strTableList[fieldName];
-                }
-                else if (defTableList.ContainsKey(fieldName))
-                {
-                    fieldNamePos = defTableList[fieldName] + 0x80000000;
-                }
-                else
-                {
-                    fieldNamePos = strTablePos;
-                    strTableList.Add(fieldName, strTablePos);
-                    strTablePos += (uint)fieldName.Length + 1;
-                }
-
-                if (strTableList.ContainsKey(typeName))
-                {
-                    typeNamePos = strTableList[typeName];
-                }
-                else if (defTableList.ContainsKey(typeName))
-                {
-                    typeNamePos = defTableList[typeName] + 0x80000000;
-                }
-                else
-                {
-                    typeNamePos = strTablePos;
-                    strTableList.Add(typeName, strTablePos);
-                    strTablePos += (uint)typeName.Length + 1;
-                }
-
-                nodes.Add(new TypeTreeNode()
-                {
-                    Level = field.depth,
-                    MetaFlags = field.flags2,
-                    Index = (uint)i,
-                    TypeFlags = field.isArray,
-                    NameStrOffset = fieldNamePos,
-                    ByteSize = field.size,
-                    TypeStrOffset = typeNamePos,
-                    Version = field.version
-                });
-            }
-
-            List<KeyValuePair<string, uint>> sortedStrTableList = strTableList.OrderBy(n => n.Value).ToList();
-            foreach (KeyValuePair<string, uint> entry in sortedStrTableList)
-            {
-                stringTable += entry.Key + '\0';
-            }
-
-            type0d.StringBuffer = stringTable;
-            type0d.Nodes = nodes;
+            type0d.StringBuffer = stringTableBuilder.ToString();
+            type0d.Nodes = typeTreeNodes;
             return type0d;
+        }
+
+        private void InitializeDefaultStringTableIndices()
+        {
+            int commonStringTablePos = 0;
+            string[] commonStrings = TypeTreeType.COMMON_STRING_TABLE.Substring(TypeTreeType.COMMON_STRING_TABLE.Length - 1).Split('\0');
+            foreach (string entry in commonStrings)
+            {
+                if (entry != string.Empty)
+                {
+                    commonStringTableLookup.Add(entry, (uint)commonStringTablePos);
+                    commonStringTablePos += entry.Length + 1;
+                }
+            }
+        }
+
+        private void ConvertFields(ClassDatabaseTypeNode node, int depth)
+        {
+            string fieldName = cldbFile.GetString(node.FieldName);
+            string typeName = cldbFile.GetString(node.TypeName);
+            uint fieldNamePos;
+            uint typeNamePos;
+
+            if (stringTableLookup.ContainsKey(fieldName))
+            {
+                fieldNamePos = stringTableLookup[fieldName];
+            }
+            else if (commonStringTableLookup.ContainsKey(fieldName))
+            {
+                fieldNamePos = commonStringTableLookup[fieldName] + 0x80000000;
+            }
+            else
+            {
+                fieldNamePos = stringTablePos;
+                stringTableLookup.Add(fieldName, stringTablePos);
+                stringTablePos += (uint)fieldName.Length + 1;
+            }
+
+            if (stringTableLookup.ContainsKey(typeName))
+            {
+                typeNamePos = stringTableLookup[typeName];
+            }
+            else if (commonStringTableLookup.ContainsKey(typeName))
+            {
+                typeNamePos = commonStringTableLookup[typeName] + 0x80000000;
+            }
+            else
+            {
+                typeNamePos = stringTablePos;
+                stringTableLookup.Add(typeName, stringTablePos);
+                stringTablePos += (uint)typeName.Length + 1;
+            }
+
+            typeTreeNodes.Add(new TypeTreeNode()
+            {
+                Level = (byte)depth,
+                MetaFlags = node.MetaFlag,
+                Index = (uint)typeTreeNodes.Count,
+                TypeFlags = node.TypeFlags,
+                NameStrOffset = fieldNamePos,
+                ByteSize = node.ByteSize,
+                TypeStrOffset = typeNamePos,
+                Version = node.Version
+            });
+
+            foreach (ClassDatabaseTypeNode child in node.Children)
+            {
+                ConvertFields(child, depth + 1);
+            }
         }
     }
 }

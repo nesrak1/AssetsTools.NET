@@ -12,8 +12,8 @@ namespace AssetsTools.NET.Extra
     {
         public bool updateAfterLoad = true;
         public bool useTemplateFieldCache = false;
-        public ClassDatabasePackage classPackage;
-        public ClassDatabaseFile classFile;
+        public ClassDatabaseFile classDatabase;
+        public ClassPackageFile classPackage;
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
         public List<BundleFileInstance> bundles = new List<BundleFileInstance>();
         private Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
@@ -96,7 +96,7 @@ namespace AssetsTools.NET.Extra
             if (unloadClassData)
             {
                 classPackage = null;
-                classFile = null;
+                classDatabase = null;
             }
         }
         #endregion
@@ -385,7 +385,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else
                 {
-                    baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId));
+                    baseField.FromClassDatabase(classDatabase, AssetHelper.FindAssetClassByID(classDatabase, fixedId));
                 }
 
                 if (useTemplateFieldCache)
@@ -454,9 +454,9 @@ namespace AssetsTools.NET.Extra
         #region class database
         public ClassDatabaseFile LoadClassDatabase(Stream stream)
         {
-            classFile = new ClassDatabaseFile();
-            classFile.Read(new AssetsFileReader(stream));
-            return classFile;
+            classDatabase = new ClassDatabaseFile();
+            classDatabase.Read(new AssetsFileReader(stream));
+            return classDatabase;
         }
 
         public ClassDatabaseFile LoadClassDatabase(string path)
@@ -464,96 +464,24 @@ namespace AssetsTools.NET.Extra
             return LoadClassDatabase(File.OpenRead(path));
         }
 
-        public ClassDatabaseFile LoadClassDatabaseFromPackage(string version, bool specific = false)
+        public ClassDatabaseFile LoadClassDatabaseFromPackage(UnityVersion version)
         {
-            if (classPackage == null)
-                throw new Exception("No class package loaded!");
-
-            if (specific)
-            {
-                if (!version.StartsWith("U"))
-                    version = "U" + version;
-                int index = classPackage.header.files.FindIndex(f => f.name == version);
-                if (index == -1)
-                    return null;
-
-                classFile = classPackage.files[index];
-                return classFile;
-            }
-            else
-            {
-                List<ClassDatabaseFile> matchingFiles = new List<ClassDatabaseFile>();
-                List<UnityVersion> matchingVersions = new List<UnityVersion>();
-
-                if (version.StartsWith("U"))
-                    version = version.Substring(1);
-
-                UnityVersion versionParsed = new UnityVersion(version);
-
-                for (int i = 0; i < classPackage.files.Count; i++)
-                {
-                    ClassDatabaseFile file = classPackage.files[i];
-                    for (int j = 0; j < file.header.unityVersions.Length; j++)
-                    {
-                        string unityVersion = file.header.unityVersions[j];
-                        if (version == unityVersion)
-                        {
-                            classFile = file;
-                            return classFile;
-                        }
-                        else if (WildcardMatches(version, unityVersion))
-                        {
-                            string fullUnityVersion = unityVersion;
-                            if (fullUnityVersion.EndsWith("*"))
-                                fullUnityVersion = file.header.unityVersions[1 - j];
-
-                            matchingFiles.Add(file);
-                            matchingVersions.Add(new UnityVersion(fullUnityVersion));
-                        }
-                    }
-                }
-
-                if (matchingFiles.Count == 1)
-                {
-                    classFile = matchingFiles[0];
-                    return classFile;
-                }
-                else if (matchingFiles.Count > 0)
-                {
-                    int selectedIndex = 0;
-                    int patchNumToMatch = versionParsed.patch;
-                    int highestMatchingPatchNum = matchingVersions[selectedIndex].patch;
-
-                    for (int i = 1; i < selectedIndex; i++)
-                    {
-                        int thisPatchNum = matchingVersions[selectedIndex].patch;
-                        if (thisPatchNum > highestMatchingPatchNum && thisPatchNum <= patchNumToMatch)
-                        {
-                            selectedIndex = i;
-                            highestMatchingPatchNum = thisPatchNum;
-                        }
-                    }
-
-                    classFile = matchingFiles[selectedIndex];
-                    return classFile;
-                }
-
-                return null;
-            }
-
-        }
-        private bool WildcardMatches(string test, string pattern)
-        {
-            return Regex.IsMatch(test, "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$");
+            return classDatabase = classPackage.GetClassDatabase(version);
         }
 
-        public ClassDatabasePackage LoadClassPackage(Stream stream)
+        public ClassDatabaseFile LoadClassDatabaseFromPackage(string version)
         {
-            classPackage = new ClassDatabasePackage();
+            return classDatabase = classPackage.GetClassDatabase(version);
+        }
+
+        public ClassPackageFile LoadClassPackage(Stream stream)
+        {
+            classPackage = new ClassPackageFile();
             classPackage.Read(new AssetsFileReader(stream));
             return classPackage;
         }
-        public ClassDatabasePackage LoadClassPackage(string path)
+
+        public ClassPackageFile LoadClassPackage(string path)
         {
             return LoadClassPackage(File.OpenRead(path));
         }

@@ -25,22 +25,25 @@ namespace AssetsTools.NET
         {
             Reader = reader;
             Reader.Position = 0;
+            Reader.BigEndian = true;
 
             string magic = reader.ReadNullTerminated(); // skipped and read by header
             uint version = reader.ReadUInt32();
             if (version == 6 || version == 7)
             {
+                Reader.Position = 0;
+
                 Header = new AssetBundleHeader();
                 Header.Read(reader);
+
                 if (Header.Version >= 7)
                 {
                     reader.Align16();
                 }
+
                 if (Header.Signature == "UnityFS")
                 {
-                    reader.Position = Header.GetBundleInfoOffset();
-                    BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
-                    BlockAndDirInfo.Read(reader);
+                    UnpackInfoOnly();
                 }
                 else
                 {
@@ -253,50 +256,58 @@ namespace AssetsTools.NET
             AssetBundleFSHeader fsHeader = Header.FileStreamHeader;
             AssetsFileReader reader = Reader;
 
-            reader.Position = Header.GetBundleInfoOffset();
-
-            MemoryStream blockAndDirStream;
-            AssetsFileReader blockAndDirReader;
-
-            int compressedSize = (int)fsHeader.CompressedSize;
-
-            // Decompress header if necessary
-            switch (Header.GetCompressionType())
-            {
-                case 1:
-                    using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
-                    {
-                        blockAndDirStream = SevenZipHelper.StreamDecompress(ms);
-                    }
-                    break;
-                case 2:
-                case 3:
-                    byte[] uncompressedBytes = new byte[fsHeader.DecompressedSize];
-                    using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
-                    {
-                        Lz4DecoderStream decoder = new Lz4DecoderStream(ms);
-                        decoder.Read(uncompressedBytes, 0, (int)fsHeader.DecompressedSize);
-                        decoder.Dispose();
-                    }
-                    blockAndDirStream = new MemoryStream(uncompressedBytes);
-                    break;
-                default:
-                    blockAndDirStream = null;
-                    break;
-            }
-            if (Header.GetCompressionType() != 0)
-            {
-                using (blockAndDirReader = new AssetsFileReader(blockAndDirStream))
-                {
-                    blockAndDirReader.Position = 0;
-                    BlockAndDirInfo.Read(blockAndDirReader);
-                }
-            }
-            else
-            {
-                if (BlockAndDirInfo == null)
-                    throw new Exception("BlockAndDirInfo shouldn't be null for uncompressed files. Did you read correctly?");
-            }
+            // now decompressed with Read()
+            //reader.Position = Header.GetBundleInfoOffset();
+            //
+            //MemoryStream blockAndDirStream;
+            //AssetsFileReader blockAndDirReader;
+            //
+            //int compressedSize = (int)fsHeader.CompressedSize;
+            //
+            //// Decompress header if necessary
+            //switch (Header.GetCompressionType())
+            //{
+            //    case 1:
+            //    {
+            //        using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
+            //        {
+            //            blockAndDirStream = SevenZipHelper.StreamDecompress(ms);
+            //        }
+            //        break;
+            //    }
+            //    case 2:
+            //    case 3:
+            //    {
+            //        byte[] uncompressedBytes = new byte[fsHeader.DecompressedSize];
+            //        using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
+            //        {
+            //            Lz4DecoderStream decoder = new Lz4DecoderStream(ms);
+            //            decoder.Read(uncompressedBytes, 0, (int)fsHeader.DecompressedSize);
+            //            decoder.Dispose();
+            //        }
+            //        blockAndDirStream = new MemoryStream(uncompressedBytes);
+            //        break;
+            //    }
+            //    default:
+            //    {
+            //        blockAndDirStream = null;
+            //        break;
+            //    }
+            //}
+            //
+            //if (Header.GetCompressionType() != 0)
+            //{
+            //    using (blockAndDirReader = new AssetsFileReader(blockAndDirStream))
+            //    {
+            //        blockAndDirReader.Position = 0;
+            //        BlockAndDirInfo.Read(blockAndDirReader);
+            //    }
+            //}
+            //else
+            //{
+            //    if (BlockAndDirInfo == null)
+            //        throw new Exception("BlockAndDirInfo shouldn't be null for uncompressed files. Did you read correctly?");
+            //}
 
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
@@ -366,13 +377,18 @@ namespace AssetsTools.NET
                 switch (info.GetCompressionType())
                 {
                     case 0:
+                    {
                         reader.BaseStream.CopyToCompat(writer.BaseStream, info.CompressedSize);
                         break;
+                    }
                     case 1:
+                    {
                         SevenZipHelper.StreamDecompress(reader.BaseStream, writer.BaseStream, info.CompressedSize, info.DecompressedSize);
                         break;
+                    }
                     case 2:
                     case 3:
+                    {
                         using (MemoryStream tempMs = new MemoryStream())
                         {
                             reader.BaseStream.CopyToCompat(tempMs, info.CompressedSize);
@@ -384,6 +400,7 @@ namespace AssetsTools.NET
                             }
                         }
                         break;
+                    }
                 }
             }
         }
@@ -586,6 +603,61 @@ namespace AssetsTools.NET
             newHeader.Write(writer);
             if (newHeader.Version >= 7)
                 writer.Align16();
+        }
+
+        public void UnpackInfoOnly()
+        {
+            // todo, exceptions
+            MemoryStream blocksInfoStream;
+            AssetsFileReader memReader;
+
+            Reader.Position = Header.GetBundleInfoOffset();
+            if (Header.GetCompressionType() == 0)
+            {
+                BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
+                BlockAndDirInfo.Read(Reader);
+                return;
+            }
+
+            int compressedSize = (int)Header.FileStreamHeader.CompressedSize;
+
+            switch (Header.GetCompressionType())
+            {
+                case 1:
+                {
+                    using (MemoryStream mstream = new MemoryStream(Reader.ReadBytes(compressedSize)))
+                    {
+                        blocksInfoStream = SevenZipHelper.StreamDecompress(mstream);
+                    }
+                    break;
+                }
+                case 2:
+                case 3:
+                {
+                    byte[] uncompressedBytes = new byte[Header.FileStreamHeader.DecompressedSize];
+                    using (MemoryStream mstream = new MemoryStream(Reader.ReadBytes(compressedSize)))
+                    {
+                        var decoder = new Lz4DecoderStream(mstream);
+                        decoder.Read(uncompressedBytes, 0, (int)Header.FileStreamHeader.DecompressedSize);
+                        decoder.Dispose();
+                    }
+                    blocksInfoStream = new MemoryStream(uncompressedBytes);
+                    break;
+                }
+                default:
+                {
+                    blocksInfoStream = null;
+                    break;
+                }
+            }
+
+            using (memReader = new AssetsFileReader(blocksInfoStream))
+            {
+                memReader.Position = 0;
+                memReader.BigEndian = Reader.BigEndian;
+                BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
+                BlockAndDirInfo.Read(memReader);
+            }
         }
 
         public bool IsAssetsFile(int index)

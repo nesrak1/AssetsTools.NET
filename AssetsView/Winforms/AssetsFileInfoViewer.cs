@@ -42,10 +42,10 @@ namespace AssetsView.Winforms
             }
             foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                if (type.Nodes.Count == 0)
+                if (type.Nodes == null || type.Nodes.Count == 0)
                 {
-                    ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.TypeId);
-                    ttr_list.Items.Add($"[{cldt.name.GetString(cldb)}] (0x{type.TypeId.ToString("x")})");
+                    ClassDatabaseType cldt = cldb.Classes.First(c => c.ClassId == type.TypeId);
+                    ttr_list.Items.Add($"[{cldb.GetString(cldt.Name)}] (0x{type.TypeId.ToString("x")})");
                 }
                 else
                 {
@@ -79,10 +79,10 @@ namespace AssetsView.Winforms
         {
             AssetsFileMetadata metadata = file.Metadata;
             TypeTreeType type = metadata.TypeTreeTypes[ttr_list.SelectedIndex];
-            if (type.Nodes.Count == 0)
+            if (type.Nodes == null || type.Nodes.Count == 0)
             {
-                ClassDatabaseType cldt = cldb.classes.First(c => c.classId == type.TypeId);
-                ttr_type.Text = cldt.name.GetString(cldb);
+                ClassDatabaseType cldt = cldb.Classes.First(c => c.ClassId == type.TypeId);
+                ttr_type.Text = cldb.GetString(cldt.Name);
             }
             else
             {

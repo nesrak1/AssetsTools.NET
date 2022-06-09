@@ -22,9 +22,9 @@ namespace AssetsView.Winforms
 
         private void ClassDatabaseEditor_Load(object sender, EventArgs e)
         {
-            foreach (ClassDatabaseType type in classFile.classes)
+            foreach (ClassDatabaseType type in classFile.Classes)
             {
-                typeListBox.Items.Add(type.name.GetString(classFile));
+                typeListBox.Items.Add(classFile.GetString(type.Name));
             }
         }
 

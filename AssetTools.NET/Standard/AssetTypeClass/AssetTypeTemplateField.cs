@@ -20,7 +20,7 @@ namespace AssetsTools.NET
             FromTypeTree(typeTreeType, ref fieldIndex);
         }
 
-        public void FromTypeTree(TypeTreeType typeTreeType, ref int fieldIndex)
+        private void FromTypeTree(TypeTreeType typeTreeType, ref int fieldIndex)
         {
             TypeTreeNode field = typeTreeType.Nodes[fieldIndex];
             Name = field.GetNameString(typeTreeType.StringBuffer);
@@ -48,38 +48,32 @@ namespace AssetsTools.NET
             Children.TrimExcess();
         }
 
-        public void FromClassDatabase(ClassDatabaseFile cldbFile, ClassDatabaseType cldbType)
+        public void FromClassDatabase(ClassDatabaseFile cldbFile, ClassDatabaseType cldbType, bool preferEditor = false)
         {
-            int fieldIndex = 0;
-            FromClassDatabase(cldbFile, cldbType, ref fieldIndex);
+            if (cldbType.EditorRootNode == null && cldbType.ReleaseRootNode == null)
+                throw new Exception("No root nodes were found!");
+
+            ClassDatabaseTypeNode node = cldbType.GetPreferredNode(preferEditor);
+
+            FromClassDatabase(cldbFile.StringTable, node);
         }
 
-        public void FromClassDatabase(ClassDatabaseFile cldbFile, ClassDatabaseType cldbType, ref int fieldIndex)
+        private void FromClassDatabase(ClassDatabaseStringTable strTable, ClassDatabaseTypeNode node)
         {
-            ClassDatabaseTypeField field = cldbType.fields[fieldIndex];
-            Name = field.fieldName.GetString(cldbFile);
-            Type = field.typeName.GetString(cldbFile);
+            Name = strTable.GetString(node.FieldName);
+            Type = strTable.GetString(node.TypeName);
             ValueType = AssetTypeValueField.GetValueTypeByTypeName(Type);
-            IsArray = field.isArray == 1;
-            IsAligned = (field.flags2 & 0x4000) != 0;
+            IsArray = node.TypeFlags == 1;
+            IsAligned = (node.MetaFlag & 0x4000) != 0;
             HasValue = ValueType != AssetValueType.None;
 
-            Children = new List<AssetTypeTemplateField>();
-
-            for (fieldIndex++; fieldIndex < cldbType.fields.Count; fieldIndex++)
+            Children = new List<AssetTypeTemplateField>(node.Children.Count);
+            foreach (ClassDatabaseTypeNode childNode in node.Children)
             {
-                ClassDatabaseTypeField cldbField = cldbType.fields[fieldIndex];
-                if (cldbField.depth <= field.depth)
-                {
-                    fieldIndex--;
-                    break;
-                }
-
-                AssetTypeTemplateField assetField = new AssetTypeTemplateField();
-                assetField.FromClassDatabase(cldbFile, cldbType, ref fieldIndex);
-                Children.Add(assetField);
+                AssetTypeTemplateField childField = new AssetTypeTemplateField();
+                childField.FromClassDatabase(strTable, childNode);
+                Children.Add(childField);
             }
-            Children.TrimExcess();
         }
 
         public AssetTypeValueField MakeValue(AssetsFileReader reader)

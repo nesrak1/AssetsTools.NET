@@ -7,23 +7,20 @@ using System.Text;
 
 namespace AssetsTools.NET
 {
+    /*
     public class ClassDatabaseFile
     {
-        public bool valid;
         public ClassDatabaseFileHeader header;
-
         public List<ClassDatabaseType> classes;
-
         public byte[] stringTable;
 
-        public bool Read(AssetsFileReader reader)
+        public void Read(AssetsFileReader reader)
         {
             header = new ClassDatabaseFileHeader();
             header.Read(reader);
             if (header.header != "cldb" || header.fileVersion > 4 || header.fileVersion < 1)
             {
-                valid = false;
-                return valid;
+                throw new Exception($"Cldb has invalid header or the version is unsupported!");
             }
             classes = new List<ClassDatabaseType>();
 
@@ -53,12 +50,11 @@ namespace AssetsTools.NET
                 }
                 else
                 {
-                    valid = false;
-                    return valid;
+                    throw new Exception($"Cldb is using invalid compression type {header.compressionType & 0x1f}!");
                 }
 
                 newReader = new AssetsFileReader(ms);
-                newReader.bigEndian = false;
+                newReader.BigEndian = false;
             }
 
             newReader.Position = header.stringTablePos;
@@ -71,8 +67,6 @@ namespace AssetsTools.NET
                 cdt.Read(newReader, header.fileVersion, header.flags);
                 classes.Add(cdt);
             }
-            valid = true;
-            return valid;
         }
 
         public void Write(AssetsFileWriter writer, int optimizeStringTable = 1, int compress = 1, bool writeStringTable = true)
@@ -91,19 +85,19 @@ namespace AssetsTools.NET
                 {
                     ClassDatabaseType type = classes[i];
 
-                    AddStringTableEntry(strTableBuilder, strTableMap, ref type.name);
+                    AddStringTableEntry(strTableBuilder, strTableMap, type.Name);
                 
                     if (header.fileVersion == 4 && (header.flags & 1) != 0)
                     {
-                        AddStringTableEntry(strTableBuilder, strTableMap, ref type.assemblyFileName);
+                        AddStringTableEntry(strTableBuilder, strTableMap, type.AssemblyFileName);
                     }
                     
-                    List<ClassDatabaseTypeField> fields = type.fields;
+                    List<ClassDatabaseTypeField> fields = type.Fields;
                     for (int j = 0; j < fields.Count; j++)
                     {
                         ClassDatabaseTypeField field = fields[j];
-                        AddStringTableEntry(strTableBuilder, strTableMap, ref field.fieldName);
-                        AddStringTableEntry(strTableBuilder, strTableMap, ref field.typeName);
+                        AddStringTableEntry(strTableBuilder, strTableMap, field.FieldName);
+                        AddStringTableEntry(strTableBuilder, strTableMap, field.TypeName);
                         fields[j] = field;
                     }
                 }
@@ -139,7 +133,7 @@ namespace AssetsTools.NET
             writer.Position = fileEndPos;
         }
 
-        private void AddStringTableEntry(StringBuilder strTable, Dictionary<string, uint> strMap, ref ClassDatabaseFileString str)
+        private void AddStringTableEntry(StringBuilder strTable, Dictionary<string, uint> strMap, ClassDatabaseFileString str)
         {
             string stringValue = str.GetString(this);
 
@@ -150,12 +144,72 @@ namespace AssetsTools.NET
             }
             str.str.stringTableOffset = strMap[stringValue];
         }
-
-        public bool IsValid()
-        {
-            return valid;
-        }
         
         public ClassDatabaseFile() { }
+    }*/
+    public class ClassDatabaseFile
+    {
+        public ClassDatabaseFileHeader Header;
+        public List<ClassDatabaseType> Classes;
+        public ClassDatabaseStringTable StringTable;
+
+        public string GetString(ushort index) => StringTable.GetString(index);
+
+        public void Read(AssetsFileReader reader)
+        {
+            Header.Read(reader);
+
+            AssetsFileReader dReader = GetDecompressedReader(reader);
+            int classCount = dReader.ReadInt32();
+            Classes = new List<ClassDatabaseType>(classCount);
+            for (int i = 0; i < classCount; i++)
+            {
+                ClassDatabaseType type = new ClassDatabaseType();
+                type.Read(dReader, Header.FileVersion);
+                Classes.Add(type);
+            }
+
+            StringTable.Read(dReader);
+        }
+
+        public void Write(AssetsFileWriter writer)
+        {
+
+        }
+
+        private AssetsFileReader GetDecompressedReader(AssetsFileReader reader)
+        {
+            AssetsFileReader newReader = reader;
+            if (Header.CompressionType != 0)
+            {
+                MemoryStream ms;
+                if (Header.CompressionType == 1) //lz4
+                {
+                    byte[] uncompressedBytes = new byte[Header.DecompressedSize];
+                    using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes(Header.CompressedSize)))
+                    {
+                        Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs);
+                        decoder.Read(uncompressedBytes, 0, Header.DecompressedSize);
+                        decoder.Dispose();
+                    }
+                    ms = new MemoryStream(uncompressedBytes);
+                }
+                else if (Header.CompressionType == 2) //lzma
+                {
+                    using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes(Header.CompressedSize)))
+                    {
+                        ms = SevenZipHelper.StreamDecompress(tempMs);
+                    }
+                }
+                else
+                {
+                    throw new Exception($"Class database is using invalid compression type {Header.CompressionType}!");
+                }
+
+                newReader = new AssetsFileReader(ms);
+            }
+
+            return newReader;
+        }
     }
 }

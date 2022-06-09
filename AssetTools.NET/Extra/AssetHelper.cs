@@ -16,9 +16,9 @@
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, int id)
         {
             id = FixAudioID(id);
-            foreach (ClassDatabaseType type in cldb.classes)
+            foreach (ClassDatabaseType type in cldb.Classes)
             {
-                if (type.classId == id)
+                if (type.ClassId == id)
                     return type;
             }
             return null;
@@ -26,9 +26,9 @@
 
         public static ClassDatabaseType FindAssetClassByName(ClassDatabaseFile cldb, string name)
         {
-            foreach (ClassDatabaseType type in cldb.classes)
+            foreach (ClassDatabaseType type in cldb.Classes)
             {
-                if (type.name.GetString(cldb) == name)
+                if (cldb.GetString(type.Name) == name)
                     return type;
             }
             return null;
@@ -46,6 +46,7 @@
 
         public static TypeTreeType FindTypeTreeTypeByID(AssetsFileMetadata metadata, int id, ushort scriptIndex)
         {
+            // todo: use metadata for better version checking
             foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
                 //5.5+
@@ -98,7 +99,7 @@
                 TypeTreeType ttType = FindTypeTreeTypeByID(file.Metadata, info.TypeId, scriptId);
 
                 string ttTypeName = ttType.Nodes[0].GetTypeString(ttType.StringBuffer);
-                if (ttType.Nodes.Count == 0) return type.name.GetString(cldb); // fallback to cldb
+                if (ttType.Nodes.Count == 0) return cldb.GetString(type.Name); // fallback to cldb
                 if (ttType.Nodes.Count > 1 && ttType.Nodes[1].GetNameString(ttType.StringBuffer) == "m_Name")
                 {
                     reader.Position = info.AbsoluteByteStart;
@@ -127,9 +128,9 @@
                 return ttTypeName;
             }
 
-            string typeName = type.name.GetString(cldb);
-            if (type.fields.Count == 0) return type.name.GetString(cldb);
-            if (type.fields.Count > 1 && type.fields[1].fieldName.GetString(cldb) == "m_Name")
+            string typeName = cldb.GetString(type.Name);
+            if (type.ReleaseRootNode.Children.Count == 0) return typeName;
+            if (type.ReleaseRootNode.Children.Count > 1 && cldb.GetString(type.ReleaseRootNode.Children[0].FieldName) == "m_Name")
             {
                 reader.Position = info.AbsoluteByteStart;
                 return reader.ReadCountStringInt32();

@@ -70,7 +70,7 @@ namespace AssetsView.Winforms
                 foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
                     AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
-                    fr.bigEndian = false;
+                    fr.BigEndian = false;
                     fr.Position = inf.AbsoluteByteStart;
                     byte[] data = fr.ReadBytes((int)inf.ByteSize);
                     int location = SearchBytes(data, searchQuery);

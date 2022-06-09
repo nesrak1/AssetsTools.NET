@@ -30,7 +30,7 @@ namespace AssetsTools.NET
 
         public void Read(AssetsFileReader reader)
         {
-            reader.bigEndian = true;
+            reader.BigEndian = true;
             MetadataSize = reader.ReadUInt32();
             FileSize = reader.ReadUInt32();
             Version = reader.ReadUInt32();
@@ -46,7 +46,7 @@ namespace AssetsTools.NET
                 reader.Position += 8; // unused bytes
             }
 
-            reader.bigEndian = Endianness;
+            reader.BigEndian = Endianness;
         }
 
         public void Write(AssetsFileWriter writer)
