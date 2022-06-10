@@ -65,8 +65,8 @@ namespace AssetsTools.NET
             ClassDatabaseFile cldb = new ClassDatabaseFile();
             cldb.Header = new ClassDatabaseFileHeader()
             {
-                Magic = "cldb",
-                FileVersion = 4,
+                Magic = "CLDB",
+                FileVersion = 1,
                 Version = version,
                 CompressionType = 0,
                 CompressedSize = 0,

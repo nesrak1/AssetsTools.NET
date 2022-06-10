@@ -165,7 +165,7 @@ namespace AssetsTools.NET
             for (int i = 0; i < classCount; i++)
             {
                 ClassDatabaseType type = new ClassDatabaseType();
-                type.Read(dReader, Header.FileVersion);
+                type.Read(dReader);
                 Classes.Add(type);
             }
 
