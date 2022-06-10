@@ -211,11 +211,11 @@ namespace AssetsTools.NET
 
             writer.Position = writeStart;
             newHeader.Write(writer);
-
+            
             // Write new asset infos again (this time with offsets and sizes filled in)
             writer.Position = newMetadataStart;
             newMetadata.Write(writer, Header.Version);
-
+            
             // Set writer position back to end of file
             writer.Position = writeStart + newFileSize;
         }

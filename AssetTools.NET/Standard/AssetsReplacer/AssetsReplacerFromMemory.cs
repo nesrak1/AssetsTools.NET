@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetsTools.NET.Extra;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -25,6 +26,15 @@ namespace AssetsTools.NET
             this.monoScriptIndex = monoScriptIndex;
             this.buffer = buffer;
             this.preloadList = new List<AssetPPtr>();
+        }
+        public AssetsReplacerFromMemory(AssetsFile file, AssetFileInfo info, AssetTypeValueField field)
+        {
+            fileId = 0;
+            pathId = info.PathId;
+            classId = info.TypeId;
+            monoScriptIndex = AssetHelper.GetScriptIndex(file, info);
+            buffer = field.WriteToByteArray();
+            preloadList = new List<AssetPPtr>();
         }
         public override AssetsReplacementType GetReplacementType()
         {

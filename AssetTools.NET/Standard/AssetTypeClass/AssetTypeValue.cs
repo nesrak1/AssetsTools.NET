@@ -157,7 +157,7 @@ namespace AssetsTools.NET
                 else
                     return Value.ToString();
             }
-            set => Value = value;
+            set => Value = Encoding.UTF8.GetBytes(value);
         }
         // probably will get removed soon
         public AssetTypeArrayInfo AsArray

@@ -61,7 +61,7 @@ namespace AssetsTools.NET
             }
             else
             {
-                writer.Write(MetadataSize);
+                writer.Write((uint)MetadataSize);
                 writer.Write((uint)FileSize);
                 writer.Write(Version);
                 writer.Write((uint)DataOffset);

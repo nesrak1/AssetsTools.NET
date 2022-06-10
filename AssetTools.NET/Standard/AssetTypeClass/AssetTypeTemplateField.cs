@@ -171,6 +171,7 @@ namespace AssetsTools.NET
                     valueField.Value = new AssetTypeValue(type, null);
                     if (type == AssetValueType.String)
                     {
+                        valueField.Children = new List<AssetTypeValueField>(0);
                         int length = reader.ReadInt32();
                         valueField.Value = new AssetTypeValue(reader.ReadBytes(length), true);
                         reader.Align();
