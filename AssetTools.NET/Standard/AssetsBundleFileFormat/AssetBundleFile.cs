@@ -14,14 +14,18 @@ namespace AssetsTools.NET
         public AssetBundleHeader Header { get; set; }
         public AssetBundleBlockAndDirInfo BlockAndDirInfo { get; set; }
 
-        public AssetsFileReader Reader;
+        public AssetsFileReader Reader { get; private set; }
+        public string Name { get; set; }
 
         public void Close()
         {
-            Reader.Close();
+            if (Reader != null)
+            {
+                Reader.Close();
+            }
         }
 
-        public void Read(AssetsFileReader reader)
+        public void Read(AssetsFileReader reader, string name = null)
         {
             Reader = reader;
             Reader.Position = 0;
@@ -53,6 +57,23 @@ namespace AssetsTools.NET
             else if (version == 3)
             {
                 new NotImplementedException("Version 3 bundles are not supported yet.");
+            }
+
+            if (name != null)
+            {
+                Name = name;
+            }
+            else
+            {
+                if (reader.BaseStream is FileStream fs)
+                {
+                    Name = fs.Name;
+                }
+                else
+                {
+                    throw new ArgumentException("Name must be filled out or the reader's stream must be a FileStream.");
+                    //Name = string.Empty;
+                }
             }
         }
 
@@ -663,7 +684,7 @@ namespace AssetsTools.NET
         public bool IsAssetsFile(int index)
         {
             GetFileRange(index, out long offset, out long length);
-            return AssetsFile.IsAssetsFile(Reader, offset, length);
+            return AssetsFile.IsAssetsFile(new AssetsFileReader(Reader.BaseStream), offset, length);
         }
 
         public int GetFileIndex(string name)

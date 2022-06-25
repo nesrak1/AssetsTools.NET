@@ -247,11 +247,6 @@ namespace AssetsTools.NET
         }
 
         //new functions since I didn't like the way assetstools handled it
-        public byte[] GetTextureData(AssetsFileInstance inst)
-        {
-            return GetTextureData(Path.GetDirectoryName(inst.path));
-        }
-
         public byte[] GetTextureData(AssetsFile file)
         {
             string path = null;

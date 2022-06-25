@@ -1,4 +1,5 @@
 ﻿using AssetsTools.NET.Extra;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,13 +13,14 @@ namespace AssetsTools.NET
         public AssetsFileMetadata Metadata { get; }
 
         public AssetsFileReader Reader { get; }
+        public string Name { get; set; }
 
         public void Close()
         {
             Reader.Close();
         }
 
-        public AssetsFile(AssetsFileReader reader)
+        public AssetsFile(AssetsFileReader reader, string name = null)
         {
             Reader = reader;
             
@@ -27,8 +29,26 @@ namespace AssetsTools.NET
 
             Metadata = new AssetsFileMetadata();
             Metadata.Read(reader, Header);
+
+            if (name != null)
+            {
+                Name = name;
+            }
+            else
+            {
+                if (reader.BaseStream is FileStream fs)
+                {
+                    Name = fs.Name;
+                }
+                else
+                {
+                    throw new ArgumentException("Name must be filled out or the reader's stream must be a FileStream.");
+                    //Name = string.Empty;
+                }
+            }
         }
-        public AssetsFile(Stream stream) : this(new AssetsFileReader(stream)) { }
+
+        public AssetsFile(Stream stream, string name = null) : this(new AssetsFileReader(stream), name) { }
 
         public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, ClassDatabaseFile typeMeta = null)
         {
@@ -144,7 +164,7 @@ namespace AssetsTools.NET
             {
                 UnityVersion = Metadata.UnityVersion,
                 TargetPlatform = Metadata.TargetPlatform,
-                TypeTreeNotStripped = Metadata.TypeTreeNotStripped,
+                TypeTreeEnabled = Metadata.TypeTreeEnabled,
                 TypeTreeTypes = typeTreeTypes,
                 AssetInfos = newAssetInfos,
                 ScriptTypes = Metadata.ScriptTypes, // todo
@@ -220,6 +240,14 @@ namespace AssetsTools.NET
             writer.Position = writeStart + newFileSize;
         }
 
+        public ushort GetScriptIndex(AssetFileInfo info)
+        {
+            if (Header.Version < 0x10)
+                return info.ScriptTypeIndex;
+            else
+                return Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
+        }
+
         public static bool IsAssetsFile(string filePath)
         {
             using AssetsFileReader reader = new AssetsFileReader(filePath);
@@ -228,6 +256,8 @@ namespace AssetsTools.NET
 
         public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
         {
+            reader.BigEndian = false;
+            
             // todo: not fully implemented
             if (length < 0x30)
                 return false;
@@ -240,7 +270,7 @@ namespace AssetsTools.NET
             reader.Position = offset + 0x08;
             int possibleFormat = reader.ReadInt32();
             if (possibleFormat > 99)
-                return false;
+                 return false;
 
             reader.Position = offset + 0x14;
 

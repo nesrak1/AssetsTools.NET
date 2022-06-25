@@ -264,19 +264,22 @@ namespace AssetsTools.NET
         }
 
         // for conveience
-        public bool AsBool { get => Value.AsBool; set => Value.AsBool = value; }
-        public sbyte AsSByte { get => Value.AsSByte; set => Value.AsSByte = value; }
-        public byte AsByte { get => Value.AsByte; set => Value.AsByte = value; }
-        public short AsShort { get => Value.AsShort; set => Value.AsShort = value; }
-        public ushort AsUShort { get => Value.AsUShort; set => Value.AsUShort = value; }
-        public int AsInt { get => Value.AsInt; set => Value.AsInt = value; }
-        public uint AsUInt { get => Value.AsUInt; set => Value.AsUInt = value; }
-        public long AsLong { get => Value.AsLong; set => Value.AsLong = value; }
-        public ulong AsULong { get => Value.AsULong; set => Value.AsULong = value; }
-        public float AsFloat { get => Value.AsFloat; set => Value.AsFloat = value; }
-        public double AsDouble { get => Value.AsDouble; set => Value.AsDouble = value; }
-        public string AsString { get => Value.AsString; set => Value.AsString = value; }
-        public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
-        public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
+        public bool AsBool { get => Value?.AsBool ?? default; set => Value.AsBool = value; }
+        public sbyte AsSByte { get => Value?.AsSByte ?? default; set => Value.AsSByte = value; }
+        public byte AsByte { get => Value?.AsByte ?? default; set => Value.AsByte = value; }
+        public short AsShort { get => Value?.AsShort ?? default; set => Value.AsShort = value; }
+        public ushort AsUShort { get => Value?.AsUShort ?? default; set => Value.AsUShort = value; }
+        public int AsInt { get => Value?.AsInt ?? default; set => Value.AsInt = value; }
+        public uint AsUInt { get => Value?.AsUInt ?? default; set => Value.AsUInt = value; }
+        public long AsLong { get => Value?.AsLong ?? default; set => Value.AsLong = value; }
+        public ulong AsULong { get => Value?.AsULong ?? default; set => Value.AsULong = value; }
+        public float AsFloat { get => Value?.AsFloat ?? default; set => Value.AsFloat = value; }
+        public double AsDouble { get => Value?.AsDouble ?? default; set => Value.AsDouble = value; }
+        public string AsString { get => Value?.AsString ?? default; set => Value.AsString = value; }
+        public AssetTypeArrayInfo AsArray { get => Value?.AsArray ?? default; set => Value.AsArray = value; }
+        public byte[] AsByteArray { get => Value?.AsByteArray ?? default; set => Value.AsByteArray = value; }
+
+        public string FieldName { get => TemplateField.Name; set => TemplateField.Name = value; }
+        public string TypeName { get => TemplateField.Type; set => TemplateField.Type = value; }
     }
 }

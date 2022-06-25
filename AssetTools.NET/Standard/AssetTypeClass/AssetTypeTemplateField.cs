@@ -152,6 +152,7 @@ namespace AssetsTools.NET
                 AssetValueType type = valueField.TemplateField.ValueType;
                 if (type == AssetValueType.None)
                 {
+
                     int childCount = valueField.TemplateField.Children.Count;
                     valueField.Children = new List<AssetTypeValueField>(childCount);
                     for (int i = 0; i < childCount; i++)
@@ -161,7 +162,7 @@ namespace AssetsTools.NET
                         valueField.Children.Add(ReadType(reader, childField));
                     }
                     valueField.Children.TrimExcess();
-                    valueField.Value = null;
+                    valueField.Value = new AssetTypeValue(AssetValueType.None);
 
                     if (valueField.TemplateField.IsAligned)
                         reader.Align();

@@ -6,30 +6,57 @@ using System.Linq;
 
 namespace AssetsTools.NET.Extra
 {
-    public class MonoDeserializer
+    public class MonoCecilTempGenerator : IMonoBehaviourTemplateGenerator
     {
-        public uint format;
-        public List<AssetTypeTemplateField> children;
+        private uint format;
+        private string activeDirectory;
+        public string managedPath;
+        public Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
 
-        // wtf who did this
-        public static Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
+        public MonoCecilTempGenerator(string managedPath)
+        {
+            this.managedPath = managedPath;
+        }
 
-        public void Read(string typeName, AssemblyDefinition assembly, uint format)
+        public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, uint format)
+        {
+            string assemblyPath = Path.Combine(Path.Combine(activeDirectory, managedPath), assemblyName);
+            if (!File.Exists(assemblyPath))
+            {
+                return null;
+            }
+            List<AssetTypeTemplateField> newFields = Read(assemblyPath, nameSpace, className, format);
+            baseField.Children.AddRange(newFields);
+            return baseField;
+        }
+
+        public void SetActiveDirectory(string activeDirectory)
+        {
+            this.activeDirectory = activeDirectory;
+        }
+
+        public List<AssetTypeTemplateField> Read(AssemblyDefinition assembly, string nameSpace, string typeName, uint format)
         {
             this.format = format;
-            children = new List<AssetTypeTemplateField>();
-
-            RecursiveTypeLoad(assembly.MainModule, typeName, children);
+            List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
+            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children);
+            return children;
         }
 
-        public void Read(string typeName, string assemblyPath, uint format)
+        public List<AssetTypeTemplateField> Read(string assemblyPath, string nameSpace, string typeName, uint format)
         {
             AssemblyDefinition asmDef = GetAssemblyWithDependencies(assemblyPath);
-            Read(typeName, asmDef, format);
+            return Read(asmDef, nameSpace, typeName, format);
         }
 
-        public static AssemblyDefinition GetAssemblyWithDependencies(string path)
+        private AssemblyDefinition GetAssemblyWithDependencies(string path)
         {
+            string assemblyName = Path.GetFileName(path);
+            if (loadedAssemblies.ContainsKey(assemblyName))
+            {
+                return loadedAssemblies[assemblyName];
+            }
+
             DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(Path.GetDirectoryName(path));
 
@@ -38,10 +65,13 @@ namespace AssetsTools.NET.Extra
                 AssemblyResolver = resolver
             };
 
-            return AssemblyDefinition.ReadAssembly(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read), readerParameters);
+            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(File.OpenRead(path), readerParameters);
+            loadedAssemblies[assemblyName] = asmDef;
+
+            return asmDef;
         }
 
-        public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfo info, string managedPath, bool cached = true)
+        /*public static AssetTypeValueField GetMonoBaseField(AssetsManager am, AssetsFileInstance inst, AssetFileInfo info, string managedPath, bool cached = true)
         {
             AssetsFile file = inst.file;
             AssetTypeTemplateField baseFieldTemp = new AssetTypeTemplateField();
@@ -49,7 +79,7 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeValueField baseField = baseFieldTemp.MakeValue(file.Reader, info.AbsoluteByteStart);
 
-            ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
+            ushort scriptIndex = file.GetScriptIndex(info);
             if (scriptIndex != 0xFFFF)
             {
                 AssetTypeValueField scriptBaseField = am.GetExtAsset(inst, baseField.Get("m_Script")).baseField;
@@ -90,11 +120,11 @@ namespace AssetsTools.NET.Extra
             }
 
             return baseField;
-        }
+        }*/
 
-        private void RecursiveTypeLoad(ModuleDefinition module, string typeName, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf)
         {
-            TypeDefinition type = module.GetTypes().First(t => t.FullName.Equals(typeName));
+            TypeDefinition type = module.GetTypes().First(t => t.Namespace == nameSpace && t.Name == typeName);
             RecursiveTypeLoad(type, attf);
         }
 
@@ -219,15 +249,15 @@ namespace AssetsTools.NET.Extra
 
         private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
-            {"Boolean","bool"},
-            {"Int64","long"},
-            {"Int16","short"},
-            {"UInt64","ulong"},
-            {"UInt32","uint"},
-            {"UInt16","ushort"},
-            {"Char","char"},
-            {"Byte","byte"},
-            {"SByte","sbyte"},
+            {"Boolean","UInt8"},
+            {"Int64","SInt64"},
+            {"Int16","SInt16"},
+            {"UInt64","UInt64"},
+            {"UInt32","unsigned int"},
+            {"UInt16","UInt16"},
+            {"Char","UInt16"},
+            {"Byte","UInt8"},
+            {"SByte","SInt8"},
             {"Double","double"},
             {"Single","float"},
             {"Int32","int"},
@@ -325,7 +355,7 @@ namespace AssetsTools.NET.Extra
             data.IsArray = false;
             data.IsAligned = false;//IsAlignable(field.valueType);
             data.HasValue = field.HasValue;
-            data.Children = new List<AssetTypeTemplateField>(field.Children.Count);
+            data.Children = field.Children;
 
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.Name = string.Copy(field.Name);

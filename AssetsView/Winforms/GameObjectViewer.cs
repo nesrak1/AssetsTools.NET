@@ -41,7 +41,7 @@ namespace AssetsView.Winforms
             if (typeName == "GameObject")
             {
                 selectedGameObjectId = selectedId;
-                AssetExternal firstExt = helper.GetExtAsset(inst, 0, selectedId);
+                AssetExternal firstExt = helper.GetExternal(inst, 0, selectedId);
                 AssetExternal rootExt = GetRootGameObject(firstExt);
                 PopulateHierarchyTree(null, rootExt);
             }
@@ -51,7 +51,7 @@ namespace AssetsView.Winforms
                 if (hasGameObjectField)
                 {
                     AssetTypeValueField firstBaseField = helper.GetBaseField(inst.file, info);
-                    AssetExternal firstExt = helper.GetExtAsset(inst, firstBaseField["m_GameObject"]);
+                    AssetExternal firstExt = helper.GetExternal(inst, firstBaseField["m_GameObject"]);
                     if (firstExt.info != null)
                     {
                         selectedGameObjectId = firstExt.info.PathId;
@@ -61,13 +61,13 @@ namespace AssetsView.Winforms
                     else
                     {
                         TreeNode node = goTree.Nodes.Add($"[{typeName} (parentless)]");
-                        node.Tag = helper.GetExtAsset(inst, 0, info.PathId);
+                        node.Tag = helper.GetExternal(inst, 0, info.PathId);
                     }
                 }
                 else
                 {
                     TreeNode node = goTree.Nodes.Add($"[{typeName}]");
-                    node.Tag = helper.GetExtAsset(inst, 0, info.PathId);
+                    node.Tag = helper.GetExternal(inst, 0, info.PathId);
                 }
             }
             GetSelectedNodeData();
@@ -75,13 +75,13 @@ namespace AssetsView.Winforms
 
         private AssetExternal GetRootGameObject(AssetExternal ext)
         {
-            AssetExternal transformExt = helper.GetExtAsset(inst, ext.baseField["m_Component.Array"][0].GetLastChild());
+            AssetExternal transformExt = helper.GetExternal(inst, ext.baseField["m_Component.Array"][0].GetLastChild());
             while (true)
             {
-                AssetExternal parentExt = helper.GetExtAsset(inst, transformExt.baseField["m_Father"]);
+                AssetExternal parentExt = helper.GetExternal(inst, transformExt.baseField["m_Father"]);
                 if (parentExt.baseField == null)
                 {
-                    AssetExternal gameObjectExt = helper.GetExtAsset(inst, transformExt.baseField["m_GameObject"]);
+                    AssetExternal gameObjectExt = helper.GetExternal(inst, transformExt.baseField["m_GameObject"]);
                     return gameObjectExt;
                 }
                 transformExt = parentExt;
@@ -135,7 +135,7 @@ namespace AssetsView.Winforms
                 AssetTypeValueField componentPtr = components[i].GetLastChild();
                 if (ModifierKeys == Keys.Shift)
                 {
-                    AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                    AssetExternal ext = helper.GetExternal(inst, componentPtr);
                     if (ext.baseField != null)
                         LoadComponentData(root, ext.baseField, ext.info, i, componentSize);
                 }
@@ -143,7 +143,7 @@ namespace AssetsView.Winforms
                 {
                     try
                     {
-                        AssetExternal ext = helper.GetExtAsset(inst, componentPtr);
+                        AssetExternal ext = helper.GetExternal(inst, componentPtr);
                         if (ext.baseField != null)
                             LoadComponentData(root, ext.baseField, ext.info, i, componentSize);
                     }
@@ -299,18 +299,18 @@ namespace AssetsView.Winforms
             }
 
             AssetTypeValueField children =
-                helper.GetExtAsset(inst, baseField["m_Component.Array"][0].GetLastChild()).baseField["m_Children.Array"];
+                helper.GetExternal(inst, baseField["m_Component.Array"][0].GetLastChild()).baseField["m_Children.Array"];
 
             for (int i = 0; i < children.Children.Count; i++)
             {
-                AssetExternal childExternal = helper.GetExtAsset(inst, children[i]);
-                AssetExternal gameObjExt = helper.GetExtAsset(inst, childExternal.baseField["m_GameObject"]);
+                AssetExternal childExternal = helper.GetExternal(inst, children[i]);
+                AssetExternal gameObjExt = helper.GetExternal(inst, childExternal.baseField["m_GameObject"]);
                 PopulateHierarchyTree(newNode, gameObjExt);
             }
         }
         private string GetClassName(AssetsManager manager, AssetsFileInstance inst, AssetTypeValueField baseField)
         {
-            AssetTypeValueField scriptBaseField = manager.GetExtAsset(inst, baseField["m_Script"]).baseField;
+            AssetTypeValueField scriptBaseField = manager.GetExternal(inst, baseField["m_Script"]).baseField;
             if (scriptBaseField == null)
                 return "Unknown class name";
 
@@ -346,7 +346,7 @@ namespace AssetsView.Winforms
                     MessageBox.Show("Could not find other id, is this really a pptr?", "Assets View");
                     return;
                 }
-                AssetExternal ext = helper.GetExtAsset(inst, fileId, pathId, true);
+                AssetExternal ext = helper.GetExternal(inst, fileId, pathId, true);
                 if (ext.file == null)
                 {
                     MessageBox.Show("Dependency could not be loaded. Maybe the file couldn't be loaded or doesn't exist?", "Assets View");

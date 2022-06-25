@@ -10,11 +10,6 @@ namespace AssetsTools.NET.Extra
     {
         private readonly Action<AssetTypeValueField> modify;
 
-        public LambdaAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfo asset, Action<AssetTypeValueField> modify)
-            : this(manager, assetsFile.file, asset, modify)
-        {
-        }
-
         public LambdaAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfo asset, Action<AssetTypeValueField> modify)
             : base(manager, assetsFile, asset)
         {

@@ -222,7 +222,7 @@ namespace AssetsView.Winforms
                         AssetTypeValueField pointerField = item.Get("second");
                         //paths[path] = new AssetDetails(new AssetPPtr(fileID, pathID));
 
-                        AssetExternal assetExt = helper.GetExtAsset(ggm, pointerField, true);
+                        AssetExternal assetExt = helper.GetExternal(ggm, pointerField, true);
                         AssetFileInfo assetInfo = assetExt.info;
                         if (assetInfo == null)
                             continue;
@@ -440,7 +440,7 @@ namespace AssetsView.Winforms
                 else
                 {
                     AssetFileInfo info = currentFile.file.GetAssetInfo((long)selRow.Cells[3].Value);
-                    ushort monoId = AssetHelper.GetScriptIndex(currentFile.file, info);
+                    ushort monoId = currentFile.file.GetScriptIndex(info);
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.TypeId,
                         info.AbsoluteByteStart,

@@ -32,7 +32,7 @@ namespace AssetsTools.NET
             fileId = 0;
             pathId = info.PathId;
             classId = info.TypeId;
-            monoScriptIndex = AssetHelper.GetScriptIndex(file, info);
+            monoScriptIndex = file.GetScriptIndex(info);
             buffer = field.WriteToByteArray();
             preloadList = new List<AssetPPtr>();
         }

@@ -12,11 +12,6 @@ namespace AssetsTools.NET.Extra
         private readonly AssetsFile assetsFile;
         private readonly AssetFileInfo asset;
 
-        protected SerializingAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfo asset)
-            : this(manager, assetsFile.file, asset)
-        {
-        }
-
         protected SerializingAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfo asset)
         {
             this.manager = manager;
@@ -41,7 +36,7 @@ namespace AssetsTools.NET.Extra
 
         public override ushort GetMonoScriptID()
         {
-            return AssetHelper.GetScriptIndex(assetsFile, asset);
+            return assetsFile.GetScriptIndex(asset);
         }
 
         public override long Write(AssetsFileWriter writer)
