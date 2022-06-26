@@ -308,7 +308,7 @@ namespace AssetsTools.NET
                     totalFileSize = 0,
                     compressedSize = bundleHeader6.decompressedSize,
                     decompressedSize = bundleHeader6.decompressedSize,
-                    flags = bundleHeader6.flags & 0x40 //set compression and block position to 0
+                    flags = bundleHeader6.flags & (0x40 | 0x200) //set compression and block position to 0
                 };
                 long fileSize = newBundleHeader6.GetFileDataOffset();
                 for (int i = 0; i < bundleInf6.blockCount; i++)
@@ -348,6 +348,10 @@ namespace AssetsTools.NET
                     writer.Align16();
                 }
                 newBundleInf6.Write(writer);
+                if ((newBundleHeader6.flags & 0x200) != 0)
+                {
+                    writer.Align16();
+                }
 
                 reader.Position = bundleHeader6.GetFileDataOffset();
                 for (int i = 0; i < newBundleInf6.blockCount; i++)

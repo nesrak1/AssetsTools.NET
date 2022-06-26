@@ -78,9 +78,11 @@
                     ret += signature.Length + 1;
             }
             if (fileVersion >= 7)
-                ret = (ret + 15) >> 4 << 4;
+                ret = (ret + 15) & ~15;
             if ((flags & 0x80) == 0)
                 ret += compressedSize;
+            if ((flags & 0x200) != 0)
+                ret = (ret + 15) & ~15;
             return ret;
         }
         public byte GetCompressionType()
