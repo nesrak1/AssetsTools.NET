@@ -173,7 +173,7 @@ namespace AssetsTools.NET
 
         public override string ToString()
         {
-            return Value.ToString();
+            return AsString;
         }
 
         private string SimpleHexDump(byte[] byteArray)
