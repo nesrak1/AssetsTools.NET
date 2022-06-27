@@ -13,7 +13,7 @@ namespace AssetsTools.NET.Extra
             string pathLower = name.ToLower();
             if (!files.ContainsKey(pathLower))
             {
-                assetsFile = new AssetsFile(stream);
+                assetsFile = new AssetsFile(stream, pathLower);
                 bundleMap[assetsFile] = parentBundle;
                 files[pathLower] = assetsFile;
             }

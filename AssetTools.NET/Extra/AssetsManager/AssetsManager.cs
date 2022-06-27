@@ -16,10 +16,10 @@ namespace AssetsTools.NET.Extra
         public string activeDirectory = string.Empty; // should be readonly property ?
         public readonly Dictionary<string, AssetsFile> files = new Dictionary<string, AssetsFile>();
         public readonly Dictionary<string, AssetBundleFile> bundles = new Dictionary<string, AssetBundleFile>();
+        public readonly Dictionary<AssetsFile, AssetBundleFile> bundleMap = new Dictionary<AssetsFile, AssetBundleFile>();
         private IMonoBehaviourTemplateGenerator monoTempGenerator;
         private readonly Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
         private readonly Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
-        private readonly Dictionary<AssetsFile, AssetBundleFile> bundleMap = new Dictionary<AssetsFile, AssetBundleFile>();
         private readonly Dictionary<AssetBundleFile, List<AssetsFile>> bundleLoadedFilesMap = new Dictionary<AssetBundleFile, List<AssetsFile>>();
 
         public void SetActiveDirectory(string directory)

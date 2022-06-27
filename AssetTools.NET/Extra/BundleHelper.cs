@@ -37,7 +37,7 @@ namespace AssetsTools.NET.Extra
             bundle.GetFileRange(index, out long offset, out long length);
             Stream stream = new SegmentStream(bundle.Reader.BaseStream, offset, length);
             AssetsFileReader reader = new AssetsFileReader(stream);
-            return new AssetsFile(reader);
+            return new AssetsFile(reader, bundle.BlockAndDirInfo.DirectoryInfos[index].Name);
         }
 
         public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, string name)
@@ -61,6 +61,20 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return files;
+        }
+
+        public static List<string> LoadAllAssetsNamesFromBundle(AssetBundleFile bundle)
+        {
+            List<string> names = new List<string>();
+            int numFiles = bundle.BlockAndDirInfo.DirectoryInfos.Length;
+            for (int i = 0; i < numFiles; i++)
+            {
+                if (bundle.IsAssetsFile(i))
+                {
+                    names.Add(bundle.BlockAndDirInfo.DirectoryInfos[i].Name);
+                }
+            }
+            return names;
         }
 
         public static List<AssetsFile> LoadAllAssetsFromBundle(AssetBundleFile bundle)

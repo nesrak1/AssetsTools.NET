@@ -256,7 +256,7 @@ namespace AssetsTools.NET
 
         public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
         {
-            reader.BigEndian = false;
+            reader.BigEndian = true;
             
             // todo: not fully implemented
             if (length < 0x30)
