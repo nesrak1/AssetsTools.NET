@@ -115,6 +115,8 @@ namespace AssetsTools.NET
                 ret = (ret + 15) >> 4 << 4;
             if ((flags & 0x80) == 0)
                 ret += compressedSize;
+            if ((flags & 0x200) != 0)
+                ret = (ret + 15) & ~15;
 
             return ret;
         }

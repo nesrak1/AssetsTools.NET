@@ -198,6 +198,11 @@ namespace AssetsTools.NET
             newBundleInf6.DirectoryInfos = dirInfos.ToArray();
             newBundleInf6.Write(writer);
 
+            if ((Header.FileStreamHeader.Flags & 0x200) != 0)
+            {
+                writer.Align16();
+            }
+
             long assetDataPos = writer.Position;
 
             // Write the updated directory infos
@@ -344,7 +349,7 @@ namespace AssetsTools.NET
                     TotalFileSize = 0,
                     CompressedSize = fsHeader.DecompressedSize,
                     DecompressedSize = fsHeader.DecompressedSize,
-                    Flags = 0x40
+                    Flags = 0x40 | ((fsHeader.Flags & 0x200) != 0 ? 0x200u : 0u)
                 }
             };
 
@@ -390,6 +395,10 @@ namespace AssetsTools.NET
                 writer.Align16();
             }
             newBundleInf6.Write(writer);
+            if ((newBundleHeader6.FileStreamHeader.Flags & 0x200) != 0)
+            {
+                writer.Align16();
+            }
 
             reader.Position = Header.GetFileDataOffset();
             for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
