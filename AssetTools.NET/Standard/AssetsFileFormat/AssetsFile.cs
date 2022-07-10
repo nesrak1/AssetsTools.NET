@@ -144,7 +144,7 @@ namespace AssetsTools.NET
             {
                 UnityVersion = Metadata.UnityVersion,
                 TargetPlatform = Metadata.TargetPlatform,
-                TypeTreeNotStripped = Metadata.TypeTreeNotStripped,
+                TypeTreeEnabled = Metadata.TypeTreeEnabled,
                 TypeTreeTypes = typeTreeTypes,
                 AssetInfos = newAssetInfos,
                 ScriptTypes = Metadata.ScriptTypes, // todo
@@ -218,6 +218,14 @@ namespace AssetsTools.NET
             
             // Set writer position back to end of file
             writer.Position = writeStart + newFileSize;
+        }
+
+        public ushort GetScriptIndex(AssetFileInfo info)
+        {
+            if (Header.Version < 0x10)
+                return info.ScriptTypeIndex;
+            else
+                return Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
         }
 
         public static bool IsAssetsFile(string filePath)

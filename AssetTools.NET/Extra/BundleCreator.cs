@@ -23,7 +23,7 @@ namespace AssetsTools.NET.Extra
             {
                 UnityVersion = engineVersion,
                 TargetPlatform = typeTreeVersion,
-                TypeTreeNotStripped = hasTypeTree,
+                TypeTreeEnabled = hasTypeTree,
                 TypeTreeTypes = new List<TypeTreeType>(),
                 AssetInfos = new List<AssetFileInfo>(),
                 ScriptTypes = new List<AssetPPtr>(),

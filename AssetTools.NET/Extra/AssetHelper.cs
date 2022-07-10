@@ -79,22 +79,14 @@
             return null;
         }
 
-        public static ushort GetScriptIndex(AssetsFile file, AssetFileInfo info)
-        {
-            if (file.Header.Version < 0x10)
-                return info.ScriptTypeIndex;
-            else
-                return file.Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
-        }
-
         public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfo info)
         {
             ClassDatabaseType type = FindAssetClassByID(cldb, info.TypeId);
             AssetsFileReader reader = file.Reader;
 
-            if (file.Metadata.TypeTreeNotStripped)
+            if (file.Metadata.TypeTreeEnabled)
             {
-                ushort scriptId = GetScriptIndex(file, info);
+                ushort scriptId = file.GetScriptIndex(info);
 
                 TypeTreeType ttType = FindTypeTreeTypeByID(file.Metadata, info.TypeId, scriptId);
 

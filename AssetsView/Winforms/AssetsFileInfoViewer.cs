@@ -30,9 +30,9 @@ namespace AssetsView.Winforms
             hdr_en.Text = header.Endianness ? "big endian" : "little endian";
             hdr_uvr.Text = metadata.UnityVersion;
             hdr_ver.Text = $"{metadata.TargetPlatform} (0x{metadata.TargetPlatform:x})";
-            hdr_htt.Text = metadata.TypeTreeNotStripped ? "true" : "false";
+            hdr_htt.Text = metadata.TypeTreeEnabled ? "true" : "false";
             //type tree
-            if (!metadata.TypeTreeNotStripped)
+            if (!metadata.TypeTreeEnabled)
             {
                 ttr_tree.Nodes.Add("There is no type tree data available.");
             }
@@ -102,7 +102,7 @@ namespace AssetsView.Winforms
             else
                 ttr_monohash.Text = "";
 
-            if (metadata.TypeTreeNotStripped)
+            if (metadata.TypeTreeEnabled)
                 GenerateTtrTree(type);
         }
 

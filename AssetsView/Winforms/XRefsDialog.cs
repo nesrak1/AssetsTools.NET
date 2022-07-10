@@ -50,7 +50,7 @@ namespace AssetsView.Winforms
                         AssetsFile xrefFile = xrefInst.file;
                         AssetFileInfo xrefInf = xrefInst.file.GetAssetInfo(id.pathID);
                         int fixedId = AssetHelper.FixAudioID(xrefInf.TypeId);
-                        bool hasTypeTree = xrefFile.Metadata.TypeTreeNotStripped;
+                        bool hasTypeTree = xrefFile.Metadata.TypeTreeEnabled;
 
                         string assetName = AssetHelper.GetAssetNameFast(xrefFile, am.classDatabase, xrefInf);
                         string typeName;

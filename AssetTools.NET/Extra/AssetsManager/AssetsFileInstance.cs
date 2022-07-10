@@ -9,37 +9,29 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetsFile file;
-        public List<AssetsFileInstance> dependencies = new List<AssetsFileInstance>();
         public BundleFileInstance parentBundle = null;
-        // for monobehaviours
-        public Dictionary<uint, string> monoIdToName = new Dictionary<uint, string>();
+        internal Dictionary<int, AssetsFileInstance> dependencyCache;
 
         public Stream AssetsStream => file.Reader.BaseStream;
 
-        public AssetsFileInstance(Stream stream, string filePath, string root)
+        public AssetsFileInstance(Stream stream, string filePath)
         {
             path = Path.GetFullPath(filePath);
-            name = Path.Combine(root, Path.GetFileName(path));
+            name = Path.GetFileName(path);
             file = new AssetsFile(new AssetsFileReader(stream));
-            dependencies.AddRange(
-                Enumerable.Range(0, file.Metadata.Externals.Count)
-                          .Select(d => (AssetsFileInstance)null)
-            );
+            dependencyCache = new Dictionary<int, AssetsFileInstance>();
         }
-        public AssetsFileInstance(FileStream stream, string root)
+        public AssetsFileInstance(FileStream stream)
         {
             path = stream.Name;
-            name = Path.Combine(root, Path.GetFileName(path));
+            name = Path.GetFileName(path);
             file = new AssetsFile(new AssetsFileReader(stream));
-            dependencies.AddRange(
-                Enumerable.Range(0, file.Metadata.Externals.Count)
-                          .Select(d => (AssetsFileInstance)null)
-            );
+            dependencyCache = new Dictionary<int, AssetsFileInstance>();
         }
 
         public AssetsFileInstance GetDependency(AssetsManager am, int depIdx)
         {
-            if (dependencies[depIdx] == null)
+            if (!dependencyCache.ContainsKey(depIdx) || dependencyCache[depIdx] == null)
             {
                 string depPath = file.Metadata.Externals[depIdx].PathName;
 
@@ -57,15 +49,15 @@ namespace AssetsTools.NET.Extra
 
                     if (File.Exists(absPath))
                     {
-                        dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);
+                        dependencyCache[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);
                     }
                     else if (File.Exists(localAbsPath))
                     {
-                        dependencies[depIdx] = am.LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                        dependencyCache[depIdx] = am.LoadAssetsFile(File.OpenRead(localAbsPath), true);
                     }
                     else if (parentBundle != null)
                     {
-                        dependencies[depIdx] = am.LoadAssetsFileFromBundle(parentBundle, depPath, true);
+                        dependencyCache[depIdx] = am.LoadAssetsFileFromBundle(parentBundle, depPath, true);
                     }
                     else
                     {
@@ -74,10 +66,10 @@ namespace AssetsTools.NET.Extra
                 }
                 else
                 {
-                    dependencies[depIdx] = am.files[instIndex];
+                    dependencyCache[depIdx] = am.files[instIndex];
                 }
             }
-            return dependencies[depIdx];
+            return dependencyCache[depIdx];
         }
     }
 }

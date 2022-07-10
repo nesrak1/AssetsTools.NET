@@ -15,9 +15,9 @@ namespace AssetsTools.NET
         /// </summary>
         public uint TargetPlatform { get; set; }
         /// <summary>
-        /// Marks whether the type tree is stripped or not. Types of stripped type trees do not have any fields.
+        /// Marks whether the type info contains type tree data.
         /// </summary>
-        public bool TypeTreeNotStripped { get; set; }
+        public bool TypeTreeEnabled { get; set; }
         /// <summary>
         /// List of type tree types.
         /// </summary>
@@ -59,7 +59,7 @@ namespace AssetsTools.NET
             TargetPlatform = reader.ReadUInt32();
             if (version >= 13)
             {
-                TypeTreeNotStripped = reader.ReadBoolean();
+                TypeTreeEnabled = reader.ReadBoolean();
             }
 
             int fieldCount = reader.ReadInt32();
@@ -67,7 +67,7 @@ namespace AssetsTools.NET
             for (int i = 0; i < fieldCount; i++)
             {
                 TypeTreeType type0d = new TypeTreeType();
-                type0d.Read(reader, version, TypeTreeNotStripped);
+                type0d.Read(reader, version, TypeTreeEnabled);
                 TypeTreeTypes.Add(type0d);
             }
 
@@ -127,13 +127,13 @@ namespace AssetsTools.NET
             writer.Write(TargetPlatform);
             if (version >= 13)
             {
-                writer.Write(TypeTreeNotStripped);
+                writer.Write(TypeTreeEnabled);
             }
 
             writer.Write(TypeTreeTypes.Count);
             for (int i = 0; i < TypeTreeTypes.Count; i++)
             {
-                TypeTreeTypes[i].Write(writer, version, TypeTreeNotStripped);
+                TypeTreeTypes[i].Write(writer, version, TypeTreeEnabled);
             }
             
             writer.Write(AssetInfos.Count);
