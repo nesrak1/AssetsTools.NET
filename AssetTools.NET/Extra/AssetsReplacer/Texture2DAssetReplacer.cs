@@ -2,7 +2,7 @@
 {
     public abstract class Texture2DAssetReplacer : SerializingAssetReplacer
     {
-        protected Texture2DAssetReplacer(AssetsManager manager, AssetsFile assetsFile, AssetFileInfo asset)
+        protected Texture2DAssetReplacer(AssetsManager manager, AssetsFileInstance assetsFile, AssetFileInfo asset)
             : base(manager, assetsFile, asset)
         {
         }

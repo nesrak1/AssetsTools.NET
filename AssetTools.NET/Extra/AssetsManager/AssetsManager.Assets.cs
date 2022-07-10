@@ -7,13 +7,13 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
-        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, string root = "", BundleFileInstance bunInst = null)
+        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
         {
             AssetsFileInstance instance;
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
             if (index == -1)
             {
-                instance = new AssetsFileInstance(stream, path, root);
+                instance = new AssetsFileInstance(stream, path);
                 instance.parentBundle = bunInst;
                 files.Add(instance);
             }
@@ -25,23 +25,21 @@ namespace AssetsTools.NET.Extra
             if (loadDeps)
             {
                 if (bunInst == null)
-                    LoadDependencies(instance, Path.GetDirectoryName(path));
+                    LoadDependencies(instance);
                 else
                     LoadBundleDependencies(instance, bunInst, Path.GetDirectoryName(path));
             }
-            if (updateAfterLoad)
-                UpdateDependencies(instance);
             return instance;
         }
 
-        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps, string root = "")
+        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps)
         {
-            return LoadAssetsFile(stream, stream.Name, loadDeps, root);
+            return LoadAssetsFile(stream, stream.Name, loadDeps);
         }
 
-        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps, string root = "")
+        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps)
         {
-            return LoadAssetsFile(File.OpenRead(path), loadDeps, root);
+            return LoadAssetsFile(File.OpenRead(path), loadDeps);
         }
 
         public bool UnloadAssetsFile(string path)

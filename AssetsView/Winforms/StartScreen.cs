@@ -153,7 +153,6 @@ namespace AssetsView.Winforms
             if (currentFile == null || Path.GetFullPath(currentFile.path) != Path.GetFullPath(inst.path))
             {
                 inst.file.GenerateQuickLookupTree();
-                helper.UpdateDependencies();
                 helper.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
                 if (helper.classDatabase == null) // new v3: shouldn't happen anymore since this is automatic
                 {
@@ -172,7 +171,6 @@ namespace AssetsView.Winforms
                         MessageBoxButtons.YesNo) == DialogResult.Yes)
                     {
                         AssetsFileInstance ggmInst = helper.LoadAssetsFile(ggmPath, true);
-                        helper.UpdateDependencies();
                         LoadResources(ggmInst);
                     }
                     else
@@ -212,7 +210,7 @@ namespace AssetsView.Winforms
                 ClassDatabaseType type = AssetHelper.FindAssetClassByID(helper.classDatabase, info.TypeId);
                 if (helper.classDatabase.GetString(type.Name) == "ResourceManager")
                 {
-                    AssetTypeValueField baseField = helper.GetBaseField(ggm.file, info);
+                    AssetTypeValueField baseField = helper.GetBaseField(ggm, info);
                     AssetTypeValueField m_Container = baseField.Get("m_Container").Get("Array");
                     List<AssetDetails> assets = new List<AssetDetails>();
                     for (int i = 0; i < m_Container.Children.Count; i++)
@@ -252,7 +250,6 @@ namespace AssetsView.Winforms
                     //rootDir.Create(paths);
                     rootDir.Create(assets);
                     ChangeDirectory("");
-                    helper.UpdateDependencies();
                     CheckResourcesInfo();
                     return;
                 }
@@ -440,7 +437,7 @@ namespace AssetsView.Winforms
                 else
                 {
                     AssetFileInfo info = currentFile.file.GetAssetInfo((long)selRow.Cells[3].Value);
-                    ushort monoId = AssetHelper.GetScriptIndex(currentFile.file, info);
+                    ushort monoId = currentFile.file.GetScriptIndex(info);
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.TypeId,
                         info.AbsoluteByteStart,
@@ -464,7 +461,7 @@ namespace AssetsView.Winforms
             {
                 var selRow = assetList.SelectedRows[0];
                 AssetFileInfo info = currentFile.file.GetAssetInfo((long)selRow.Cells[3].Value);
-                AssetTypeValueField baseField = helper.GetBaseField(currentFile.file, info);
+                AssetTypeValueField baseField = helper.GetBaseField(currentFile, info);
 
                 TextureViewer texView = new TextureViewer(currentFile, baseField);
                 texView.SaveTexture();
@@ -479,7 +476,7 @@ namespace AssetsView.Winforms
             {
                 var selRow = assetList.SelectedRows[0];
                 AssetFileInfo info = currentFile.file.GetAssetInfo((long)selRow.Cells[3].Value);
-                AssetTypeValueField baseField = helper.GetBaseField(currentFile.file, info);
+                AssetTypeValueField baseField = helper.GetBaseField(currentFile, info);
 
                 TextureViewer texView = new TextureViewer(currentFile, baseField);
                 texView.Show();
@@ -577,7 +574,6 @@ namespace AssetsView.Winforms
 
         public void UpdateDependencies()
         {
-            helper.UpdateDependencies();
             UpdateFileList();
             //CheckResourcesInfo();
         }
@@ -698,7 +694,6 @@ namespace AssetsView.Winforms
         {
             AssetsFileInstance inst = helper.files[e.Node.Index];
             inst.file.GenerateQuickLookupTree();
-            helper.UpdateDependencies();
             UpdateFileList();
             currentFile = inst;
             LoadGeneric(inst, false);

@@ -49,7 +49,7 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeValueField baseField = baseFieldTemp.MakeValue(file.Reader, info.AbsoluteByteStart);
 
-            ushort scriptIndex = AssetHelper.GetScriptIndex(file, info);
+            ushort scriptIndex = file.GetScriptIndex(info);
             if (scriptIndex != 0xFFFF)
             {
                 AssetTypeValueField scriptBaseField = am.GetExtAsset(inst, baseField.Get("m_Script")).baseField;

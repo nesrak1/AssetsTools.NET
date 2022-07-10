@@ -35,7 +35,7 @@ namespace AssetsView.Winforms
 
             ClassDatabaseFile classFile = helper.classDatabase;
             AssetFileInfo info = inst.file.GetAssetInfo(selectedId);
-            AssetTypeTemplateField typeTemplate = helper.GetTemplateBaseField(inst.file, info);
+            AssetTypeTemplateField typeTemplate = helper.GetTemplateBaseField(inst, info);
             string typeName = typeTemplate.Type;
 
             if (typeName == "GameObject")
@@ -50,7 +50,7 @@ namespace AssetsView.Winforms
                 bool hasGameObjectField = typeTemplate.Children.Any(f => f.Name == "m_GameObject");
                 if (hasGameObjectField)
                 {
-                    AssetTypeValueField firstBaseField = helper.GetBaseField(inst.file, info);
+                    AssetTypeValueField firstBaseField = helper.GetBaseField(inst, info);
                     AssetExternal firstExt = helper.GetExtAsset(inst, firstBaseField["m_GameObject"]);
                     if (firstExt.info != null)
                     {
@@ -169,11 +169,11 @@ namespace AssetsView.Winforms
             if (className == "MonoBehaviour")
             {
                 className += $" ({GetClassName(helper, inst, targetBaseField)})";
-                string managedPath = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
-                if (Directory.Exists(managedPath))
-                {
-                    targetBaseField = helper.GetMonoBaseFieldCached(inst, info, managedPath);
-                }
+                //string managedPath = Path.Combine(Path.GetDirectoryName(inst.path), "Managed");
+                //if (Directory.Exists(managedPath))
+                //{
+                //    targetBaseField = helper.GetMonoBaseFieldCached(inst, info, managedPath);
+                //}
             }
             string category = new string('\t', size - index) + className;
             PopulateDataGrid(targetBaseField, root, info, category);

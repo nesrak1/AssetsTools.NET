@@ -88,14 +88,14 @@ namespace AssetsView.Winforms
 
                     AssetID id = new AssetID(Path.GetFileName(inst.name), inf.PathId);
                     AssetTypeValueField baseField;
-                    if (inf.TypeId == 0x72)
-                    {
-                        baseField = am.GetMonoBaseFieldCached(inst, inf, Path.Combine(dirName, "Managed"));
-                    }
-                    else
-                    {
-                        baseField = am.GetBaseField(inst.file, inf);
-                    }
+                    //if (inf.TypeId == 0x72)
+                    //{
+                    //    baseField = am.GetMonoBaseFieldCached(inst, inf, Path.Combine(dirName, "Managed"));
+                    //}
+                    //else
+                    //{
+                        baseField = am.GetBaseField(inst, inf);
+                    //}
 
                     RecurseReferences(inst, id, baseField);
 
