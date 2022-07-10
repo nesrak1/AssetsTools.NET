@@ -176,6 +176,11 @@ namespace AssetsTools.NET
             // This is only here to allocate enough space so it's fine if it's inaccurate
             newBundleInf6.DirectoryInfos = dirInfos.ToArray();
             newBundleInf6.Write(writer);
+            
+            if ((Header.FileStreamHeader.Flags & 0x200) != 0)
+            {
+                writer.Align16();
+            }
 
             long assetDataPos = writer.Position;
 
@@ -256,59 +261,6 @@ namespace AssetsTools.NET
             AssetBundleFSHeader fsHeader = Header.FileStreamHeader;
             AssetsFileReader reader = Reader;
 
-            // now decompressed with Read()
-            //reader.Position = Header.GetBundleInfoOffset();
-            //
-            //MemoryStream blockAndDirStream;
-            //AssetsFileReader blockAndDirReader;
-            //
-            //int compressedSize = (int)fsHeader.CompressedSize;
-            //
-            //// Decompress header if necessary
-            //switch (Header.GetCompressionType())
-            //{
-            //    case 1:
-            //    {
-            //        using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
-            //        {
-            //            blockAndDirStream = SevenZipHelper.StreamDecompress(ms);
-            //        }
-            //        break;
-            //    }
-            //    case 2:
-            //    case 3:
-            //    {
-            //        byte[] uncompressedBytes = new byte[fsHeader.DecompressedSize];
-            //        using (MemoryStream ms = new MemoryStream(reader.ReadBytes(compressedSize)))
-            //        {
-            //            Lz4DecoderStream decoder = new Lz4DecoderStream(ms);
-            //            decoder.Read(uncompressedBytes, 0, (int)fsHeader.DecompressedSize);
-            //            decoder.Dispose();
-            //        }
-            //        blockAndDirStream = new MemoryStream(uncompressedBytes);
-            //        break;
-            //    }
-            //    default:
-            //    {
-            //        blockAndDirStream = null;
-            //        break;
-            //    }
-            //}
-            //
-            //if (Header.GetCompressionType() != 0)
-            //{
-            //    using (blockAndDirReader = new AssetsFileReader(blockAndDirStream))
-            //    {
-            //        blockAndDirReader.Position = 0;
-            //        BlockAndDirInfo.Read(blockAndDirReader);
-            //    }
-            //}
-            //else
-            //{
-            //    if (BlockAndDirInfo == null)
-            //        throw new Exception("BlockAndDirInfo shouldn't be null for uncompressed files. Did you read correctly?");
-            //}
-
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
 
@@ -323,7 +275,7 @@ namespace AssetsTools.NET
                     TotalFileSize = 0,
                     CompressedSize = fsHeader.DecompressedSize,
                     DecompressedSize = fsHeader.DecompressedSize,
-                    Flags = 0x40
+                    Flags = 0x40 | ((fsHeader.Flags & 0x200) != 0 ? 0x200u : 0u)
                 }
             };
 
@@ -369,6 +321,10 @@ namespace AssetsTools.NET
                 writer.Align16();
             }
             newBundleInf6.Write(writer);
+            if ((newBundleHeader6.FileStreamHeader.Flags & 0x200) != 0)
+            {
+                writer.Align16();
+            }
 
             reader.Position = Header.GetFileDataOffset();
             for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
