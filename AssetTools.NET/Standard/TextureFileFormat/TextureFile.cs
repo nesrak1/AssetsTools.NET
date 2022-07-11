@@ -13,7 +13,7 @@ namespace AssetsTools.NET
         public bool m_DownscaleFallback;
         public int m_Width;
         public int m_Height;
-        public uint m_CompleteImageSize;
+        public int m_CompleteImageSize;
         public int m_TextureFormat;
         public int m_MipCount;
         public bool m_MipMap;
@@ -65,7 +65,7 @@ namespace AssetsTools.NET
             texture.m_Height = baseField["m_Height"].AsInt;
 
             if (!(tempField = baseField["m_CompleteImageSize"]).IsDummy)
-                texture.m_CompleteImageSize = tempField.AsUInt;
+                texture.m_CompleteImageSize = tempField.AsInt;
 
             texture.m_TextureFormat = baseField["m_TextureFormat"].AsInt;
 
@@ -160,7 +160,7 @@ namespace AssetsTools.NET
             baseField["m_Height"].AsInt = m_Height;
 
             if (!(tempField = baseField["m_CompleteImageSize"]).IsDummy)
-                tempField.AsUInt = m_CompleteImageSize;
+                tempField.AsInt = m_CompleteImageSize;
 
             baseField["m_TextureFormat"].AsInt = m_TextureFormat;
 
@@ -321,7 +321,7 @@ namespace AssetsTools.NET
             m_StreamData.offset = 0;
             m_StreamData.size = 0;
             pictureData = encodedData;
-            m_CompleteImageSize = (uint)encodedData.Length;
+            m_CompleteImageSize = encodedData.Length;
         }
 
         [Obsolete("Renamed to " + nameof(Decode))]

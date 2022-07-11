@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -96,52 +97,112 @@ namespace AssetsTools.NET
         }
         public sbyte AsSByte
         {
-            get => (sbyte)Value;
+            get
+            {
+                if (Value is sbyte sbyteValue)
+                    return sbyteValue;
+                else
+                    return (sbyte)Convert.ChangeType(Value, typeof(sbyte));
+            }
             set => Value = value;
         }
         public byte AsByte
         {
-            get => (byte)Value;
+            get
+            {
+                if (Value is byte byteValue)
+                    return byteValue;
+                else
+                    return (byte)Convert.ChangeType(Value, typeof(byte));
+            }
             set => Value = value;
         }
         public short AsShort
         {
-            get => (short)Value;
+            get
+            {
+                if (Value is short shortValue)
+                    return shortValue;
+                else
+                    return (short)Convert.ChangeType(Value, typeof(short));
+            }
             set => Value = value;
         }
         public ushort AsUShort
         {
-            get => (ushort)Value;
+            get
+            {
+                if (Value is ushort ushortValue)
+                    return ushortValue;
+                else
+                    return (ushort)Convert.ChangeType(Value, typeof(ushort));
+            }
             set => Value = value;
         }
         public int AsInt
         {
-            get => (int)Value;
+            get
+            {
+                if (Value is int intValue)
+                    return intValue;
+                else
+                    return (int)Convert.ChangeType(Value, typeof(int));
+            }
             set => Value = value;
         }
         public uint AsUInt
         {
-            get => (uint)Value;
+            get
+            {
+                if (Value is uint uintValue)
+                    return uintValue;
+                else
+                    return (uint)Convert.ChangeType(Value, typeof(uint));
+            }
             set => Value = value;
         }
         public long AsLong
         {
-            get => (long)Value;
+            get
+            {
+                if (Value is long longValue)
+                    return longValue;
+                else
+                    return (long)Convert.ChangeType(Value, typeof(long));
+            }
             set => Value = value;
         }
         public ulong AsULong
         {
-            get => (ulong)Value;
+            get
+            {
+                if (Value is ulong uintValue)
+                    return uintValue;
+                else
+                    return (ulong)Convert.ChangeType(Value, typeof(ulong));
+            }
             set => Value = value;
         }
         public float AsFloat
         {
-            get => (float)Value;
+            get
+            {
+                if (Value is float floatValue)
+                    return floatValue;
+                else
+                    return (float)Convert.ChangeType(Value, typeof(float));
+            }
             set => Value = value;
         }
         public double AsDouble
         {
-            get => (double)Value;
+            get
+            {
+                if (Value is double doubleValue)
+                    return doubleValue;
+                else
+                    return (double)Convert.ChangeType(Value, typeof(double));
+            }
             set => Value = value;
         }
         public string AsString
