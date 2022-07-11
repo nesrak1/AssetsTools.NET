@@ -4,8 +4,9 @@ A .NET library for reading and modifying Unity assets and bundles based off of t
 
 Jump to a tool:
 
-[![AssetsTools](https://user-images.githubusercontent.com/12544505/73600757-7c97a280-451a-11ea-934b-afd392cc2bcc.png)](#assetstools)
+[![AssetsTools](logo.png)](#assetstools)
 [![AssetsView](https://user-images.githubusercontent.com/12544505/73600640-e57e1b00-4518-11ea-8aab-e8664947f435.png)](#assetsview)
+[![UABE Avalonia](uabealogo.png)](https://github.com/nesrak1/UABEA/)
 
 # AssetsTools.NET
 
@@ -14,8 +15,3 @@ Jump to a tool:
 Documentation and examples can be found on the wiki.
 
 AssetsTools.NET allows you to read and write assets files and bundles files.
-
-# Licensing
-
-AssetsTools.NET is licensed under MIT license: you can include it with any tool or mod you make. UABE's AssetsTools is open source but under a less permissive license, so all code in AssetsTools.NET will remain separate and not use any of its code.
-
