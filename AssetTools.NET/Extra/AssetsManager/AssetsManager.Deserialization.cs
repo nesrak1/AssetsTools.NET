@@ -78,7 +78,7 @@ namespace AssetsTools.NET.Extra
                             if (success)
                             {
                                 AssetTypeTemplateField newBaseField =
-                                    monoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, file.Header.Version);
+                                    monoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, new UnityVersion(file.Metadata.UnityVersion));
 
                                 if (newBaseField != null)
                                 {

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
 namespace AssetsTools.NET
 {
-    public class AssetTypeValueField
+    public class AssetTypeValueField : IEnumerable
     {
         public AssetTypeTemplateField TemplateField { get; set; }
         public AssetTypeValue Value { get; set; }
@@ -263,6 +264,11 @@ namespace AssetsTools.NET
             return data;
         }
 
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Children.GetEnumerator();
+        }
+
         // for conveience
         public bool AsBool { get => Value.AsBool; set => Value.AsBool = value; }
         public sbyte AsSByte { get => Value.AsSByte; set => Value.AsSByte = value; }
@@ -278,5 +284,8 @@ namespace AssetsTools.NET
         public string AsString { get => Value.AsString; set => Value.AsString = value; }
         public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
         public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
+
+        public string TypeName { get => TemplateField.Type; }
+        public string FieldName { get => TemplateField.Name; }
     }
 }
