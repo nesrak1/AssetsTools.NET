@@ -40,5 +40,10 @@ namespace AssetsTools.NET
 
             return hex.ToString();
         }
+
+        public static Hash128 NewBlankHash()
+        {
+            return new Hash128() { data = new byte[16] };
+        }
     }
 }

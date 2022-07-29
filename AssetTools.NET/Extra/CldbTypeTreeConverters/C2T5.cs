@@ -37,8 +37,9 @@ namespace AssetsTools.NET.Extra
                 TypeId = type.ClassId,
                 ScriptTypeIndex = 0xffff,
                 IsStrippedType = false,
-                ScriptIdHash = new Hash128(),
-                TypeHash = new Hash128()
+                ScriptIdHash = Hash128.NewBlankHash(),
+                TypeHash = Hash128.NewBlankHash(),
+                TypeDependencies = new int[0]
             };
 
             cldbFile = classes;

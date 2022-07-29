@@ -21,7 +21,7 @@ void Load()
     var replacers = new List<AssetsReplacer>();
     foreach (var goInfo in afile.GetAssetsOfType(AssetClassID.GameObject))
     {
-        var goBase = assetsManager.GetBaseField(afile, goInfo);
+        var goBase = assetsManager.GetBaseField(afileInst, goInfo);
         var name = goBase["m_Name"].AsString;
         var revName = Reverse(name);
         Console.WriteLine($"{name} -> {revName}");
