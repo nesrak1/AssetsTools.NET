@@ -31,7 +31,7 @@ namespace AssetsTools.NET.Extra
                 valueChildren = new List<AssetTypeValueField>(templateChildren.Count);
                 for (int i = 0; i < templateChildren.Count; i++)
                 {
-                    valueChildren[i] = DefaultValueFieldFromTemplate(templateChildren[i]);
+                    valueChildren.Add(DefaultValueFieldFromTemplate(templateChildren[i]));
                 }
             }
 
@@ -74,11 +74,10 @@ namespace AssetsTools.NET.Extra
                 case AssetValueType.Double:
                     obj = 0d; break;
                 case AssetValueType.String:
-                    obj = string.Empty; break;
-                case AssetValueType.Array:
-                    obj = new AssetTypeArrayInfo(); break;
                 case AssetValueType.ByteArray:
                     obj = new byte[0]; break;
+                case AssetValueType.Array:
+                    obj = new AssetTypeArrayInfo(); break;
                 default:
                     obj = null; break;
             }
