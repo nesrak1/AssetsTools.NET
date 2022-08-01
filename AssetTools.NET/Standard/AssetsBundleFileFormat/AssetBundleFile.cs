@@ -528,6 +528,7 @@ namespace AssetsTools.NET
             using (MemoryStream memStream = new MemoryStream())
             {
                 AssetsFileWriter infoWriter = new AssetsFileWriter(memStream);
+                infoWriter.BigEndian = writer.BigEndian;
                 newBlockAndDirList.Write(infoWriter);
                 bundleInfoBytes = memStream.ToArray();
             }
