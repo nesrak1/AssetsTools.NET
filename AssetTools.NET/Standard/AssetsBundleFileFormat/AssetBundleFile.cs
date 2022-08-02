@@ -577,6 +577,7 @@ namespace AssetsTools.NET
             }
 
             int compressedSize = (int)Header.FileStreamHeader.CompressedSize;
+            int decompressedSize = (int)Header.FileStreamHeader.DecompressedSize;
 
             switch (Header.GetCompressionType())
             {
@@ -584,7 +585,8 @@ namespace AssetsTools.NET
                 {
                     using (MemoryStream mstream = new MemoryStream(Reader.ReadBytes(compressedSize)))
                     {
-                        blocksInfoStream = SevenZipHelper.StreamDecompress(mstream);
+                        blocksInfoStream = new MemoryStream();
+                        SevenZipHelper.StreamDecompress(mstream, blocksInfoStream, compressedSize, decompressedSize);
                     }
                     break;
                 }
