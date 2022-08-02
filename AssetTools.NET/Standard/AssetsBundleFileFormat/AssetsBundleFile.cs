@@ -268,12 +268,14 @@ namespace AssetsTools.NET
                 MemoryStream blocksInfoStream;
                 AssetsFileReader memReader;
                 int compressedSize = (int)bundleHeader6.compressedSize;
+                int decompressedSize = (int)bundleHeader6.decompressedSize;
                 switch (bundleHeader6.GetCompressionType())
                 {
                     case 1:
                         using (MemoryStream mstream = new MemoryStream(reader.ReadBytes(compressedSize)))
                         {
-                            blocksInfoStream = SevenZipHelper.StreamDecompress(mstream);
+                            blocksInfoStream = new MemoryStream();
+                            SevenZipHelper.StreamDecompress(mstream, blocksInfoStream, compressedSize, decompressedSize);
                         }
                         break;
                     case 2:
