@@ -214,6 +214,7 @@ namespace AssetsTools.NET
                         Reader.Position = Header.GetFileDataOffset() + originalInfo.Offset;
                         Reader.BaseStream.CopyToCompat(writer.BaseStream, originalInfo.DecompressedSize);
 
+                        dirInfos[i].DecompressedSize = originalInfo.DecompressedSize;
                         dirInfos[i].Offset = startPos - assetDataPos;
                     }
                 }
