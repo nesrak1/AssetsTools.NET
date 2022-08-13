@@ -155,6 +155,15 @@ namespace AssetsTools.NET
             {
                 Externals[i].Write(writer);
             }
+
+            if (version >= 20)
+            {
+                writer.Write(RefTypes.Count);
+                for (int j = 0; j < RefTypes.Count; j++)
+                {
+                    RefTypes[j].Write(writer);
+                }
+            }
         }
 
         public AssetFileInfo GetAssetInfo(long pathId)

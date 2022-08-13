@@ -12,12 +12,16 @@ namespace AssetsTools.NET
 
         public void Read(AssetsFileReader reader)
         {
-            // todo
+            ClassName = reader.ReadNullTerminated();
+            Namespace = reader.ReadNullTerminated();
+            AsmName = reader.ReadNullTerminated();
         }
 
         public void Write(AssetsFileWriter writer)
         {
-            // todo
+            writer.WriteNullTerminated(ClassName);
+            writer.WriteNullTerminated(Namespace);
+            writer.WriteNullTerminated(AsmName);
         }
     }
 }
