@@ -75,8 +75,8 @@ namespace AssetsTools.NET
                             TypeId = replacerClassId,
                             IsStrippedType = false,
                             ScriptTypeIndex = replacerScriptIndex,
-                            ScriptIdHash = new Hash128(),
-                            TypeHash = new Hash128(),
+                            ScriptIdHash = Hash128.NewBlankHash(),
+                            TypeHash = Hash128.NewBlankHash(),
                             Nodes = new List<TypeTreeNode>(),
                             StringBufferBytes = new byte[0],
                             TypeDependencies = new int[0]
