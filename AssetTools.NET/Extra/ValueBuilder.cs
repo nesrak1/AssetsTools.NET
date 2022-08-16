@@ -82,7 +82,7 @@ namespace AssetsTools.NET.Extra
                 case EnumValueTypes.Array:
                     obj = new AssetTypeArray(); break;
                 case EnumValueTypes.ByteArray:
-                    obj = new AssetTypeByteArray(); break;
+                    obj = new AssetTypeByteArray(new byte[0]); break;
                 default:
                     obj = null; break;
             }
