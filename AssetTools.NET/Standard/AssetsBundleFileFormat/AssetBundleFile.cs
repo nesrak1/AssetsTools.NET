@@ -50,9 +50,9 @@ namespace AssetsTools.NET
                     new NotImplementedException("Non UnityFS bundles are not supported yet.");
                 }
             }
-            else if (version == 3)
+            else
             {
-                new NotImplementedException("Version 3 bundles are not supported yet.");
+                new NotImplementedException($"Version {version} bundles are not supported yet.");
             }
         }
 
@@ -64,13 +64,16 @@ namespace AssetsTools.NET
             if (Header.Signature != "UnityFS")
                 throw new NotImplementedException("Non UnityFS bundles are not supported yet.");
 
-            if ((Header.FileStreamHeader.Flags & 0x3f) != 0)
-                throw new Exception("Bundles must be decompressed before writing.");
-
             writer.Position = 0;
 
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
+
+            foreach (AssetBundleBlockInfo blockInfo in blockInfos)
+            {
+                if ((blockInfo.Flags & 0x3f) != 0)
+                    throw new Exception("Bundles must be decompressed before writing.");
+            }
 
             Header.Write(writer);
 
