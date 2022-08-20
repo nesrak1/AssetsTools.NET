@@ -6,12 +6,33 @@ namespace AssetsTools.NET
 {
     public class AssetTypeTemplateField
     {
+        /// <summary>
+        /// Name of the field.
+        /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Type name of the field.
+        /// </summary>
         public string Type { get; set; }
+        /// <summary>
+        /// Type of the field (as an enum).
+        /// </summary>
         public AssetValueType ValueType { get; set; }
+        /// <summary>
+        /// Is the field an array?
+        /// </summary>
         public bool IsArray { get; set; }
+        /// <summary>
+        /// Is the field aligned? This aligns four bytes after all children have been read/written.
+        /// </summary>
         public bool IsAligned { get; set; }
+        /// <summary>
+        /// Does the field have value? (i.e. is the field a numeric / string / array type?)
+        /// </summary>
         public bool HasValue { get; set; }
+        /// <summary>
+        /// Children of the field.
+        /// </summary>
         public List<AssetTypeTemplateField> Children { get; set; }
 
         public void FromTypeTree(TypeTreeType typeTreeType)

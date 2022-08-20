@@ -4,20 +4,42 @@ namespace AssetsTools.NET
 {
     public class TypeTreeNode
     {
+        /// <summary>
+        /// Version of the node
+        /// </summary>
         public ushort Version { get; set; }
+        /// <summary>
+        /// Level of the node (0 for root, 1 for child, etc.)
+        /// </summary>
         public byte Level { get; set; }
         /// <summary>
         /// 1 if array
         /// </summary>
         public byte TypeFlags { get; set; }
+        /// <summary>
+        /// Offset of the type string in the string table.
+        /// </summary>
         public uint TypeStrOffset { get; set; }
+        /// <summary>
+        /// Offset of the name string in the string table.
+        /// </summary>
         public uint NameStrOffset { get; set; }
+        /// <summary>
+        /// Byte size of the field's type (for example, int is 4).
+        /// If the field isn't a value type, then this value is a sum of all children sizes.
+        /// </summary>
         public int ByteSize { get; set; }
+        /// <summary>
+        /// Index in the type tree. This should always be the same as the index in the array.
+        /// </summary>
         public uint Index { get; set; }
         /// <summary>
         /// 0x4000 if aligned
         /// </summary>
         public uint MetaFlags { get; set; }
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public ulong RefTypeHash { get; set; }
 
         public void Read(AssetsFileReader reader, uint format)

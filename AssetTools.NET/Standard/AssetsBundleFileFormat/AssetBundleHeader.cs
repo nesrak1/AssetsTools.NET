@@ -83,9 +83,9 @@ namespace AssetsTools.NET
                 if (Version >= 7)
                 {
                     if ((flags & 0x100) != 0)
-                        return ((ret + 0x0a) + 15) >> 4 << 4;
+                        return ((ret + 0x0a) + 15) & ~15;
                     else
-                        return ((ret + Signature.Length + 1) + 15) >> 4 << 4;
+                        return ((ret + Signature.Length + 1) + 15) & ~15;
                 }
                 else
                 {
@@ -112,7 +112,7 @@ namespace AssetsTools.NET
                 ret += Signature.Length + 1;
 
             if (Version >= 7)
-                ret = (ret + 15) >> 4 << 4;
+                ret = (ret + 15) & ~15;
             if ((flags & 0x80) == 0)
                 ret += compressedSize;
             if ((flags & 0x200) != 0)

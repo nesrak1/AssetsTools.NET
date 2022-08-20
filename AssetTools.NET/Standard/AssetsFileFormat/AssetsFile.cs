@@ -8,7 +8,13 @@ namespace AssetsTools.NET
 {
     public class AssetsFile
     {
+        /// <summary>
+        /// Assets file header.
+        /// </summary>
         public AssetsFileHeader Header { get; }
+        /// <summary>
+        /// Contains metadata about the file (TypeTree, engine version, dependencies, etc.)
+        /// </summary>
         public AssetsFileMetadata Metadata { get; }
 
         public AssetsFileReader Reader { get; }

@@ -7,10 +7,25 @@ namespace AssetsTools.NET
 {
     public class AssetsFileExternal
     {
+        /// <summary>
+        /// Unknown.
+        /// </summary>
         public string VirtualAssetPathName { get; set; }
+        /// <summary>
+        /// GUID for dependencies used in editor. Otherwise this is 0.
+        /// </summary>
         public GUID128 Guid { get; set; }
-        public int Type { get; set; }
+        /// <summary>
+        /// Dependency type.
+        /// </summary>
+        public AssetsFileExternalType Type { get; set; }
+        /// <summary>
+        /// Real path name to the other file.
+        /// </summary>
         public string PathName { get; set; }
+        /// <summary>
+        /// Original path name listed in the assets file (if it was changed). You shouldn't modify this.
+        /// </summary>
         public string OriginalPathName { get; set; }
 
         public void Read(AssetsFileReader reader)
@@ -18,7 +33,7 @@ namespace AssetsTools.NET
             VirtualAssetPathName = reader.ReadNullTerminated();
             Guid = new GUID128();
             Guid.Read(reader);
-            Type = reader.ReadInt32();
+            Type = (AssetsFileExternalType)reader.ReadInt32();
             PathName = reader.ReadNullTerminated();
             OriginalPathName = PathName;
 
@@ -47,7 +62,7 @@ namespace AssetsTools.NET
         {
             writer.WriteNullTerminated(VirtualAssetPathName);
             Guid.Write(writer);
-            writer.Write(Type);
+            writer.Write((int)Type);
             string assetPathTemp = PathName;
             if ((PathName == "Resources/unity_builtin_extra" ||
                 PathName == "Resources/unity default resources" ||

@@ -2,8 +2,17 @@
 {
     public class AssetPPtr
     {
+        /// <summary>
+        /// File path of the pointer. If empty or null, FileId will be used.
+        /// </summary>
         public string FilePath { get; set; }
+        /// <summary>
+        /// File ID of the pointer.
+        /// </summary>
         public int FileId { get; set; }
+        /// <summary>
+        /// Path ID of the pointer.
+        /// </summary>
         public long PathId { get; set; }
 
         public AssetPPtr()

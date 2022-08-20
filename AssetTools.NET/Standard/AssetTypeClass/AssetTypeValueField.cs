@@ -7,8 +7,17 @@ namespace AssetsTools.NET
 {
     public class AssetTypeValueField : IEnumerable
     {
+        /// <summary>
+        /// Template field corresponding to this value field.
+        /// </summary>
         public AssetTypeTemplateField TemplateField { get; set; }
+        /// <summary>
+        /// Value of this field.
+        /// </summary>
         public AssetTypeValue Value { get; set; }
+        /// <summary>
+        /// Children of this field.
+        /// </summary>
         public List<AssetTypeValueField> Children { get; set; }
 
         public bool IsDummy { get; set; }

@@ -11,7 +11,13 @@ namespace AssetsTools.NET
 {
     public class AssetBundleFile
     {
+        /// <summary>
+        /// Bundle header. Contains bundle engine version.
+        /// </summary>
         public AssetBundleHeader Header { get; set; }
+        /// <summary>
+        /// List of compression blocks and file info (file names, address in file, etc.)
+        /// </summary>
         public AssetBundleBlockAndDirInfo BlockAndDirInfo { get; set; }
 
         public AssetsFileReader Reader;
