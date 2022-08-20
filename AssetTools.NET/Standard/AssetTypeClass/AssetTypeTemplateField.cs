@@ -188,8 +188,10 @@ namespace AssetsTools.NET
                                     valueField.Value = new AssetTypeValue(reader.ReadSByte());
                                     break;
                                 case AssetValueType.UInt8:
-                                case AssetValueType.Bool:
                                     valueField.Value = new AssetTypeValue(reader.ReadByte());
+                                    break;
+                                case AssetValueType.Bool:
+                                    valueField.Value = new AssetTypeValue(reader.ReadBoolean());
                                     break;
                                 case AssetValueType.Int16:
                                     valueField.Value = new AssetTypeValue(reader.ReadInt16());
