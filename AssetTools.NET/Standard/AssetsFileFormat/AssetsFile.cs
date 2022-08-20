@@ -149,7 +149,8 @@ namespace AssetsTools.NET
                 AssetInfos = newAssetInfos,
                 ScriptTypes = Metadata.ScriptTypes, // todo
                 Externals = Metadata.Externals, // todo
-                RefTypes = Metadata.RefTypes
+                RefTypes = Metadata.RefTypes,
+                UserInformation = Metadata.UserInformation
             };
 
             long newMetadataStart = writer.Position;

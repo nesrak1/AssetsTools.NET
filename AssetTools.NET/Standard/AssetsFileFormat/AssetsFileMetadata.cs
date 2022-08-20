@@ -38,6 +38,10 @@ namespace AssetsTools.NET
         /// List of reference types (unknown what this is for).
         /// </summary>
         public List<AssetsTypeReference> RefTypes { get; set; }
+        /// <summary>
+        /// Unknown.
+        /// </summary>
+        public string UserInformation { get; set; }
 
         private Dictionary<long, int> _quickLookup = null;
 
@@ -119,6 +123,11 @@ namespace AssetsTools.NET
                     RefTypes.Add(refType);
                 }
             }
+
+            if (version >= 5)
+            {
+                UserInformation = reader.ReadNullTerminated();
+            }
         }
 
         public void Write(AssetsFileWriter writer, uint version)
@@ -163,6 +172,11 @@ namespace AssetsTools.NET
                 {
                     RefTypes[j].Write(writer);
                 }
+            }
+
+            if (version >= 5)
+            {
+                writer.WriteNullTerminated(UserInformation);
             }
         }
 
