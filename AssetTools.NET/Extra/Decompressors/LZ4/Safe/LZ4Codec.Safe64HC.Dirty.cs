@@ -301,7 +301,7 @@ namespace LZ4ps
 
 			// Encode MatchLength
 			len = (matchLength - MINMATCH);
-			if (dst_p + (1 + LASTLITERALS) + (length >> 8) > dst_end) return 1; // Check output limit
+			if (dst_p + (1 + LASTLITERALS) + (len >> 8) > dst_end) return 1; // Check output limit
 			if (len >= ML_MASK)
 			{
 				dst[dst_token] += ML_MASK;
