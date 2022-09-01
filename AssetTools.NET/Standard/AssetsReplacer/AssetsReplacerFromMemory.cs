@@ -36,13 +36,18 @@ namespace AssetsTools.NET
             buffer = field.WriteToByteArray();
             preloadList = new List<AssetPPtr>();
         }
+        public AssetsReplacerFromMemory(AssetsFile file, AssetFileInfo info, byte[] buffer)
+        {
+            fileId = 0;
+            pathId = info.PathId;
+            classId = info.TypeId;
+            monoScriptIndex = file.GetScriptIndex(info);
+            this.buffer = buffer;
+            preloadList = new List<AssetPPtr>();
+        }
         public override AssetsReplacementType GetReplacementType()
         {
             return AssetsReplacementType.AddOrModify;
-        }
-        public override int GetFileID()
-        {
-            return fileId;
         }
         public override long GetPathID()
         {

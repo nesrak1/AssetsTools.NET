@@ -18,11 +18,6 @@ namespace AssetsTools.NET
 
         #region Unused methods kept for backwards compatibility
 
-        public virtual int GetFileID()
-        {
-            throw new NotImplementedException();
-        }
-
         public virtual long GetSize()
         {
             throw new NotImplementedException();

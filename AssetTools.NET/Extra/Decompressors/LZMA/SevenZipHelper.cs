@@ -6,18 +6,6 @@ namespace SevenZip.Compression.LZMA
 {
     public static class SevenZipHelper
     {
-        //static int dictionary = 1 << 23;
-        static int dictionary = 1 << 21;
-
-        static int posStateBits = 2;
-        static int litContextBits = 3;
-        static int litPosBits = 0;
-        static int algorithm = 2;
-
-        static int numFastBytes = 32;
-
-        static bool eos = false;
-
         static CoderPropID[] propIDs =
         {
             CoderPropID.DictionarySize,
@@ -33,25 +21,25 @@ namespace SevenZip.Compression.LZMA
         // these are the default properties, keeping it simple for now:
         static object[] properties =
         {
-            dictionary,
-            posStateBits,
-            litContextBits,
-            litPosBits,
-            algorithm,
-            numFastBytes,
-            "bt4",
-            eos
+            1 << 21, // DictionarySize
+            2, // PosStateBits
+            3, // LitContextBits
+            0, // LitPosBits
+            2, // Algorithm
+            32, // NumFastBytes
+            "bt4", // MatchFinder
+            false // EndMarker
         };
 
-        public static byte[] Compress(byte[] inputBytes)
+        public static byte[] Compress(byte[] inputBytes, ICodeProgress progress = null)
         {
             MemoryStream inStream = new MemoryStream(inputBytes);
             MemoryStream outStream = new MemoryStream();
-            Compress(inStream, outStream);
+            Compress(inStream, outStream, progress);
             return outStream.ToArray();
         }
 
-        public static void Compress(Stream inStream, Stream outStream)
+        public static void Compress(Stream inStream, Stream outStream, ICodeProgress progress = null)
         {
             Encoder encoder = new Encoder();
             encoder.SetCoderProperties(propIDs, properties);
@@ -60,7 +48,7 @@ namespace SevenZip.Compression.LZMA
             //long fileSize = inStream.Length;
             //for (int i = 0; i < 8; i++)
             //    outStream.WriteByte((Byte)(fileSize >> (8 * i)));
-            encoder.Code(inStream, outStream, -1, -1, null);
+            encoder.Code(inStream, outStream, -1, -1, progress);
         }
 
         public static byte[] Decompress(byte[] inputBytes)

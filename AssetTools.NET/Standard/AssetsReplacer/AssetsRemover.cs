@@ -23,10 +23,6 @@ namespace AssetsTools.NET
         {
             return AssetsReplacementType.Remove;
         }
-        public override int GetFileID()
-        {
-            return fileID;
-        }
         public override long GetPathID()
         {
             return pathID;

@@ -7,7 +7,6 @@ namespace AssetsTools.NET
 {
     public class AssetsReplacerFromStream : AssetsReplacer
     {
-        private readonly int fileId;
         private readonly long pathId;
         private readonly int classId;
         private readonly Stream stream;
@@ -20,9 +19,8 @@ namespace AssetsTools.NET
         private ClassDatabaseType type;
         private List<AssetPPtr> preloadList;
 
-        public AssetsReplacerFromStream(int fileId, long pathId, int classId, ushort monoScriptIndex, Stream stream, long offset, long size)
+        public AssetsReplacerFromStream(long pathId, int classId, ushort monoScriptIndex, Stream stream, long offset, long size)
         {
-            this.fileId = fileId;
             this.pathId = pathId;
             this.classId = classId;
             this.monoScriptIndex = monoScriptIndex;
@@ -31,13 +29,19 @@ namespace AssetsTools.NET
             this.size = size;
             this.preloadList = new List<AssetPPtr>();
         }
+        public AssetsReplacerFromStream(AssetsFile assetsFile, AssetFileInfo info, Stream stream, long offset, long size)
+        {
+            this.pathId = info.PathId;
+            this.classId = info.TypeId;
+            this.monoScriptIndex = assetsFile.GetScriptIndex(info);
+            this.stream = stream;
+            this.offset = offset;
+            this.size = size;
+            this.preloadList = new List<AssetPPtr>();
+        }
         public override AssetsReplacementType GetReplacementType()
         {
             return AssetsReplacementType.AddOrModify;
-        }
-        public override int GetFileID()
-        {
-            return fileId;
         }
         public override long GetPathID()
         {

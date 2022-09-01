@@ -371,7 +371,7 @@ namespace AssetsTools.NET
             }
         }
 
-        public void Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType, bool blockDirAtEnd = true)
+        public void Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType, bool blockDirAtEnd = true, IAssetBundleCompressProgress progress = null)
         {
             if (Header == null)
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
@@ -438,8 +438,10 @@ namespace AssetsTools.NET
                     else
                         writeStream = GetTempFileStream();
 
+                    var lzmaProgress = new AssetBundleLZMAProgress(progress, bundleDataStream.Length);
+
                     long writeStreamStart = writeStream.Position;
-                    SevenZipHelper.Compress(bundleDataStream, writeStream);
+                    SevenZipHelper.Compress(bundleDataStream, writeStream, lzmaProgress);
                     uint writeStreamLength = (uint)(writeStream.Position - writeStreamStart);
 
                     AssetBundleBlockInfo blockInfo = new AssetBundleBlockInfo()
@@ -454,6 +456,8 @@ namespace AssetsTools.NET
 
                     if (!blockDirAtEnd)
                         newStreams.Add(writeStream);
+
+                    progress.SetProgress(1.0f);
 
                     break;
                 }
@@ -471,6 +475,11 @@ namespace AssetsTools.NET
                             writeStream = GetTempFileStream();
 
                         byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+
+                        if (progress != null)
+                        {
+                            progress.SetProgress((float)bundleDataReader.BaseStream.Position / bundleDataReader.BaseStream.Length);
+                        }
 
                         if (compressedBlock.Length > uncompressedBlock.Length)
                         {
@@ -508,6 +517,9 @@ namespace AssetsTools.NET
 
                         uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                     }
+
+                    progress.SetProgress(1.0f);
+
                     break;
                 }
                 case AssetBundleCompressionType.None:

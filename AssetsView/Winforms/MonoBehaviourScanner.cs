@@ -121,22 +121,26 @@ namespace AssetsView.Winforms
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
                 foreach (AssetFileInfo inf in inst.file.GetAssetsOfType(0x72))
                 {
-                    AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
-                    fr.BigEndian = false;
-                    fr.Position = inf.AbsoluteByteStart;
-                    fr.Position += 16;
-                    int m_FileID = fr.ReadInt32();
-                    long m_PathID = fr.ReadInt64();
-                    string refFileName = fileName;
-                    if (m_FileID != 0)
-                        refFileName = inst.file.Metadata.Externals[m_FileID - 1].PathName;
-
-                    AssetID scriptId = new AssetID(Path.GetFileName(refFileName), m_PathID);
-                    AssetID selfId = new AssetID(Path.GetFileName(fileName), inf.PathId);
-                    if (monoScriptRefs.ContainsKey(scriptId))
+                    try
                     {
-                        monoScriptRefs[scriptId].Add(selfId);
+                        AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
+                        fr.BigEndian = false;
+                        fr.Position = inf.AbsoluteByteStart;
+                        fr.Position += 16;
+                        int m_FileID = fr.ReadInt32();
+                        long m_PathID = fr.ReadInt64();
+                        string refFileName = fileName;
+                        if (m_FileID != 0)
+                            refFileName = inst.file.Metadata.Externals[m_FileID - 1].PathName;
+
+                        AssetID scriptId = new AssetID(Path.GetFileName(refFileName), m_PathID);
+                        AssetID selfId = new AssetID(Path.GetFileName(fileName), inf.PathId);
+                        if (monoScriptRefs.ContainsKey(scriptId))
+                        {
+                            monoScriptRefs[scriptId].Add(selfId);
+                        }
                     }
+                    catch { }
                 }
             }
             bw.ReportProgress(0);
