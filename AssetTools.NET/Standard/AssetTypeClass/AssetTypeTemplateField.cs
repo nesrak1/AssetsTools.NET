@@ -83,6 +83,13 @@ namespace AssetsTools.NET
         {
             Name = strTable.GetString(node.FieldName);
             Type = strTable.GetString(node.TypeName);
+
+            // temporary hack for tpk
+            if (Type == "SInt32")
+                Type = "int";
+            else if (Type == "UInt32")
+                Type = "unsigned int";
+
             ValueType = AssetTypeValueField.GetValueTypeByTypeName(Type);
             IsArray = node.TypeFlags == 1;
             IsAligned = (node.MetaFlag & 0x4000) != 0;
