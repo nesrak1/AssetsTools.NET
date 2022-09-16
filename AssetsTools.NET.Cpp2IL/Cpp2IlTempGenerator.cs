@@ -1,130 +1,199 @@
-﻿using Mono.Cecil;
+﻿using AssetsTools.NET.Extra;
+using LibCpp2IL;
+using LibCpp2IL.Metadata;
+using LibCpp2IL.Reflection;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using UnityVersion = AssetsTools.NET.Extra.UnityVersion;
 
-namespace AssetsTools.NET.Extra
+namespace AssetsTools.NET.Cpp2IL
 {
-    public class MonoCecilTempGenerator : IMonoBehaviourTemplateGenerator
+    public class Cpp2IlTempGenerator : IMonoBehaviourTemplateGenerator
     {
-        private UnityVersion unityVersion;
-        public string managedPath;
-        public Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
+        private readonly string _globalMetadataPath;
+        private readonly string _assemblyPath;
+        private int[] _il2cppUnityVersion;
+        private UnityVersion _unityVersion;
+        private bool _initialized;
 
-        public MonoCecilTempGenerator(string managedPath)
+        public Cpp2IlTempGenerator(string globalMetadataPath, string assemblyPath)
         {
-            this.managedPath = managedPath;
+            _globalMetadataPath = globalMetadataPath;
+            _assemblyPath = assemblyPath;
+            ResetCpp2IL();
+        }
+
+        public void ResetCpp2IL()
+        {
+            LibCpp2IlMain.Reset();
+            _il2cppUnityVersion = null;
+            _initialized = false;
+        }
+
+        public void SetUnityVersion(UnityVersion unityVersion)
+        {
+            LibCpp2IlMain.Reset();
+            _unityVersion = unityVersion;
+            _il2cppUnityVersion = new[] { unityVersion.major, unityVersion.minor, unityVersion.patch };
+            _initialized = false;
+        }
+
+        public void SetUnityVersion(int major, int minor, int patch)
+        {
+            LibCpp2IlMain.Reset();
+            _unityVersion = new UnityVersion(major + "." + minor + "." + patch);
+            _il2cppUnityVersion = new[] { major, minor, patch };
+            _initialized = false;
+        }
+
+        public void InitializeCpp2IL()
+        {
+            if (!LibCpp2IlMain.LoadFromFile(_assemblyPath, _globalMetadataPath, _il2cppUnityVersion))
+            {
+                throw new Exception("CPP2IL initialization failed!");
+            }
+            _initialized = true;
         }
 
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
         {
-            string assemblyPath = Path.Combine(managedPath, assemblyName);
-            if (!File.Exists(assemblyPath))
+            int[] il2cppUnityVersion = new[] { unityVersion.major, unityVersion.minor, unityVersion.patch };
+            if (_il2cppUnityVersion == null)
             {
-                return null;
+                SetUnityVersion(unityVersion);
+                InitializeCpp2IL();
             }
-            List<AssetTypeTemplateField> newFields = Read(assemblyPath, nameSpace, className, unityVersion);
-            baseField.Children.AddRange(newFields);
-            return baseField;
-        }
-
-        public List<AssetTypeTemplateField> Read(string assemblyPath, string nameSpace, string typeName, UnityVersion unityVersion)
-        {
-            AssemblyDefinition asmDef = GetAssemblyWithDependencies(assemblyPath);
-            return Read(asmDef, nameSpace, typeName, unityVersion);
-        }
-
-        public List<AssetTypeTemplateField> Read(AssemblyDefinition assembly, string nameSpace, string typeName, UnityVersion unityVersion)
-        {
-            this.unityVersion = unityVersion;
-            List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children);
-            return children;
-        }
-
-        private AssemblyDefinition GetAssemblyWithDependencies(string path)
-        {
-            string assemblyName = Path.GetFileName(path);
-            if (loadedAssemblies.ContainsKey(assemblyName))
+            else if (_il2cppUnityVersion[0] != il2cppUnityVersion[0] && _il2cppUnityVersion[1] != il2cppUnityVersion[1] && _il2cppUnityVersion[2] != il2cppUnityVersion[2])
             {
-                return loadedAssemblies[assemblyName];
+                Debug.WriteLine("Warning: This unity version does not match what CPP2IL was registered with. Call ResetUnityVersion().");
             }
 
-            DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(Path.GetDirectoryName(path));
+            _unityVersion = unityVersion;
 
-            ReaderParameters readerParameters = new ReaderParameters()
+            Il2CppMetadata meta = LibCpp2IlMain.TheMetadata;
+
+            string assmeblyNameTrimmed = assemblyName;
+            if (assemblyName.EndsWith(".dll"))
             {
-                AssemblyResolver = resolver
+                assemblyName = assemblyName.Substring(0, assemblyName.Length - 4);
+            }
+
+            Il2CppAssemblyDefinition asm = meta.AssemblyDefinitions.ToList().First(a => a.AssemblyName.Name == assemblyName);
+            if (asm == null)
+            {
+                throw new Exception($"Assembly \"{assemblyName}\" was not found in the IL2CPP metadata.");
+            }
+
+            Il2CppTypeDefinition type = asm.Image.Types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == className);
+            if (type == null)
+            {
+                throw new Exception($"Type \"{nameSpace}::{className}\" was not found in the IL2CPP metadata.");
+            }
+
+            List<AssetTypeTemplateField> templateFields = new List<AssetTypeTemplateField>();
+            RecursiveTypeLoad(type, templateFields);
+
+            templateFields.InsertRange(0, baseField.Children);
+            AssetTypeTemplateField newBaseField = new AssetTypeTemplateField
+            {
+                Name = baseField.Name,
+                Type = baseField.Type,
+                ValueType = baseField.ValueType,
+                IsArray = baseField.IsArray,
+                IsAligned = baseField.IsAligned,
+                HasValue = baseField.HasValue,
+                Children = templateFields
             };
 
-            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(path, readerParameters);
-            loadedAssemblies[assemblyName] = asmDef;
-
-            return asmDef;
+            return newBaseField;
         }
 
-        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf)
+        private List<string> GetAttributeNamesOnField(Il2CppImageDefinition image, Il2CppFieldDefinition field)
         {
-            TypeDefinition type = module.GetTypes().First(t => t.Namespace == nameSpace && t.Name == typeName);
-            RecursiveTypeLoad(type, attf);
+            List<string> attributeNames = new List<string>();
+
+            var attributeTypeRange = LibCpp2IlMain.TheMetadata.GetCustomAttributeData(image, field.customAttributeIndex, field.token);
+
+            if (attributeTypeRange == null)
+            {
+                return attributeNames;
+            }
+
+            for (int attributeIdx = 0; attributeIdx < attributeTypeRange.count; attributeIdx++)
+            {
+                var attributeTypeIndex = LibCpp2IlMain.TheMetadata.attributeTypes[attributeTypeRange.start + attributeIdx];
+                var attributeTypeDef = LibCpp2IlMain.TheMetadata.typeDefs.FirstOrDefault(td => td.byvalTypeIndex == attributeTypeIndex);
+                if (attributeTypeDef != null)
+                {
+                    attributeNames.Add(attributeTypeDef.FullName);
+                }
+            }
+
+            return attributeNames;
         }
 
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(Il2CppTypeDefinition type, List<AssetTypeTemplateField> templateFields)
         {
-            string baseName = type.typeDef.BaseType.FullName;
+            string baseName = type.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
                 baseName != "UnityEngine.MonoBehaviour" &&
                 baseName != "UnityEngine.ScriptableObject")
             {
-                TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
-                typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, attf);
+                Il2CppTypeDefinition typeDef = type.BaseType.baseType;
+                //typeDef.AssignTypeParams(type);
+                RecursiveTypeLoad(typeDef, templateFields);
             }
 
-            attf.AddRange(ReadTypes(type));
+            templateFields.AddRange(ReadTypes(type));
         }
 
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type)
+        private List<AssetTypeTemplateField> ReadTypes(Il2CppTypeDefinition type)
         {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
+            List<Il2CppFieldDefinition> acceptableFields = GetAcceptableFields(type);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
-                FieldDefinition fieldDef = acceptableFields[i];
-                TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
+                Il2CppFieldDefinition fieldDef = acceptableFields[i];
+                Il2CppTypeReflectionData fieldType = fieldDef.FieldType;
+                Il2CppTypeDefinition fieldTypeDef = fieldDef.FieldType.baseType;
+                //TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
 
                 bool isArrayOrList = false;
 
-                if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
+                if (fieldType.isArray)
                 {
-                    ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
-                    isArrayOrList = arrType.IsVector;
+                    fieldTypeDef = fieldDef.FieldType.arrayType.baseType;
+                    isArrayOrList = fieldType.arrayRank == 1;
                 }
-                else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
+                else if (fieldTypeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
+                    fieldTypeDef = fieldDef.FieldType.genericParams[0].baseType;
                     isArrayOrList = true;
                 }
 
+                TypeAttributes typeAttrs = (TypeAttributes)fieldTypeDef.flags;
+                bool isSerializable = typeAttrs.HasFlag(TypeAttributes.Serializable);
+
                 field.Name = fieldDef.Name;
-                if (baseToPrimitive.ContainsKey(fieldTypeDef.typeDef.FullName))
+                if (baseToPrimitive.ContainsKey(fieldTypeDef.FullName))
                 {
-                    field.Type = baseToPrimitive[fieldTypeDef.typeDef.FullName];
+                    field.Type = baseToPrimitive[fieldTypeDef.FullName];
                 }
                 else
                 {
-                    field.Type = fieldTypeDef.typeDef.Name;
+                    field.Type = fieldTypeDef.Name;
                 }
 
                 if (IsPrimitiveType(fieldTypeDef))
                 {
                     field.Children = new List<AssetTypeTemplateField>();
                 }
-                else if (fieldTypeDef.typeDef.Name.Equals("String"))
+                else if (fieldTypeDef.FullName == "System.String")
                 {
                     SetString(field);
                 }
@@ -136,12 +205,16 @@ namespace AssetsTools.NET.Extra
                 {
                     SetPPtr(field, true);
                 }
-                else if (fieldTypeDef.typeDef.IsSerializable)
+                else if (isSerializable)
                 {
                     SetSerialized(field, fieldTypeDef);
                 }
+                else
+                {
+                    Console.WriteLine("you wot mate");
+                }
 
-                if (fieldTypeDef.typeDef.IsEnum)
+                if (fieldTypeDef.IsEnumType)
                 {
                     field.ValueType = AssetValueType.Int32;
                 }
@@ -161,27 +234,45 @@ namespace AssetsTools.NET.Extra
             return localChildren;
         }
 
-        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
+        private List<Il2CppFieldDefinition> GetAcceptableFields(Il2CppTypeDefinition typeDef)
         {
-            List<FieldDefinition> validFields = new List<FieldDefinition>();
-            foreach (FieldDefinition f in typeDef.typeDef.Fields)
+            List<Il2CppFieldDefinition> validFields = new List<Il2CppFieldDefinition>();
+            for (int i = 0; i < typeDef.field_count; i++)
             {
-                if (Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Public) ||
-                    f.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeField")) //field is public or has exception attribute
-                {
-                    if (!Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Static) &&
-                        !Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.NotSerialized) &&
-                        !f.IsInitOnly &&
-                        !f.HasConstant) //field is not public, has exception attribute, readonly, or const
-                    {
-                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+                Il2CppFieldDefinition f = typeDef.Fields[i];
+                FieldAttributes attr = typeDef.FieldAttributes[i];
 
-                        TypeDefinition ftd = ft.typeDef;
+                List<string> attributeNames = GetAttributeNamesOnField(typeDef.DeclaringAssembly, f);
+
+                if (attr.HasFlag(FieldAttributes.Public) ||
+                    attributeNames.Contains("UnityEngine.SerializeField")) //field is public or has exception attribute
+                {
+                    if (!attr.HasFlag(FieldAttributes.Static) &&
+                        !attr.HasFlag(FieldAttributes.NotSerialized) &&
+                        !attr.HasFlag(FieldAttributes.InitOnly) &&
+                        !attr.HasFlag(FieldAttributes.Literal)) //field is not public, has exception attribute, readonly, or const
+                    {
+                        Il2CppTypeDefinition ftd;
+                        if (f.FieldType.isArray)
+                        {
+                            if (f.FieldType.arrayRank != 1)
+                            {
+                                continue;
+                            }
+                            ftd = f.FieldType.arrayType.baseType;
+                        }
+                        else
+                        {
+                            ftd = f.FieldType.baseType;
+                        }
+
                         if (ftd != null)
                         {
-                            if (ftd.IsPrimitive ||
-                                ftd.IsEnum ||
-                                ftd.IsSerializable ||
+                            TypeAttributes typeAttrs = (TypeAttributes)ftd.flags;
+
+                            if (IsPrimitiveTypeString(ftd) ||
+                                ftd.IsEnumType ||
+                                typeAttrs.HasFlag(TypeAttributes.Serializable) ||
                                 DerivesFromUEObject(ftd) ||
                                 IsSpecialUnityType(ftd)) //field has a serializable type
                             {
@@ -194,7 +285,7 @@ namespace AssetsTools.NET.Extra
             return validFields;
         }
 
-        private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
+        private readonly Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
             {"System.Boolean","bool"},
             {"System.Int64","SInt64"},
@@ -211,19 +302,10 @@ namespace AssetsTools.NET.Extra
             {"System.String","string"}
         };
 
-        private string ConvertBaseToPrimitive(string name)
+        private bool IsPrimitiveType(Il2CppTypeDefinition typeDef)
         {
-            if (baseToPrimitive.ContainsKey(name))
-            {
-                return baseToPrimitive[name];
-            }
-            return name;
-        }
-
-        private bool IsPrimitiveType(TypeDefWithSelfRef typeDef)
-        {
-            string name = typeDef.typeDef.FullName;
-            if (typeDef.typeDef.IsEnum ||
+            string name = typeDef.FullName;
+            if (typeDef.IsEnumType ||
                 name == "System.Boolean" ||
                 name == "System.Int64" ||
                 name == "System.Int16" ||
@@ -239,9 +321,17 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
-        private bool IsSpecialUnityType(TypeDefWithSelfRef typeDef)
+        private bool IsPrimitiveTypeString(Il2CppTypeDefinition typeDef)
         {
-            string name = typeDef.typeDef.FullName;
+            string name = typeDef.FullName;
+            if (IsPrimitiveType(typeDef) ||
+                name == "System.String") return true; // this is useless. string is already a System.Object
+            return false;
+        }
+
+        private bool IsSpecialUnityType(Il2CppTypeDefinition typeDef)
+        {
+            string name = typeDef.FullName;
             if (name == "UnityEngine.Color" ||
                 name == "UnityEngine.Color32" ||
                 name == "UnityEngine.Gradient" ||
@@ -261,15 +351,17 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
-        private bool DerivesFromUEObject(TypeDefWithSelfRef typeDef)
+        private bool DerivesFromUEObject(Il2CppTypeDefinition typeDef)
         {
-            if (typeDef.typeDef.IsInterface)
+            TypeAttributes typeAttributes = (TypeAttributes)typeDef.flags;
+
+            if (typeAttributes.HasFlag(TypeAttributes.Interface))
                 return false;
-            if (typeDef.typeDef.BaseType.FullName == "UnityEngine.Object" ||
-                typeDef.typeDef.FullName == "UnityEngine.Object")
+            if (typeDef.BaseType.baseType.FullName == "UnityEngine.Object" ||
+                typeDef.FullName == "UnityEngine.Object")
                 return true;
-            if (typeDef.typeDef.BaseType.FullName != "System.Object")
-                return DerivesFromUEObject(typeDef.typeDef.BaseType.Resolve());
+            if (typeDef.BaseType.baseType.FullName != "System.Object")
+                return DerivesFromUEObject(typeDef.BaseType.baseType);
             return false;
         }
 
@@ -373,7 +465,7 @@ namespace AssetsTools.NET.Extra
 
             AssetTypeTemplateField pathID = new AssetTypeTemplateField();
             pathID.Name = "m_PathID";
-            if (unityVersion.major >= 5)
+            if (_unityVersion.major >= 5)
             {
                 pathID.Type = "SInt64";
                 pathID.ValueType = AssetValueType.Int64;
@@ -393,7 +485,7 @@ namespace AssetsTools.NET.Extra
             };
         }
 
-        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type)
+        private void SetSerialized(AssetTypeTemplateField field, Il2CppTypeDefinition type)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
             RecursiveTypeLoad(type, types);
@@ -401,38 +493,38 @@ namespace AssetsTools.NET.Extra
         }
 
         #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type)
+        private void SetSpecialUnity(AssetTypeTemplateField field, Il2CppTypeDefinition type)
         {
-            switch (type.typeDef.Name)
+            switch (type.FullName)
             {
-                case "Gradient":
+                case "UnityEngine.Gradient":
                     SetGradient(field);
                     break;
-                case "AnimationCurve":
+                case "UnityEngine.AnimationCurve":
                     SetAnimationCurve(field);
                     break;
-                case "LayerMask":
+                case "UnityEngine.LayerMask":
                     SetBitField(field);
                     break;
-                case "Bounds":
+                case "UnityEngine.Bounds":
                     SetAABB(field);
                     break;
-                case "Rect":
+                case "UnityEngine.Rect":
                     SetRectf(field);
                     break;
-                case "Color32":
+                case "UnityEngine.Color32":
                     SetGradientRGBAb(field);
                     break;
-                case "GUIStyle":
+                case "UnityEngine.GUIStyle":
                     SetGUIStyle(field);
                     break;
-                case "BoundsInt":
+                case "UnityEngine.BoundsInt":
                     SetAABBInt(field);
                     break;
-                case "Vector2Int":
+                case "UnityEngine.Vector2Int":
                     SetVec2Int(field);
                     break;
-                case "Vector3Int":
+                case "UnityEngine.Vector3Int":
                     SetVec3Int(field);
                     break;
                 default:
@@ -497,7 +589,7 @@ namespace AssetsTools.NET.Extra
             /////////////
             AssetTypeTemplateField size = CreateTemplateField("size", "int", AssetValueType.Int32);
             AssetTypeTemplateField data;
-            if (unityVersion.major >= 2018)
+            if (_unityVersion.major >= 2018)
             {
                 data = CreateTemplateField("data", "Keyframe", AssetValueType.None, new List<AssetTypeTemplateField> {
                     time, value, inSlope, outSlope, weightedMode, inWeight, outWeight

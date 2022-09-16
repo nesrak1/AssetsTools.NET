@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsTools.NET", "AssetToo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsView", "AssetsView\AssetsView.csproj", "{42D1011E-A1FB-424D-BB4E-C858EB088E9C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelloWorld", "HelloWorld\HelloWorld.csproj", "{45108769-20DA-4CFC-AC00-98FD12EFAE6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HelloWorld", "HelloWorld\HelloWorld.csproj", "{45108769-20DA-4CFC-AC00-98FD12EFAE6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetsTools.NET.Cpp2IL", "AssetsTools.NET.Cpp2IL\AssetsTools.NET.Cpp2IL.csproj", "{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|x64.ActiveCfg = Release|Any CPU
 		{45108769-20DA-4CFC-AC00-98FD12EFAE6C}.Release|x64.Build.0 = Release|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Debug|x64.Build.0 = Debug|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Release|x64.ActiveCfg = Release|Any CPU
+		{0540E38A-FCD9-49CE-93CF-7E50ADF7A1D8}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
