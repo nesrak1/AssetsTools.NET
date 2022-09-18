@@ -1,4 +1,6 @@
-﻿namespace AssetsTools.NET
+﻿using AssetsTools.NET.Extra;
+
+namespace AssetsTools.NET
 {
     public class AssetPPtr
     {
@@ -57,9 +59,55 @@
                 FilePath = file.Metadata.Externals[depIndex].PathName;
         }
 
+        public void SetFilePathFromFile(AssetsManager am, AssetsFileInstance fileInst)
+        {
+            if (FileId == 0)
+            {
+                FilePath = fileInst.path;
+                return;
+            }
+
+            int depIndex = FileId - 1;
+            AssetsFileInstance depInst = fileInst.GetDependency(am, depIndex);
+            if (depInst != null)
+            {
+                FilePath = depInst.path;
+            }
+        }
+
         public static AssetPPtr FromField(AssetTypeValueField field)
         {
             return new AssetPPtr(field["m_FileID"].AsInt, field["m_PathID"].AsLong);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is AssetPPtr))
+            {
+                return false;
+            }
+
+            AssetPPtr assetPPtr = (AssetPPtr)obj;
+            if (assetPPtr.HasFilePath() && HasFilePath())
+            {
+                return assetPPtr.PathId == PathId && assetPPtr.FilePath == FilePath;
+            }
+            else if (!assetPPtr.HasFilePath() && !HasFilePath())
+            {
+                return assetPPtr.PathId == PathId && assetPPtr.FileId == FileId;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17;
+            hash = hash * 23 + (HasFilePath() ? FilePath.GetHashCode() : FileId.GetHashCode());
+            hash = hash * 23 + PathId.GetHashCode();
+            return hash;
         }
     }
 }
