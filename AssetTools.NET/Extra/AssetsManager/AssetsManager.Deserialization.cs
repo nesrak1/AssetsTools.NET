@@ -75,6 +75,13 @@ namespace AssetsTools.NET.Extra
                                 monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
                                 out string assemblyName, out string nameSpace, out string className, preferEditor);
 
+                            // newer games don't have .dll
+                            // let's just be consistent and remove .dll from all assemblyName strings
+                            if (assemblyName.EndsWith(".dll"))
+                            {
+                                assemblyName = assemblyName.Substring(0, assemblyName.Length - 4);
+                            }
+
                             if (success)
                             {
                                 AssetTypeTemplateField newBaseField =

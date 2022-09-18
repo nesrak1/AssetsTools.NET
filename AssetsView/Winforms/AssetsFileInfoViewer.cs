@@ -70,7 +70,7 @@ namespace AssetsView.Winforms
                 {
                     guid = $"{dep.Guid.mostSignificant:x8}{dep.Guid.leastSignificant:x8}";
                 }
-                dep_list.Items.Add(new ListViewItem(new[] { dep.PathName, "0x" + dep.Type.ToString(), guid }));
+                dep_list.Items.Add(new ListViewItem(new[] { dep.PathName, dep.Type.ToString(), guid }));
             }
             dep_list.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
         }

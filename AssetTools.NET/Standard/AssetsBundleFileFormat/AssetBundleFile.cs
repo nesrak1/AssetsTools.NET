@@ -35,7 +35,7 @@ namespace AssetsTools.NET
 
             string magic = reader.ReadNullTerminated(); // skipped and read by header
             uint version = reader.ReadUInt32();
-            if (version == 6 || version == 7)
+            if (version >= 6 || version <= 8)
             {
                 Reader.Position = 0;
 

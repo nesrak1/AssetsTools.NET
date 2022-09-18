@@ -75,12 +75,6 @@ namespace AssetsTools.NET.Cpp2IL
 
             Il2CppMetadata meta = LibCpp2IlMain.TheMetadata;
 
-            string assmeblyNameTrimmed = assemblyName;
-            if (assemblyName.EndsWith(".dll"))
-            {
-                assemblyName = assemblyName.Substring(0, assemblyName.Length - 4);
-            }
-
             Il2CppAssemblyDefinition asm = meta.AssemblyDefinitions.ToList().First(a => a.AssemblyName.Name == assemblyName);
             if (asm == null)
             {

@@ -19,6 +19,12 @@ namespace AssetsTools.NET.Extra
 
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
         {
+            // newer games don't have .dll
+            if (!assemblyName.EndsWith(".dll"))
+            {
+                assemblyName += ".dll";
+            }
+
             string assemblyPath = Path.Combine(managedPath, assemblyName);
             if (!File.Exists(assemblyPath))
             {
@@ -67,7 +73,8 @@ namespace AssetsTools.NET.Extra
 
         private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf)
         {
-            TypeDefinition type = module.GetTypes().First(t => t.Namespace == nameSpace && t.Name == typeName);
+            // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
+            TypeDefinition type = new TypeReference(nameSpace, typeName, module, module).Resolve();
             RecursiveTypeLoad(type, attf);
         }
 
