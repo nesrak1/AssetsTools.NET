@@ -457,7 +457,10 @@ namespace AssetsTools.NET
                     if (!blockDirAtEnd)
                         newStreams.Add(writeStream);
 
-                    progress.SetProgress(1.0f);
+                    if (progress != null)
+                    {
+                        progress.SetProgress(1.0f);
+                    }
 
                     break;
                 }
@@ -518,7 +521,10 @@ namespace AssetsTools.NET
                         uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                     }
 
-                    progress.SetProgress(1.0f);
+                    if (progress != null)
+                    {
+                        progress.SetProgress(1.0f);
+                    }
 
                     break;
                 }

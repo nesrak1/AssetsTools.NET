@@ -17,7 +17,10 @@ namespace AssetsTools.NET
 
         public void SetProgress(long inSize, long outSize)
         {
-            progress.SetProgress((float)inSize / length);
+            if (progress != null)
+            {
+                progress.SetProgress((float)inSize / length);
+            }
         }
     }
 }
