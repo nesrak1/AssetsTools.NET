@@ -5,7 +5,7 @@ using System.IO;
 
 namespace AssetsTools.NET
 {
-    public class AssetTypeValueField : IEnumerable
+    public class AssetTypeValueField : IEnumerable<AssetTypeValueField>
     {
         /// <summary>
         /// Template field corresponding to this value field.
@@ -271,6 +271,11 @@ namespace AssetsTools.NET
                 data = ms.ToArray();
             }
             return data;
+        }
+
+        public IEnumerator<AssetTypeValueField> GetEnumerator()
+        {
+            return Children.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
