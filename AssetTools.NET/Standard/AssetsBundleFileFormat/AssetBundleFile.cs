@@ -685,6 +685,18 @@ namespace AssetsTools.NET
             length = entry.DecompressedSize;
         }
 
+        public List<string> GetAllFileNames()
+        {
+            List<string> names = new List<string>();
+            AssetBundleDirectoryInfo[] dirInfos = BlockAndDirInfo.DirectoryInfos;
+            foreach (AssetBundleDirectoryInfo dirInfo in dirInfos)
+            {
+                names.Add(dirInfo.Name);
+            }
+
+            return names;
+        }
+
         private FileStream GetTempFileStream()
         {
             string tempFilePath = Path.GetTempFileName();
