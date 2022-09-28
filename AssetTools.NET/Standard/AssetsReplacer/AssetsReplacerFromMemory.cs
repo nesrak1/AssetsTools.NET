@@ -167,7 +167,7 @@ namespace AssetsTools.NET
             if (file != null)
             {
                 writer.Write((byte)1);
-                file.Write(writer);
+                file.Write(writer, ClassFileCompressionType.Uncompressed);
             }
             else
             {

@@ -30,22 +30,38 @@ namespace AssetsTools.NET
             }
         }
 
+        public void Write(AssetsFileWriter writer)
+        {
+            writer.Write(ClassId);
+
+            writer.Write(Classes.Count);
+            for (int i = 0; i < Classes.Count; i++)
+            {
+                writer.Write(Classes[i].Key.ToUInt64());
+                if (Classes[i].Value != null)
+                {
+                    writer.Write((byte)1);
+                    Classes[i].Value.Write(writer);
+                }
+                else
+                {
+                    writer.Write((byte)0);
+                }
+            }
+        }
+
         public ClassPackageType GetTypeForVersion(UnityVersion version)
         {
             ClassPackageType lastType = Classes[0].Value;
-            UnityVersion lastVer = Classes[0].Key;
             for (int i = 0; i < Classes.Count; i++)
             {
                 if (Classes[i].Key.ToUInt64() >= version.ToUInt64())
                 {
-                    System.Diagnostics.Debug.WriteLine($"for {(AssetClassID)ClassId} selecting {lastVer} (by {version}, next {Classes[i].Key})");
                     return lastType;
                 }
                 lastType = Classes[i].Value;
-                lastVer = Classes[i].Key;
             }
 
-            System.Diagnostics.Debug.WriteLine($"for {(AssetClassID)ClassId} selecting last choice {lastVer} (by {version})");
             return lastType;
         }
     }

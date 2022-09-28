@@ -9,7 +9,7 @@ namespace AssetsTools.NET
         public int ClassId { get; set; }
         public ushort Name { get; set; }
         public ushort BaseName { get; set; }
-        public ClassDatabasePackageTypeFlags Flags { get; set; }
+        public ClassFileTypeFlags Flags { get; set; }
         public ClassDatabaseTypeNode EditorRootNode { get; set; }
         public ClassDatabaseTypeNode ReleaseRootNode { get; set; }
 
@@ -20,17 +20,17 @@ namespace AssetsTools.NET
             Name = reader.ReadUInt16();
             BaseName = reader.ReadUInt16();
 
-            Flags = (ClassDatabasePackageTypeFlags)reader.ReadByte();
+            Flags = (ClassFileTypeFlags)reader.ReadByte();
 
             EditorRootNode = null;
-            if (Net35Polyfill.HasFlag(Flags, ClassDatabasePackageTypeFlags.HasEditorRootNode))
+            if (Net35Polyfill.HasFlag(Flags, ClassFileTypeFlags.HasEditorRootNode))
             {
                 EditorRootNode = new ClassDatabaseTypeNode();
                 EditorRootNode.Read(reader);
             }
 
             ReleaseRootNode = null;
-            if (Net35Polyfill.HasFlag(Flags, ClassDatabasePackageTypeFlags.HasReleaseRootNode))
+            if (Net35Polyfill.HasFlag(Flags, ClassFileTypeFlags.HasReleaseRootNode))
             {
                 ReleaseRootNode = new ClassDatabaseTypeNode();
                 ReleaseRootNode.Read(reader);
@@ -46,12 +46,12 @@ namespace AssetsTools.NET
 
             writer.Write((byte)Flags);
 
-            if (Net35Polyfill.HasFlag(Flags, ClassDatabasePackageTypeFlags.HasEditorRootNode) && EditorRootNode != null)
+            if (Net35Polyfill.HasFlag(Flags, ClassFileTypeFlags.HasEditorRootNode) && EditorRootNode != null)
             {
                 EditorRootNode.Write(writer);
             }
 
-            if (Net35Polyfill.HasFlag(Flags, ClassDatabasePackageTypeFlags.HasReleaseRootNode) && ReleaseRootNode != null)
+            if (Net35Polyfill.HasFlag(Flags, ClassFileTypeFlags.HasReleaseRootNode) && ReleaseRootNode != null)
             {
                 ReleaseRootNode.Write(writer);
             }

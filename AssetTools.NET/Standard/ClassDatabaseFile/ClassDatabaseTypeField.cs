@@ -38,6 +38,7 @@ namespace AssetsTools.NET
             writer.Write(TypeFlags);
             writer.Write(MetaFlag);
 
+            writer.Write((ushort)Children.Count);
             for (int i = 0; i < Children.Count; i++)
             {
                 Children[i].Write(writer);

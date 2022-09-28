@@ -28,5 +28,21 @@ namespace AssetsTools.NET
                 StringBufferIndices.Add(reader.ReadUInt16());
             }
         }
+
+        public void Write(AssetsFileWriter writer)
+        {
+            writer.Write(VersionInformation.Count);
+            foreach (KeyValuePair<UnityVersion, byte> versionCountPair in VersionInformation)
+            {
+                writer.Write(versionCountPair.Key.ToUInt64());
+                writer.Write(versionCountPair.Value);
+            }
+
+            writer.Write(StringBufferIndices.Count);
+            for (int i = 0; i < StringBufferIndices.Count; i++)
+            {
+                writer.Write(StringBufferIndices[i]);
+            }
+        }
     }
 }

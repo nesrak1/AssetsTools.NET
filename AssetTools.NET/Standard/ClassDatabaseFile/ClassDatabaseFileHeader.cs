@@ -9,7 +9,7 @@ namespace AssetsTools.NET
         public string Magic { get; set; }
         public byte FileVersion { get; set; }
         public UnityVersion Version { get; set; }
-        public byte CompressionType { get; set; } //todo enum
+        public ClassFileCompressionType CompressionType { get; set; }
         public int CompressedSize { get; set; }
         public int DecompressedSize { get; set; }
 
@@ -22,7 +22,7 @@ namespace AssetsTools.NET
                 if (Magic == "cldb")
                     throw new NotSupportedException("Old cldb style class databases are no longer supported.");
                 else
-                    throw new NotSupportedException("TPK* magic not found. Is this really a tpk file?");
+                    throw new NotSupportedException("CLDB magic not found. Is this really a class database file?");
             }
 
             FileVersion = reader.ReadByte();
@@ -31,7 +31,7 @@ namespace AssetsTools.NET
 
             Version = UnityVersion.FromUInt64(reader.ReadUInt64());
 
-            CompressionType = reader.ReadByte();
+            CompressionType = (ClassFileCompressionType)reader.ReadByte();
             CompressedSize = reader.ReadInt32();
             DecompressedSize = reader.ReadInt32();
         }
@@ -41,7 +41,7 @@ namespace AssetsTools.NET
             writer.Write(Encoding.ASCII.GetBytes(Magic));
             writer.Write(FileVersion);
             writer.Write(Version.ToUInt64());
-            writer.Write(CompressionType);
+            writer.Write((byte)CompressionType);
             writer.Write(CompressedSize);
             writer.Write(DecompressedSize);
         }

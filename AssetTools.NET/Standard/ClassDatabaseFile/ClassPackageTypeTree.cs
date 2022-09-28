@@ -49,5 +49,32 @@ namespace AssetsTools.NET
 			StringTable = new ClassDatabaseStringTable();
 			StringTable.Read(reader);
 		}
+
+		public void Write(AssetsFileWriter writer)
+        {
+			writer.Write(CreationTime.ToBinary());
+
+			writer.Write(Versions.Count);
+			for (int i = 0; i < Versions.Count; i++)
+            {
+				writer.Write(Versions[i].ToUInt64());
+            }
+
+			writer.Write(ClassInformation.Count);
+			for (int i = 0; i < ClassInformation.Count; i++)
+            {
+				ClassInformation[i].Write(writer);
+            }
+
+			CommonString.Write(writer);
+
+			writer.Write(Nodes.Count);
+			for (int i = 0; i < Nodes.Count; i++)
+			{
+				Nodes[i].Write(writer);
+			}
+
+			StringTable.Write(writer);
+		}
 	}
 }

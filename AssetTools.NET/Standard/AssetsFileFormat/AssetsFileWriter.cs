@@ -76,7 +76,7 @@ namespace AssetsTools.NET
                 else base.Write(val);
             }
         }
-        public override void Write(string val)
+        public void WriteRawString(string val)
         {
             base.Write(Encoding.UTF8.GetBytes(val));
         }
@@ -125,7 +125,7 @@ namespace AssetsTools.NET
         }
         public void WriteNullTerminated(string text)
         {
-            Write(text);
+            WriteRawString(text);
             Write((byte)0x00);
         }
         public void WriteCountString(string text)
@@ -133,19 +133,19 @@ namespace AssetsTools.NET
             if (Encoding.UTF8.GetByteCount(text) > 0xFF)
                 new Exception("String is longer than 255! Use the Int32 variant instead!");
             Write((byte)Encoding.UTF8.GetByteCount(text));
-            Write(text);
+            WriteRawString(text);
         }
         public void WriteCountStringInt16(string text)
         {
             if (Encoding.UTF8.GetByteCount(text) > 0xFFFF)
                 new Exception("String is longer than 65535! Use the Int32 variant instead!");
             Write((ushort)Encoding.UTF8.GetByteCount(text));
-            Write(text);
+            WriteRawString(text);
         }
         public void WriteCountStringInt32(string text)
         {
             Write(Encoding.UTF8.GetByteCount(text));
-            Write(text);
+            WriteRawString(text);
         }
         public long Position
         {

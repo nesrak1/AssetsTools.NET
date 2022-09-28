@@ -30,5 +30,21 @@ namespace AssetsTools.NET
                 SubNodes[i] = reader.ReadUInt16();
             }
         }
+
+        public void Write(AssetsFileWriter writer)
+        {
+            writer.Write(TypeName);
+            writer.Write(FieldName);
+            writer.Write(ByteSize);
+            writer.Write(Version);
+            writer.Write(TypeFlags);
+            writer.Write(MetaFlag);
+
+            writer.Write(SubNodes.Length);
+            for (int i = 0; i < SubNodes.Length; i++)
+            {
+                writer.Write(SubNodes[i]);
+            }
+        }
     }
 }

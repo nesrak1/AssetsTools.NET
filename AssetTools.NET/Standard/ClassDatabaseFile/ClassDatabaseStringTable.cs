@@ -18,6 +18,15 @@ namespace AssetsTools.NET
             }
         }
 
+        public void Write(AssetsFileWriter writer)
+        {
+            writer.Write(Strings.Count);
+            for (int i = 0; i < Strings.Count; i++)
+            {
+                writer.Write(Strings[i]);
+            }
+        }
+
         public ushort AddString(string str)
         {
             int index = Strings.IndexOf(str);

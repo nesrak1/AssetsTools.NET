@@ -5,7 +5,7 @@ using System.Text;
 namespace AssetsTools.NET
 {
     [Flags]
-    public enum ClassDatabasePackageTypeFlags : byte
+    public enum ClassFileTypeFlags : byte
     {
         /// <summary>
         /// None of the flags apply to this class

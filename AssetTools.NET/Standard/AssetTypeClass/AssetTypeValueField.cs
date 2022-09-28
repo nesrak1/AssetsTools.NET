@@ -240,7 +240,7 @@ namespace AssetsTools.NET
                             break;
                         case AssetValueType.String:
                             writer.Write(AsString.Length);
-                            writer.Write(AsString);
+                            writer.WriteRawString(AsString);
                             writer.Align();
                             break;
                     }

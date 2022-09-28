@@ -21,7 +21,7 @@ namespace AssetsTools.NET
             Header.Read(reader);
 
             AssetsFileReader newReader;
-            if (Header.CompressionType == 1) //lz4
+            if (Header.CompressionType == ClassFileCompressionType.Lz4)
             {
                 byte[] uncompressedBytes = new byte[Header.DecompressedSize];
                 using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes((int)Header.CompressedSize)))
@@ -34,7 +34,7 @@ namespace AssetsTools.NET
                 newReader = new AssetsFileReader(ms);
                 newReader.Position = 0;
             }
-            else if (Header.CompressionType == 2) //lzma
+            else if (Header.CompressionType == ClassFileCompressionType.Lzma)
             {
                 using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes((int)Header.CompressedSize)))
                 {
@@ -51,6 +51,54 @@ namespace AssetsTools.NET
             TpkTypeTree = new ClassPackageTypeTree();
             TpkTypeTree.Read(newReader);
         }
+
+        public void Read(string path) => Read(new AssetsFileReader(File.OpenRead(path)));
+
+        public void Write(AssetsFileWriter writer, ClassFileCompressionType compressionType)
+        {
+            Header.CompressionType = compressionType;
+
+            MemoryStream dStream;
+            AssetsFileWriter dWriter;
+
+            dStream = new MemoryStream();
+            dWriter = new AssetsFileWriter(dStream);
+
+            TpkTypeTree.Write(dWriter);
+
+            if (Header.CompressionType == ClassFileCompressionType.Lz4)
+            {
+                byte[] data = LZ4Codec.Encode32HC(dStream.ToArray(), 0, (int)dStream.Length);
+
+                Header.CompressedSize = (uint)data.Length;
+                Header.DecompressedSize = (uint)dStream.Length;
+
+                Header.Write(writer);
+                writer.Write(data);
+            }
+            else if (Header.CompressionType == ClassFileCompressionType.Lzma)
+            {
+                MemoryStream cStream = new MemoryStream();
+                SevenZipHelper.Compress(dStream, cStream);
+
+                Header.CompressedSize = (uint)cStream.Length;
+                Header.DecompressedSize = (uint)dStream.Length;
+
+                Header.Write(writer);
+                cStream.CopyToCompat(writer.BaseStream);
+            }
+            else
+            {
+                Header.CompressedSize = (uint)dStream.Length;
+                Header.DecompressedSize = (uint)dStream.Length;
+
+                Header.Write(writer);
+                dStream.CopyToCompat(writer.BaseStream);
+            }
+        }
+
+        public void Write(string path, ClassFileCompressionType compressionType)
+            => Write(new AssetsFileWriter(File.OpenWrite(path)), compressionType);
 
         public ClassDatabaseFile GetClassDatabase(string version)
         {
@@ -87,6 +135,7 @@ namespace AssetsTools.NET
                     ClassId = info.ClassId,
                     Name = tpkType.Name,
                     BaseName = tpkType.BaseName,
+                    Flags = tpkType.Flags
                 };
 
                 if (tpkType.EditorRootNode != ushort.MaxValue)
@@ -128,58 +177,5 @@ namespace AssetsTools.NET
 
             return cldbNode;
         }
-
-        /*
-        private void AddStringTableEntry(ClassDatabaseFile cldb, StringBuilder strTable, Dictionary<string, uint> strMap, ClassDatabaseFileString str)
-        {
-            string stringValue = str.GetString(cldb);
-
-            if (strTable != null)
-            {
-                //search for string first and use that index if possible
-                if (!strMap.ContainsKey(stringValue))
-                {
-                    strMap[stringValue] = (uint)strTable.Length;
-                    strTable.Append(stringValue + '\0');
-                }
-                str.str.stringTableOffset = strMap[stringValue];
-            }
-            else
-            {
-                //always add string
-                str.str.stringTableOffset = (uint)strTable.Length;
-                strTable.Append(stringValue + '\0');
-            }
-        }
-
-        public bool RemoveFile(int index)
-        {
-            if (Files.Count < index)
-            {
-                Files.RemoveAt(index);
-                Header.Files.RemoveAt(index);
-                return true;
-            }
-            return false;
-        }
-
-        public bool ImportFile(AssetsFileReader reader)
-        {
-            ClassDatabaseFile cldb = new ClassDatabaseFile();
-            bool valid = cldb.Read(reader);
-            if (valid)
-            {
-                Files.Add(cldb);
-                Header.Files.Add(new ClassDatabaseFileRef()
-                {
-                    offset = 0,
-                    length = 0,
-                    name = ""
-                });
-                return true;
-            }
-            return false;
-        }
-        */
     }
 }
