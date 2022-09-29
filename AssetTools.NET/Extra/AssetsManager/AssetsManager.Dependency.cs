@@ -45,6 +45,8 @@ namespace AssetsTools.NET.Extra
                     string bunPath = Path.GetFileName(depPath);
                     int bunIndex = Array.FindIndex(ofBundle.file.BlockAndDirInfo.DirectoryInfos, d => Path.GetFileName(d.Name) == bunPath);
 
+                    // todo: use bundle's path, not assets file's
+
                     // by default, the directory of an assets file is the bundle's file path (somepath\bundle.unity3d\file.assets)
                     // we back out again to get the directory the bundle is in
                     string noBunPath = Path.Combine(path, "..");

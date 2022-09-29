@@ -23,7 +23,7 @@ namespace AssetsTools.NET
         /// </summary>
         public List<TypeTreeType> TypeTreeTypes { get; set; }
         /// <summary>
-        /// List of asset infos. Do not modify this directly. Instead, use Write (and optionally Absorb).
+        /// List of asset infos. Do not modify this directly. Instead, use Write.
         /// </summary>
         public List<AssetFileInfo> AssetInfos { get; set; }
         /// <summary>

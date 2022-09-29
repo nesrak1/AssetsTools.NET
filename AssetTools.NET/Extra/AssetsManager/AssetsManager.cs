@@ -17,8 +17,8 @@ namespace AssetsTools.NET.Extra
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
         public List<BundleFileInstance> bundles = new List<BundleFileInstance>();
         private IMonoBehaviourTemplateGenerator monoTempGenerator = null;
-        private Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
-        private Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
+        private readonly Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
+        private readonly Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
 
         public void UnloadAll(bool unloadClassData = false)
         {

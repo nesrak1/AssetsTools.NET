@@ -475,7 +475,7 @@ namespace AssetsTools.NET
                         if (blockDirAtEnd)
                             writeStream = writer.BaseStream;
                         else
-                            writeStream = GetTempFileStream();
+                            writeStream = GetTempFileStream(); // TODO: don't use separate files
 
                         byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
 

@@ -2,20 +2,8 @@
 {
     public static class AssetHelper
     {
-        public static int FixAudioID(int id)
-        {
-            if (id == 0xf1)      //AudioMixerController
-                id = 0xf0;       //AudioMixer
-            else if (id == 0xf3) //AudioMixerGroupController
-                id = 0x111;      //AudioMixerGroup
-            else if (id == 0xf5) //AudioMixerSnapshotController
-                id = 0x110;      //AudioMixerSnapshot
-            return id;
-        }
-
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, int id)
         {
-            id = FixAudioID(id);
             foreach (ClassDatabaseType type in cldb.Classes)
             {
                 if (type.ClassId == id)

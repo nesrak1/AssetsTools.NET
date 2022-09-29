@@ -10,8 +10,7 @@ namespace AssetsTools.NET.Extra
         {
             long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            int fixedId = AssetHelper.FixAudioID(info.TypeId);
-            return GetTemplateBaseField(inst, absFilePos, fixedId, scriptIndex, preferEditor);
+            return GetTemplateBaseField(inst, absFilePos, info.TypeId, scriptIndex, preferEditor);
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex, bool preferEditor = false)
