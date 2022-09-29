@@ -49,19 +49,19 @@ namespace AssetsView.Winforms
                         AssetsFileInstance xrefInst = am.files[instIndex];
                         AssetsFile xrefFile = xrefInst.file;
                         AssetFileInfo xrefInf = xrefInst.file.GetAssetInfo(id.pathID);
-                        int fixedId = AssetHelper.FixAudioID(xrefInf.TypeId);
+                        int typeId = xrefInf.TypeId;
                         bool hasTypeTree = xrefFile.Metadata.TypeTreeEnabled;
 
                         string assetName = AssetHelper.GetAssetNameFast(xrefFile, am.classDatabase, xrefInf);
                         string typeName;
                         if (hasTypeTree)
                         {
-                            TypeTreeType xrefType = AssetHelper.FindTypeTreeTypeByID(xrefFile.Metadata, fixedId);
+                            TypeTreeType xrefType = AssetHelper.FindTypeTreeTypeByID(xrefFile.Metadata, typeId);
                             typeName = xrefType.Nodes[0].GetTypeString(xrefType.StringBuffer);
                         }
                         else
                         {
-                            ClassDatabaseType xrefType = AssetHelper.FindAssetClassByID(am.classDatabase, fixedId);
+                            ClassDatabaseType xrefType = AssetHelper.FindAssetClassByID(am.classDatabase, typeId);
                             typeName = am.classDatabase.GetString(xrefType.Name);
                         }
                         xrefList.Items.Add(new ListBoxInfo($"{id.fileName} {id.pathID} ({typeName} {assetName})", id));
