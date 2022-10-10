@@ -351,10 +351,16 @@ namespace AssetsTools.NET
                        TextureFormat.BC7 =>       BC7Decoder.ReadBC7(data, width, height),
                        TextureFormat.ETC_RGB4 =>  ETCDecoders.ReadETC(data, width, height),
                        TextureFormat.ETC2_RGB4 => ETCDecoders.ReadETC(data, width, height, true),
+                       TextureFormat.ASTC_RGB_4x4 => ASTCDecoder.ReadASTC(data, width, height, 4),
+                       TextureFormat.ASTC_RGB_5x5 => ASTCDecoder.ReadASTC(data, width, height, 5),
+                       TextureFormat.ASTC_RGB_6x6 => ASTCDecoder.ReadASTC(data, width, height, 6),
+                       TextureFormat.ASTC_RGB_8x8 => ASTCDecoder.ReadASTC(data, width, height, 8),
+                       TextureFormat.ASTC_RGB_10x10 => ASTCDecoder.ReadASTC(data, width, height, 10),
+                       TextureFormat.ASTC_RGB_12x12 => ASTCDecoder.ReadASTC(data, width, height, 12),
                        _ => null
                    };
         }
-
+        
         public static byte[] Encode(byte[] data, TextureFormat format, int width, int height)
         {
             return format switch
