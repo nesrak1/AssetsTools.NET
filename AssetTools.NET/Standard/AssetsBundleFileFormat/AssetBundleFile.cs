@@ -20,6 +20,9 @@ namespace AssetsTools.NET
         /// </summary>
         public AssetBundleBlockAndDirInfo BlockAndDirInfo { get; set; }
 
+        public AssetsFileReader DataReader { get; set; }
+        public bool DataIsCompressed { get; set; }
+
         public AssetsFileReader Reader;
 
         public void Close()
@@ -220,8 +223,8 @@ namespace AssetsTools.NET
                     {
                         long startPos = writer.Position;
 
-                        Reader.Position = Header.GetFileDataOffset() + originalInfo.Offset;
-                        Reader.BaseStream.CopyToCompat(writer.BaseStream, originalInfo.DecompressedSize);
+                        DataReader.Position = originalInfo.Offset;
+                        DataReader.BaseStream.CopyToCompat(writer.BaseStream, originalInfo.DecompressedSize);
 
                         dirInfos[i].DecompressedSize = originalInfo.DecompressedSize;
                         dirInfos[i].Offset = startPos - assetDataPos;
@@ -269,7 +272,7 @@ namespace AssetsTools.NET
                 new NotImplementedException("Non UnityFS bundles are not supported yet.");
 
             AssetBundleFSHeader fsHeader = Header.FileStreamHeader;
-            AssetsFileReader reader = Reader;
+            AssetsFileReader reader = DataReader;
 
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
@@ -336,37 +339,49 @@ namespace AssetsTools.NET
                 writer.Align16();
             }
 
-            reader.Position = Header.GetFileDataOffset();
-            for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
-            {
-                AssetBundleBlockInfo info = blockInfos[i];
-                switch (info.GetCompressionType())
-                {
-                    case 0:
-                    {
-                        reader.BaseStream.CopyToCompat(writer.BaseStream, info.CompressedSize);
-                        break;
-                    }
-                    case 1:
-                    {
-                        SevenZipHelper.StreamDecompress(reader.BaseStream, writer.BaseStream, info.CompressedSize, info.DecompressedSize);
-                        break;
-                    }
-                    case 2:
-                    case 3:
-                    {
-                        using (MemoryStream tempMs = new MemoryStream())
-                        {
-                            reader.BaseStream.CopyToCompat(tempMs, info.CompressedSize);
-                            tempMs.Position = 0;
+            reader.Position = 0;
 
-                            using (Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs))
-                            {
-                                decoder.CopyToCompat(writer.BaseStream, info.DecompressedSize);
-                            }
+            if (DataIsCompressed)
+            {
+                for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
+                {
+                    AssetBundleBlockInfo info = blockInfos[i];
+                    switch (info.GetCompressionType())
+                    {
+                        case 0:
+                        {
+                            reader.BaseStream.CopyToCompat(writer.BaseStream, info.CompressedSize);
+                            break;
                         }
-                        break;
+                        case 1:
+                        {
+                            SevenZipHelper.StreamDecompress(reader.BaseStream, writer.BaseStream, info.CompressedSize, info.DecompressedSize);
+                            break;
+                        }
+                        case 2:
+                        case 3:
+                        {
+                            using (MemoryStream tempMs = new MemoryStream())
+                            {
+                                reader.BaseStream.CopyToCompat(tempMs, info.CompressedSize);
+                                tempMs.Position = 0;
+
+                                using (Lz4DecoderStream decoder = new Lz4DecoderStream(tempMs))
+                                {
+                                    decoder.CopyToCompat(writer.BaseStream, info.DecompressedSize);
+                                }
+                            }
+                            break;
+                        }
                     }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
+                {
+                    AssetBundleBlockInfo info = blockInfos[i];
+                    reader.BaseStream.CopyToCompat(writer.BaseStream, info.CompressedSize);
                 }
             }
         }
@@ -601,6 +616,10 @@ namespace AssetsTools.NET
             {
                 BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
                 BlockAndDirInfo.Read(Reader);
+
+                SegmentStream dataStream = new SegmentStream(Reader.BaseStream, Header.GetFileDataOffset());
+                DataReader = new AssetsFileReader(dataStream);
+                DataIsCompressed = false;
                 return;
             }
 
@@ -645,12 +664,41 @@ namespace AssetsTools.NET
                 BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
                 BlockAndDirInfo.Read(memReader);
             }
+
+            // it hasn't been seen but it's possible we
+            // find mixed lz4 and lzma. if so, that's bad news.
+            switch (BlockAndDirInfo.BlockInfos[0].GetCompressionType())
+            {
+                case 0:
+                {
+                    SegmentStream dataStream = new SegmentStream(Reader.BaseStream, Header.GetFileDataOffset());
+                    DataReader = new AssetsFileReader(dataStream);
+                    DataIsCompressed = false;
+                    break;
+                }
+                case 1:
+                {
+                    SegmentStream dataStream = new SegmentStream(Reader.BaseStream, Header.GetFileDataOffset());
+                    DataReader = new AssetsFileReader(dataStream);
+                    DataIsCompressed = true;
+                    break;
+                }
+                case 2:
+                case 3:
+                {
+                    LZ4BlockStream dataStream = new LZ4BlockStream(Reader.BaseStream, Header.GetFileDataOffset(), BlockAndDirInfo.BlockInfos);
+                    DataReader = new AssetsFileReader(dataStream);
+                    DataIsCompressed = false;
+                    break;
+                }
+            }
+
         }
 
         public bool IsAssetsFile(int index)
         {
             GetFileRange(index, out long offset, out long length);
-            return AssetsFile.IsAssetsFile(Reader, offset, length);
+            return AssetsFile.IsAssetsFile(DataReader, offset, length);
         }
 
         public int GetFileIndex(string name)
@@ -681,7 +729,7 @@ namespace AssetsTools.NET
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
 
             AssetBundleDirectoryInfo entry = BlockAndDirInfo.DirectoryInfos[index];
-            offset = Header.GetFileDataOffset() + entry.Offset;
+            offset = entry.Offset;
             length = entry.DecompressedSize;
         }
 

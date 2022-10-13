@@ -43,7 +43,7 @@ namespace AssetsView.Winforms
 
                 AssetBundleFile bundle = inst.parentBundle.file;
 
-                AssetsFileReader reader = bundle.Reader;
+                AssetsFileReader reader = bundle.DataReader;
                 AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
                 bool foundFile = false;
                 for (int i = 0; i < dirInf.Length; i++)
@@ -51,7 +51,7 @@ namespace AssetsView.Winforms
                     AssetBundleDirectoryInfo info = dirInf[i];
                     if (info.Name == searchPath)
                     {
-                        reader.Position = bundle.Header.GetFileDataOffset() + info.Offset + (long)streamInfo.offset;
+                        reader.Position = info.Offset + (long)streamInfo.offset;
                         tf.pictureData = reader.ReadBytes((int)streamInfo.size);
                         tf.m_StreamData.offset = 0;
                         tf.m_StreamData.size = 0;

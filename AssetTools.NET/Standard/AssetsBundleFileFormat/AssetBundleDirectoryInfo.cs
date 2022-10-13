@@ -19,15 +19,5 @@
         /// Name of this entry.
         /// </summary>
         public string Name;
-
-        public long GetAbsolutePos(AssetBundleHeader header)
-        {
-            return header.GetFileDataOffset() + Offset;
-        }
-
-        public long GetAbsolutePos(AssetBundleFile file)
-        {
-            return file.Header.GetFileDataOffset() + Offset;
-        }
     }
 }

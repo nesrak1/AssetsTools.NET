@@ -18,7 +18,7 @@ namespace AssetsTools.NET.Extra
         {
             bundle.GetFileRange(index, out long offset, out long length);
             
-            AssetsFileReader reader = bundle.Reader;
+            AssetsFileReader reader = bundle.DataReader;
             reader.Position = offset;
             return reader.ReadBytes((int)length);
         }
@@ -35,7 +35,7 @@ namespace AssetsTools.NET.Extra
         public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, int index)
         {
             bundle.GetFileRange(index, out long offset, out long length);
-            Stream stream = new SegmentStream(bundle.Reader.BaseStream, offset, length);
+            Stream stream = new SegmentStream(bundle.DataReader.BaseStream, offset, length);
             AssetsFileReader reader = new AssetsFileReader(stream);
             return new AssetsFile(reader);
         }
@@ -89,6 +89,7 @@ namespace AssetsTools.NET.Extra
             if (freeOriginalStream)
             {
                 file.Reader.Close();
+                file.DataReader.Close();
             }
             return newFile;
         }
@@ -104,6 +105,7 @@ namespace AssetsTools.NET.Extra
             if (freeOriginalStream)
             {
                 file.Reader.Close();
+                file.DataReader.Close();
             }
             return newFile;
         }

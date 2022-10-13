@@ -28,7 +28,7 @@ namespace AssetsView.Winforms
             inst = helper.LoadBundleFile(filePath, false);
             file = inst.file;
             uint compressionMethod = file.Header.GetCompressionType();
-            if (compressionMethod == 0)
+            if (compressionMethod != 1)
             {
                 justThisFile.Enabled = true;
                 fileAndDependencies.Enabled = true;
