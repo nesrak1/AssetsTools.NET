@@ -11,6 +11,7 @@ namespace AssetsTools.NET.Extra
         public List<AssetsFileInstance> loadedAssetsFiles;
 
         public Stream BundleStream => file.Reader.BaseStream;
+        public Stream DataStream => file.DataReader.BaseStream;
 
         public BundleFileInstance(Stream stream, string filePath, string root, bool unpackIfPacked)
         {

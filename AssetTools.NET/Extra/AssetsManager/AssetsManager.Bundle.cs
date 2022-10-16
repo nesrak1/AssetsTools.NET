@@ -81,7 +81,7 @@ namespace AssetsTools.NET.Extra
                 if (bunInst.file.IsAssetsFile(index))
                 {
                     bunInst.file.GetFileRange(index, out long offset, out long length);
-                    SegmentStream stream = new SegmentStream(bunInst.BundleStream, offset, length);
+                    SegmentStream stream = new SegmentStream(bunInst.DataStream, offset, length);
                     AssetsFileInstance assetsInst = LoadAssetsFile(stream, assetMemPath, loadDeps, bunInst: bunInst);
                     bunInst.loadedAssetsFiles.Add(assetsInst);
                     return assetsInst;

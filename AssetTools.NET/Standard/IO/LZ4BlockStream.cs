@@ -211,6 +211,10 @@ namespace AssetsTools.NET
 
         private long GetLz4BlockSize(AssetBundleBlockInfo[] blockInfos)
         {
+            // we need to do this instead of just reading the first block
+            // because if a compressed block ends up being bigger than the
+            // actual decompressed size, unity will just use an uncompressed
+            // block instead. so we need to find the first uncomrpessed block.
             for (int i = 0; i < blockInfos.Length; i++)
             {
                 if (blockInfos[i].GetCompressionType() == 2 || blockInfos[i].GetCompressionType() == 3)
