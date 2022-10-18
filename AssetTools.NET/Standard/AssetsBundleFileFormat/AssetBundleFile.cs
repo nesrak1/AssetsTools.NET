@@ -381,7 +381,7 @@ namespace AssetsTools.NET
                 for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
                 {
                     AssetBundleBlockInfo info = blockInfos[i];
-                    reader.BaseStream.CopyToCompat(writer.BaseStream, info.CompressedSize);
+                    reader.BaseStream.CopyToCompat(writer.BaseStream, info.DecompressedSize);
                 }
             }
         }
