@@ -239,7 +239,7 @@ namespace AssetsTools.NET
                             writer.Write(AsDouble);
                             break;
                         case AssetValueType.String:
-                            writer.Write(AsString.Length);
+                            writer.Write(AsByteArray.Length);
                             writer.WriteRawString(AsString);
                             writer.Align();
                             break;
