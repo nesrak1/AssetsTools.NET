@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AssetTools.NET")]
-[assembly: AssemblyDescription("A remake and port of DerPopo's AssetTools")]
+[assembly: AssemblyTitle("AssetsTools.NET")]
+[assembly: AssemblyDescription("A remake and port of SeriousCache's AssetTools")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("nesrak1")]
-[assembly: AssemblyProduct("AssetTools.NET")]
+[assembly: AssemblyProduct("AssetsTools.NET")]
 [assembly: AssemblyCopyright("Written by nes")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("3.0.0.0")]
