@@ -296,6 +296,7 @@ namespace AssetsTools.NET
         public float AsFloat { get => Value.AsFloat; set => Value.AsFloat = value; }
         public double AsDouble { get => Value.AsDouble; set => Value.AsDouble = value; }
         public string AsString { get => Value.AsString; set => Value.AsString = value; }
+        public object AsObject { get => Value.AsObject; set => Value.AsObject = value; }
         public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
         public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
 
