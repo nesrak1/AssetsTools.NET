@@ -283,7 +283,7 @@ namespace AssetsTools.NET
             return Children.GetEnumerator();
         }
 
-        // for conveience
+        // for convenience
         public bool AsBool { get => Value.AsBool; set => Value.AsBool = value; }
         public sbyte AsSByte { get => Value.AsSByte; set => Value.AsSByte = value; }
         public byte AsByte { get => Value.AsByte; set => Value.AsByte = value; }

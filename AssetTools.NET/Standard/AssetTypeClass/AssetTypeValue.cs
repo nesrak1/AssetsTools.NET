@@ -232,6 +232,13 @@ namespace AssetsTools.NET
             set => Value = value;
         }
 
+        // use this only if you have to!
+        public object AsObject
+        {
+            get => Value;
+            set => Value = value;
+        }
+
         public override string ToString()
         {
             return AsString;
