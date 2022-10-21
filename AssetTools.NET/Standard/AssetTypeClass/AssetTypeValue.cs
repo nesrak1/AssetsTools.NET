@@ -76,7 +76,11 @@ namespace AssetsTools.NET
         public AssetTypeValue(AssetValueType valueType, object value = null)
         {
             ValueType = valueType;
-            Value = value;
+
+            if (value is string stringValue)
+                Value = Encoding.UTF8.GetBytes(stringValue);
+            else
+                Value = value;
         }
 
         public bool AsBool
@@ -236,7 +240,13 @@ namespace AssetsTools.NET
         public object AsObject
         {
             get => Value;
-            set => Value = value;
+            set
+            {
+                if (value is string stringValue)
+                    Value = Encoding.UTF8.GetBytes(stringValue);
+                else
+                    Value = value;
+            }
         }
 
         public override string ToString()
