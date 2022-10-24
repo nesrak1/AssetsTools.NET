@@ -19,8 +19,13 @@ namespace AssetsTools.NET
         /// List of compression blocks and file info (file names, address in file, etc.)
         /// </summary>
         public AssetBundleBlockAndDirInfo BlockAndDirInfo { get; set; }
-
+        /// <summary>
+        /// Reader for data block of bundle
+        /// </summary>
         public AssetsFileReader DataReader { get; set; }
+        /// <summary>
+        /// Is data reader reading compressed data? Only LZMA bundles set this to true.
+        /// </summary>
         public bool DataIsCompressed { get; set; }
 
         public AssetsFileReader Reader;
@@ -73,16 +78,12 @@ namespace AssetsTools.NET
             if (Header.Signature != "UnityFS")
                 throw new NotImplementedException("Non UnityFS bundles are not supported yet.");
 
+            if (DataIsCompressed)
+                throw new Exception("Bundles must be decompressed before writing.");
+
             writer.Position = 0;
 
-            AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
-
-            foreach (AssetBundleBlockInfo blockInfo in blockInfos)
-            {
-                if ((blockInfo.Flags & 0x3f) != 0)
-                    throw new Exception("Bundles must be decompressed before writing.");
-            }
 
             Header.Write(writer);
 
@@ -306,6 +307,7 @@ namespace AssetsTools.NET
                 DirectoryInfos = new AssetBundleDirectoryInfo[directoryInfos.Length]
             };
 
+            // todo: we should just use one block here
             for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
             {
                 newBundleInf6.BlockInfos[i] = new AssetBundleBlockInfo()
@@ -394,12 +396,11 @@ namespace AssetsTools.NET
             if (Header.Signature != "UnityFS")
                 throw new NotImplementedException("Non UnityFS bundles are not supported yet.");
 
-            if ((Header.FileStreamHeader.Flags & 0x3f) != 0)
+            if (DataIsCompressed)
                 throw new Exception("Bundles must be decompressed before writing.");
 
             reader.Position = 0;
             writer.Position = 0;
-
 
             AssetBundleFSHeader newFsHeader = new AssetBundleFSHeader
             {
@@ -438,10 +439,11 @@ namespace AssetsTools.NET
             List<AssetBundleBlockInfo> newBlocks = new List<AssetBundleBlockInfo>();
             List<Stream> newStreams = new List<Stream>(); // used if blockDirAtEnd == false
 
-            long fileDataOffset = Header.GetFileDataOffset();
-            int fileDataLength = (int)(Header.FileStreamHeader.TotalFileSize - fileDataOffset);
+            Stream bundleDataStream = DataReader.BaseStream;
+            bundleDataStream.Position = 0;
 
-            SegmentStream bundleDataStream = new SegmentStream(reader.BaseStream, fileDataOffset, fileDataLength);
+            long fileDataOffset = Header.GetFileDataOffset();
+            int fileDataLength = (int)bundleDataStream.Length;//(int)(Header.FileStreamHeader.TotalFileSize - fileDataOffset);
 
             switch (compType)
             {
@@ -481,17 +483,18 @@ namespace AssetsTools.NET
                 }
                 case AssetBundleCompressionType.LZ4:
                 {
-                    //compress into 0x20000 blocks
+                    // compress into 0x20000 blocks
                     BinaryReader bundleDataReader = new BinaryReader(bundleDataStream);
+
+                    Stream writeStream;
+                    if (blockDirAtEnd)
+                        writeStream = writer.BaseStream;
+                    else
+                        writeStream = GetTempFileStream();
+
                     byte[] uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                     while (uncompressedBlock.Length != 0)
                     {
-                        Stream writeStream;
-                        if (blockDirAtEnd)
-                            writeStream = writer.BaseStream;
-                        else
-                            writeStream = GetTempFileStream(); // TODO: don't use separate files
-
                         byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
 
                         if (progress != null)
@@ -530,11 +533,11 @@ namespace AssetsTools.NET
                             newBlocks.Add(blockInfo);
                         }
 
-                        if (!blockDirAtEnd)
-                            newStreams.Add(writeStream);
-
                         uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                     }
+
+                    if (!blockDirAtEnd)
+                        newStreams.Add(writeStream);
 
                     if (progress != null)
                     {
@@ -576,7 +579,7 @@ namespace AssetsTools.NET
                 bundleInfoBytes = memStream.ToArray();
             }
 
-            //listing is usually lz4 even if the data blocks are lzma
+            // listing is usually lz4 even if the data blocks are lzma
             byte[] bundleInfoBytesCom = LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
 
             long totalFileSize = headerSize + bundleInfoBytesCom.Length + totalCompressedSize;
@@ -616,10 +619,6 @@ namespace AssetsTools.NET
             {
                 BlockAndDirInfo = new AssetBundleBlockAndDirInfo();
                 BlockAndDirInfo.Read(Reader);
-
-                //SegmentStream dataStream = new SegmentStream(Reader.BaseStream, Header.GetFileDataOffset());
-                //DataReader = new AssetsFileReader(dataStream);
-                //DataIsCompressed = false;
             }
             else
             {

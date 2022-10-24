@@ -157,7 +157,7 @@ namespace AssetsTools.NET
                 }
 
                 blockStream.Position = Position % blockSize;
-                int thisReadCount = blockStream.Read(buffer, readCount, (int)Math.Min(blockStream.Length, count - readCount));
+                int thisReadCount = blockStream.Read(buffer, offset + readCount, (int)Math.Min(blockStream.Length, count - readCount));
                 
                 if (thisReadCount == 0)
                 {
@@ -214,7 +214,7 @@ namespace AssetsTools.NET
             // we need to do this instead of just reading the first block
             // because if a compressed block ends up being bigger than the
             // actual decompressed size, unity will just use an uncompressed
-            // block instead. so we need to find the first uncompressed block.
+            // block instead. so we need to find the first compressed block.
             for (int i = 0; i < blockInfos.Length; i++)
             {
                 if (blockInfos[i].GetCompressionType() == 2 || blockInfos[i].GetCompressionType() == 3)
