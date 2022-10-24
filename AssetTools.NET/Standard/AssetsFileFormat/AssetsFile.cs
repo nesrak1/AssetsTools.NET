@@ -17,13 +17,12 @@ namespace AssetsTools.NET
         public uint assetTablePos;
         public uint assetCount;
 
-        public AssetsFileReader reader;
-        public Stream readerPar;
+        public AssetsFileStatefulReader reader { get { return _reader.derive(); } }
+        public AssetsFileStatefulReader _reader;
 
-        public AssetsFile(AssetsFileReader reader)
+        public AssetsFile(AssetsFileStatefulReader reader)
         {
-            this.reader = reader;
-            readerPar = reader.BaseStream;
+            this._reader = reader;
             
             header = new AssetsFileHeader();
             header.Read(reader);
@@ -33,18 +32,18 @@ namespace AssetsTools.NET
             
             assetCount = reader.ReadUInt32();
             reader.Align();
-            assetTablePos = (uint)reader.BaseStream.Position;
+            assetTablePos = (uint)reader.Position;
 
             int assetInfoSize = AssetFileInfo.GetSize(header.format);
             if (0x0F <= header.format && header.format <= 0x10)
             {
                 //for these two versions, the asset info is not aligned
                 //for the last entry, so we have to do some weird stuff
-                reader.BaseStream.Position += ((assetInfoSize + 3) >> 2 << 2) * (assetCount - 1) + assetInfoSize;
+                reader.Position += ((assetInfoSize + 3) >> 2 << 2) * (assetCount - 1) + assetInfoSize;
             }
             else
             {
-                reader.BaseStream.Position += AssetFileInfo.GetSize(header.format) * assetCount;
+                reader.Position += AssetFileInfo.GetSize(header.format) * assetCount;
             }
             if (header.format > 0x0B)
             {
@@ -58,7 +57,7 @@ namespace AssetsTools.NET
         
         public void Close()
         {
-            readerPar.Dispose();
+            _reader.impl.Dispose();
         }
 
         public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, uint fileID = 0, ClassDatabaseFile typeMeta = null)
@@ -121,11 +120,11 @@ namespace AssetsTools.NET
             List<AssetFileInfo> newAssetInfos = new List<AssetFileInfo>();
 
             // Collect unchanged assets (that aren't getting removed)
-            reader.Position = assetTablePos;
+            _reader.Position = assetTablePos;
             for (int i = 0; i < assetCount; i++)
             {
                 AssetFileInfo oldAssetInfo = new AssetFileInfo();
-                oldAssetInfo.Read(header.format, reader);
+                oldAssetInfo.Read(header.format, _reader);
                 oldAssetInfosByPathId.Add(oldAssetInfo.index, oldAssetInfo);
 
                 if (replacersByPathId.ContainsKey(oldAssetInfo.index))
@@ -226,8 +225,8 @@ namespace AssetsTools.NET
                 else
                 {
                     AssetFileInfo oldAssetInfo = oldAssetInfosByPathId[newAssetInfo.index];
-                    reader.Position = header.firstFileOffset + oldAssetInfo.curFileOffset;
-                    reader.BaseStream.CopyToCompat(writer.BaseStream, oldAssetInfo.curFileSize);
+                    _reader.Position = header.firstFileOffset + oldAssetInfo.curFileOffset;
+                    _reader.CopyToCompat(writer.BaseStream, oldAssetInfo.curFileSize);
                 }
 
                 newAssetInfo.curFileSize = (uint)(writer.Position - (newFirstFileOffset + newAssetInfo.curFileOffset));
@@ -266,11 +265,18 @@ namespace AssetsTools.NET
 
         public static bool IsAssetsFile(string filePath)
         {
-            using AssetsFileReader reader = new AssetsFileReader(filePath);
-            return IsAssetsFile(reader, 0, reader.BaseStream.Length);
+            using var reader = AssetsFileReaderHelper.createStreamReader(filePath, false);
+            return IsAssetsFile(reader, 0, reader.streamImpl.Length);
         }
 
-        public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
+        // Temporary polyfill.
+        public static bool IsAssetsFile(AssetsFileReader legacyReader, long offset, long length)
+        {
+            var readerImpl = AssetsFileReaderHelper.createStreamReaderImpl(legacyReader.BaseStream);
+            var reader = new AssetsFileStatefulReader(readerImpl, true);
+            return IsAssetsFile(reader, offset, length);
+        }
+        public static bool IsAssetsFile(AssetsFileStatefulReader reader, long offset, long length)
         {
             //todo - not fully implemented
             if (length < 0x30)
@@ -295,7 +301,7 @@ namespace AssetsTools.NET
 
             string possibleVersion = "";
             char curChar;
-            while (reader.Position < reader.BaseStream.Length && (curChar = (char)reader.ReadByte()) != 0x00)
+            while (reader.Position < reader.streamImpl.Length && (curChar = (char)reader.ReadByte()) != 0x00)
             {
                 possibleVersion += curChar;
                 if (possibleVersion.Length > 0xFF)

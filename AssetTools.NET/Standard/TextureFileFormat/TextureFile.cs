@@ -254,9 +254,9 @@ namespace AssetsTools.NET
         public byte[] GetTextureData(AssetsFile file)
         {
             string path = null;
-            if (file.readerPar is FileStream fs)
+            if (file.reader.BackingFile != null)
             {
-                path = Path.GetDirectoryName(fs.Name);
+                path = Path.GetDirectoryName(file.reader.BackingFile);
             }
             return GetTextureData(path);
         }

@@ -85,7 +85,7 @@ namespace AssetsTools.NET
             }
             return true;
         }
-        public AssetTypeValueField MakeValue(AssetsFileReader reader)
+        public AssetTypeValueField MakeValue(AssetsFileStatefulReader reader)
         {
             AssetTypeValueField valueField = new AssetTypeValueField();
             valueField.templateField = this;
@@ -93,7 +93,7 @@ namespace AssetsTools.NET
             return valueField;
         }
 
-        public AssetTypeValueField ReadType(AssetsFileReader reader, AssetTypeValueField valueField)
+        public AssetTypeValueField ReadType(AssetsFileStatefulReader reader, AssetTypeValueField valueField)
         {
             if (valueField.templateField.isArray)
             {

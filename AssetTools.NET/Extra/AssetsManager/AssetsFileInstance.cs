@@ -17,13 +17,11 @@ namespace AssetsTools.NET.Extra
         //for monobehaviours
         public Dictionary<uint, string> monoIdToName = new Dictionary<uint, string>();
 
-        public Stream AssetsStream => file.readerPar;
-
-        public AssetsFileInstance(Stream stream, string filePath, string root)
+        public AssetsFileInstance(AssetsFileStatefulReader reader, string filePath, string root)
         {
             path = Path.GetFullPath(filePath);
             name = Path.Combine(root, Path.GetFileName(path));
-            file = new AssetsFile(new AssetsFileReader(stream));
+            file = new AssetsFile(reader);
             table = new AssetsFileTable(file);
             dependencies.AddRange(
                 Enumerable.Range(0, file.dependencies.dependencyCount)
@@ -31,15 +29,8 @@ namespace AssetsTools.NET.Extra
             );
         }
         public AssetsFileInstance(FileStream stream, string root)
+            : this(AssetsFileReaderHelper.createReader(stream), stream.Name, root)
         {
-            path = stream.Name;
-            name = Path.Combine(root, Path.GetFileName(path));
-            file = new AssetsFile(new AssetsFileReader(stream));
-            table = new AssetsFileTable(file);
-            dependencies.AddRange(
-                Enumerable.Range(0, file.dependencies.dependencyCount)
-                          .Select(d => (AssetsFileInstance)null)
-            );
         }
 
         public AssetsFileInstance GetDependency(AssetsManager am, int depIdx)

@@ -11,7 +11,7 @@ namespace AssetsTools.NET
         {
             public long mostSignificant;
             public long leastSignificant;
-            public void Read(AssetsFileReader reader)
+            public void Read(AssetsFileStatefulReader reader)
             {
                 mostSignificant = reader.ReadInt64();
                 leastSignificant = reader.ReadInt64();
@@ -27,7 +27,7 @@ namespace AssetsTools.NET
         public int type;
         public string assetPath;
         public string originalAssetPath;
-        public void Read(AssetsFileReader reader)
+        public void Read(AssetsFileStatefulReader reader)
         {
             bufferedPath = reader.ReadNullTerminated();
             guid = new GUID128();

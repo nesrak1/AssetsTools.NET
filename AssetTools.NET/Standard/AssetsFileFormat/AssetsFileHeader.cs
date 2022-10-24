@@ -23,7 +23,7 @@ namespace AssetsTools.NET
             else
                 return 0x14;
         }
-        public void Read(AssetsFileReader reader)
+        public void Read(AssetsFileStatefulReader reader)
         {
             metadataSize = reader.ReadUInt32();
             fileSize = reader.ReadUInt32();

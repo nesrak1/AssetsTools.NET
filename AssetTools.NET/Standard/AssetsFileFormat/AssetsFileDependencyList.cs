@@ -9,7 +9,7 @@ namespace AssetsTools.NET
     {
         public int dependencyCount;
         public List<AssetsFileDependency> dependencies;
-        public void Read(AssetsFileReader reader)
+        public void Read(AssetsFileStatefulReader reader)
         {
             dependencyCount = reader.ReadInt32();
             dependencies = new List<AssetsFileDependency>();

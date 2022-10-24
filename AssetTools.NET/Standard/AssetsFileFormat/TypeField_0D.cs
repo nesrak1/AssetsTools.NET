@@ -13,7 +13,7 @@ namespace AssetsTools.NET
         public uint index;
         public uint flags;
         public byte[] unknown;
-        public void Read(AssetsFileReader reader, uint format)
+        public void Read(AssetsFileStatefulReader reader, uint format)
         {
             version = reader.ReadUInt16();
             depth = reader.ReadByte();

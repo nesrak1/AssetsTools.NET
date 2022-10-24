@@ -11,7 +11,7 @@ namespace AssetsTools.NET
         public bool ReadName(AssetsFile file, out string str)
         {
             str = string.Empty;
-            AssetsFileReader reader = file.reader;
+            var reader = file.reader;
             if (AssetsFileExtra.HasName(curFileType))
             {
                 reader.Position = absoluteFilePos;
