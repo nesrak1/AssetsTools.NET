@@ -10,10 +10,12 @@ namespace AssetsTools.NET.Extra
         {
             long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            return GetTemplateBaseField(inst, absFilePos, info.TypeId, scriptIndex, preferEditor);
+            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, preferEditor);
         }
 
-        public AssetTypeTemplateField GetTemplateBaseField(AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex, bool preferEditor = false)
+        public AssetTypeTemplateField GetTemplateBaseField(
+            AssetsFileInstance inst, AssetsFileReader reader, long absByteStart,
+            int typeId, ushort scriptIndex, bool preferEditor = false)
         {
             AssetsFile file = inst.file;
             bool hasTypeTree = file.Metadata.TypeTreeEnabled;
@@ -55,7 +57,7 @@ namespace AssetsTools.NET.Extra
 
                     if (typeId == (int)AssetClassID.MonoBehaviour && monoTempGenerator != null)
                     {
-                        AssetTypeValueField mbBaseField = baseField.MakeValue(file.Reader, absFilePos);
+                        AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
                         AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
                         if (!msPtr.IsNull())
                         {
@@ -71,7 +73,7 @@ namespace AssetsTools.NET.Extra
                             ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
                             bool success = GetMonoScriptInfo(
-                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
+                                monoScriptFile, reader, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
                                 out string assemblyName, out string nameSpace, out string className, preferEditor);
 
                             // newer games don't have .dll
@@ -106,19 +108,20 @@ namespace AssetsTools.NET.Extra
         }
 
         private bool GetMonoScriptInfo(
-            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex,
+            AssetsFileInstance inst, AssetsFileReader reader, long absFilePos, int typeId, ushort scriptIndex,
             out string assemblyName, out string nameSpace, out string className, bool preferEditor = false)
         {
             assemblyName = null;
             nameSpace = null;
             className = null;
 
-            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, absFilePos, typeId, scriptIndex, preferEditor);
+            // reader argument doesn't matter since it's only used for MonoBehaviours
+            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, null, absFilePos, typeId, scriptIndex, preferEditor);
             if (templateField == null)
                 return false;
 
-            inst.file.Reader.Position = absFilePos;
-            AssetTypeValueField valueField = templateField.MakeValue(inst.file.Reader);
+            reader.Position = absFilePos;
+            AssetTypeValueField valueField = templateField.MakeValue(reader);
             assemblyName = valueField["m_AssemblyName"].AsString;
             nameSpace = valueField["m_Namespace"].AsString;
             className = valueField["m_ClassName"].AsString;
