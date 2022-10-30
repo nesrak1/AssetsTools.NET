@@ -73,7 +73,7 @@ namespace AssetsTools.NET.Extra
                             ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
                             bool success = GetMonoScriptInfo(
-                                monoScriptFile, reader, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
+                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
                                 out string assemblyName, out string nameSpace, out string className, preferEditor);
 
                             // newer games don't have .dll
@@ -108,7 +108,7 @@ namespace AssetsTools.NET.Extra
         }
 
         private bool GetMonoScriptInfo(
-            AssetsFileInstance inst, AssetsFileReader reader, long absFilePos, int typeId, ushort scriptIndex,
+            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex,
             out string assemblyName, out string nameSpace, out string className, bool preferEditor = false)
         {
             assemblyName = null;
@@ -120,8 +120,8 @@ namespace AssetsTools.NET.Extra
             if (templateField == null)
                 return false;
 
-            reader.Position = absFilePos;
-            AssetTypeValueField valueField = templateField.MakeValue(reader);
+            inst.file.Reader.Position = absFilePos;
+            AssetTypeValueField valueField = templateField.MakeValue(inst.file.Reader);
             assemblyName = valueField["m_AssemblyName"].AsString;
             nameSpace = valueField["m_Namespace"].AsString;
             className = valueField["m_ClassName"].AsString;
