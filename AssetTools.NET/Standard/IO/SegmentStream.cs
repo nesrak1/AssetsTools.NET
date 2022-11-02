@@ -3,7 +3,7 @@ using System.IO;
 
 namespace AssetsTools.NET
 {
-    internal class SegmentStream : Stream
+    public class SegmentStream : Stream
     {
         private readonly long length;
 

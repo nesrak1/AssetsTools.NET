@@ -26,7 +26,6 @@
 
         public abstract long WriteReplacer(AssetsFileWriter writer);
 
-        //todo, what does this affect
         public abstract bool HasSerializedData();
 
         public static BundleReplacer ReadBundleReplacer(AssetsFileReader reader)
