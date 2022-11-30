@@ -1,4 +1,6 @@
-﻿namespace AssetsTools.NET.Extra
+﻿using AssetsTools.NET.Extra;
+
+namespace AssetsTools.NET.Texture
 {
     public abstract class Texture2DAssetReplacer : SerializingAssetReplacer
     {

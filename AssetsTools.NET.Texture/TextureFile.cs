@@ -1,10 +1,19 @@
-﻿using AssetsTools.NET.Extra;
+﻿using AssetRipper.TextureDecoder.Astc;
+using AssetRipper.TextureDecoder.Atc;
+using AssetRipper.TextureDecoder.Bc;
+using AssetRipper.TextureDecoder.Dxt;
+using AssetRipper.TextureDecoder.Etc;
+using AssetRipper.TextureDecoder.Pvrtc;
+using AssetRipper.TextureDecoder.Rgb;
+using AssetRipper.TextureDecoder.Rgb.Formats;
+using AssetRipper.TextureDecoder.Yuy2;
+using AssetsTools.NET.Extra;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AssetsTools.NET
+namespace AssetsTools.NET.Texture
 {
     public class TextureFile
     {
@@ -239,14 +248,6 @@ namespace AssetsTools.NET
             }
         }
 
-        //default setting for assetstools
-        //usually you have to cd to the assets file
-        public byte[] GetTextureData()
-        {
-            return GetTextureData(Directory.GetCurrentDirectory());
-        }
-
-        //new functions since I didn't like the way assetstools handled it
         public byte[] GetTextureData(AssetsFileInstance inst)
         {
             return GetTextureData(Path.GetDirectoryName(inst.path));
@@ -262,7 +263,7 @@ namespace AssetsTools.NET
             return GetTextureData(path);
         }
 
-        public byte[] GetTextureData(string rootPath)
+        public byte[] GetTextureData(string rootPath, bool useBgra = true)
         {
             if ((pictureData == null || pictureData.Length == 0) && !string.IsNullOrEmpty(m_StreamData.path) && m_StreamData.size != 0)
             {
@@ -283,7 +284,7 @@ namespace AssetsTools.NET
                     return null;
                 }
             }
-            return Decode(pictureData, (TextureFormat)m_TextureFormat, m_Width, m_Height);
+            return DecodeManaged(pictureData, (TextureFormat)m_TextureFormat, m_Width, m_Height, useBgra);
         }
 
         public byte[] GetTextureData(string rootPath, AssetBundleFile bundle)
@@ -324,126 +325,100 @@ namespace AssetsTools.NET
             m_CompleteImageSize = encodedData.Length;
         }
 
-        [Obsolete("Renamed to " + nameof(Decode))]
-        public static byte[] GetTextureDataFromBytes(byte[] data, TextureFormat format, int width, int height)
+        public static byte[] DecodeManaged(byte[] data, TextureFormat format, int width, int height, bool useBgra = true)
         {
-            return Decode(data, format, width, height);
-        }
-
-        public static byte[] Decode(byte[] data, TextureFormat format, int width, int height)
-        {
-            return format switch
+            byte[] output = Array.Empty<byte>();
+            int size = format switch
             {
-                TextureFormat.R8 =>        RGBADecoders.ReadR8(data, width, height),
-                TextureFormat.R16 =>       RGBADecoders.ReadR16(data, width, height),
-                TextureFormat.RG16 =>      RGBADecoders.ReadRG16(data, width, height),
-                TextureFormat.RGB24 =>     RGBADecoders.ReadRGB24(data, width, height),
-                TextureFormat.RGB565 =>    RGBADecoders.ReadRGB565(data, width, height),
-                TextureFormat.RGBA32 =>    RGBADecoders.ReadRGBA32(data, width, height),
-                TextureFormat.ARGB32 =>    RGBADecoders.ReadARGB32(data, width, height),
-                TextureFormat.RGBA4444 =>  RGBADecoders.ReadRGBA4444(data, width, height),
-                TextureFormat.ARGB4444 =>  RGBADecoders.ReadARGB4444(data, width, height),
-                TextureFormat.Alpha8 =>    RGBADecoders.ReadAlpha8(data, width, height),
-                TextureFormat.RHalf =>     RGBADecoders.ReadRHalf(data, width, height),
-                TextureFormat.RGHalf =>    RGBADecoders.ReadRGHalf(data, width, height),
-                TextureFormat.RGBAHalf =>  RGBADecoders.ReadRGBAHalf(data, width, height),
-                TextureFormat.DXT1 =>      DXTDecoders.ReadDXT1(data, width, height),
-                TextureFormat.DXT5 =>      DXTDecoders.ReadDXT5(data, width, height),
-                TextureFormat.BC7 =>       BC7Decoder.ReadBC7(data, width, height),
-                TextureFormat.ETC_RGB4 =>  ETCDecoders.ReadETC(data, width, height),
-                TextureFormat.ETC2_RGB4 => ETCDecoders.ReadETC(data, width, height, true),
-                _ => null
+                TextureFormat.Alpha8 => RgbConverter.Convert<ColorA8, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB24, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R16 => RgbConverter.Convert<ColorR16, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.BGRA32 => data.Length,
+                TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RHalf => RgbConverter.Convert<ColorRHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGHalf => RgbConverter.Convert<ColorRGHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBAHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RFloat => RgbConverter.Convert<ColorRSingle, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGFloat => RgbConverter.Convert<ColorRGSingle, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBASingle, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorBGRA32, byte>(data, width, height, out output),
+
+                TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
+                TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),
+                TextureFormat.DXT5 => DxtDecoder.DecompressDXT5(data, width, height, out output),
+                TextureFormat.BC4 => BcDecoder.DecompressBC4(data, width, height, out output),
+                TextureFormat.BC5 => BcDecoder.DecompressBC5(data, width, height, out output),
+                TextureFormat.BC6H => BcDecoder.DecompressBC6H(data, width, height, false, out output),
+                TextureFormat.BC7 => BcDecoder.DecompressBC7(data, width, height, out output),
+
+                TextureFormat.ETC_RGB4 => EtcDecoder.DecompressETC(data, width, height, out output),
+                TextureFormat.ETC2_RGB4 => EtcDecoder.DecompressETC2(data, width, height, out output),
+                TextureFormat.ETC2_RGBA1 => EtcDecoder.DecompressETC2A1(data, width, height, out output),
+                TextureFormat.ETC2_RGBA8 => EtcDecoder.DecompressETC2A8(data, width, height, out output),
+                TextureFormat.EAC_R => EtcDecoder.DecompressEACRUnsigned(data, width, height, out output),
+                TextureFormat.EAC_R_SIGNED => EtcDecoder.DecompressEACRSigned(data, width, height, out output),
+                TextureFormat.EAC_RG => EtcDecoder.DecompressEACRGSigned(data, width, height, out output),
+                TextureFormat.EAC_RG_SIGNED => EtcDecoder.DecompressEACRGUnsigned(data, width, height, out output),
+
+                TextureFormat.ASTC_RGB_4x4 or
+                TextureFormat.ASTC_RGBA_4x4 => AstcDecoder.DecodeASTC(data, width, height, 4, 4, out output),
+                TextureFormat.ASTC_RGB_5x5 or
+                TextureFormat.ASTC_RGBA_5x5 => AstcDecoder.DecodeASTC(data, width, height, 5, 5, out output),
+                TextureFormat.ASTC_RGB_6x6 or
+                TextureFormat.ASTC_RGBA_6x6 => AstcDecoder.DecodeASTC(data, width, height, 6, 6, out output),
+                TextureFormat.ASTC_RGB_8x8 or
+                TextureFormat.ASTC_RGBA_8x8 => AstcDecoder.DecodeASTC(data, width, height, 8, 8, out output),
+                TextureFormat.ASTC_RGB_10x10 or
+                TextureFormat.ASTC_RGBA_10x10 => AstcDecoder.DecodeASTC(data, width, height, 10, 10, out output),
+                TextureFormat.ASTC_RGB_12x12 or
+                TextureFormat.ASTC_RGBA_12x12 => AstcDecoder.DecodeASTC(data, width, height, 12, 12, out output),
+
+                TextureFormat.ATC_RGB4 => AtcDecoder.DecompressAtcRgb4(data, width, height, out output),
+                TextureFormat.ATC_RGBA8 => AtcDecoder.DecompressAtcRgba8(data, width, height, out output),
+
+                TextureFormat.PVRTC_RGB2 or
+                TextureFormat.PVRTC_RGBA2 => PvrtcDecoder.DecompressPVRTC(data, width, height, true, out output),
+                TextureFormat.PVRTC_RGB4 or
+                TextureFormat.PVRTC_RGBA4 => PvrtcDecoder.DecompressPVRTC(data, width, height, false, out output),
+
+                TextureFormat.YUY2 => Yuy2Decoder.DecompressYUY2(data, width, height, out output),
+                
+                _ => 0
             };
+            
+            if (size == 0)
+                return null;
+
+            return output;
         }
 
         public static byte[] Encode(byte[] data, TextureFormat format, int width, int height)
         {
             return format switch
             {
-                TextureFormat.R8 =>       RGBAEncoders.EncodeR8(data, width, height),
-                TextureFormat.R16 =>      RGBAEncoders.EncodeR16(data, width, height),
-                TextureFormat.RG16 =>     RGBAEncoders.EncodeRG16(data, width, height),
-                TextureFormat.RGB24 =>    RGBAEncoders.EncodeRGB24(data, width, height),
-                TextureFormat.RGB565 =>   RGBAEncoders.EncodeRGB565(data, width, height),
-                TextureFormat.RGBA32 =>   RGBAEncoders.EncodeRGBA32(data, width, height),
-                TextureFormat.ARGB32 =>   RGBAEncoders.EncodeARGB32(data, width, height),
+                TextureFormat.R8 => RGBAEncoders.EncodeR8(data, width, height),
+                TextureFormat.R16 => RGBAEncoders.EncodeR16(data, width, height),
+                TextureFormat.RG16 => RGBAEncoders.EncodeRG16(data, width, height),
+                TextureFormat.RGB24 => RGBAEncoders.EncodeRGB24(data, width, height),
+                TextureFormat.RGB565 => RGBAEncoders.EncodeRGB565(data, width, height),
+                TextureFormat.RGBA32 => RGBAEncoders.EncodeRGBA32(data, width, height),
+                TextureFormat.ARGB32 => RGBAEncoders.EncodeARGB32(data, width, height),
                 TextureFormat.RGBA4444 => RGBAEncoders.EncodeRGBA4444(data, width, height),
                 TextureFormat.ARGB4444 => RGBAEncoders.EncodeARGB4444(data, width, height),
-                TextureFormat.Alpha8 =>   RGBAEncoders.EncodeAlpha8(data, width, height),
-                TextureFormat.RHalf =>    RGBAEncoders.EncodeRHalf(data, width, height),
-                TextureFormat.RGHalf =>   RGBAEncoders.EncodeRGHalf(data, width, height),
+                TextureFormat.Alpha8 => RGBAEncoders.EncodeAlpha8(data, width, height),
+                TextureFormat.RHalf => RGBAEncoders.EncodeRHalf(data, width, height),
+                TextureFormat.RGHalf => RGBAEncoders.EncodeRGHalf(data, width, height),
                 TextureFormat.RGBAHalf => RGBAEncoders.EncodeRGBAHalf(data, width, height),
                 _ => null
             };
         }
-    }
-
-    public enum TextureFormat
-    {
-        Alpha8 = 1, //Unity 1.5 or earlier (already in 1.2.2 according to documentation)
-        ARGB4444, //Unity 3.0 (already in 1.2.2)
-        RGB24, //Unity 1.5 or earlier (already in 1.2.2)
-        RGBA32, //Unity 3.2 (not sure about 1.2.2)
-        ARGB32, //Unity 1.5 or earlier (already in 1.2.2)
-        UNUSED06,
-        RGB565, //Unity 3.0 (already in 1.2.2)
-        UNUSED08,
-        R16, //Unity 5.0
-        DXT1, //Unity 2.0 (already in 1.2.2)
-        UNUSED11, //(DXT3 in 1.2.2?)
-        DXT5, //Unity 2.0
-        RGBA4444, //Unity 4.1
-        BGRA32New, //Unity 4.5
-        RHalf, //Unity 5.0
-        RGHalf, //Unity 5.0
-        RGBAHalf, //Unity 5.0
-        RFloat, //Unity 5.0
-        RGFloat, //Unity 5.0
-        RGBAFloat, //Unity 5.0
-        YUV2, //Unity 5.0
-        RGB9e5Float, //Unity 5.6
-        UNUSED23,
-        BC6H, //Unity 5.5
-        BC7, //Unity 5.5
-        BC4, //Unity 5.5
-        BC5, //Unity 5.5
-        DXT1Crunched, //Unity 5.0 //SupportsTextureFormat version codes 0 (original) and 1 (Unity 2017.3)
-        DXT5Crunched, //Unity 5.0 //SupportsTextureFormat version codes 0 (original) and 1 (Unity 2017.3)
-        PVRTC_RGB2, //Unity 2.6
-        PVRTC_RGBA2, //Unity 2.6
-        PVRTC_RGB4, //Unity 2.6
-        PVRTC_RGBA4, //Unity 2.6
-        ETC_RGB4, //Unity 3.0
-        ATC_RGB4, //Unity 3.4, removed in 2018.1
-        ATC_RGBA8, //Unity 3.4, removed in 2018.1
-        BGRA32Old, //Unity 3.4, removed in Unity 4.5
-        UNUSED38, //TexFmt_ATF_RGB_DXT1, added in Unity 3.5, removed in Unity 5.0
-        UNUSED39, //TexFmt_ATF_RGBA_JPG, added in Unity 3.5, removed in Unity 5.0
-        UNUSED40, //TexFmt_ATF_RGB_JPG, added in Unity 3.5, removed in Unity 5.0
-        EAC_R, //Unity 4.5
-        EAC_R_SIGNED, //Unity 4.5
-        EAC_RG, //Unity 4.5
-        EAC_RG_SIGNED, //Unity 4.5
-        ETC2_RGB4, //Unity 4.5
-        ETC2_RGBA1, //Unity 4.5 //R4G4B4A1
-        ETC2_RGBA8, //Unity 4.5 //R8G8B8A8
-        ASTC_RGB_4x4, //Unity 4.5
-        ASTC_RGB_5x5, //Unity 4.5
-        ASTC_RGB_6x6, //Unity 4.5
-        ASTC_RGB_8x8, //Unity 4.5
-        ASTC_RGB_10x10, //Unity 4.5
-        ASTC_RGB_12x12, //Unity 4.5
-        ASTC_RGBA_4x4, //Unity 4.5
-        ASTC_RGBA_5x5, //Unity 4.5
-        ASTC_RGBA_6x6, //Unity 4.5
-        ASTC_RGBA_8x8, //Unity 4.5
-        ASTC_RGBA_10x10, //Unity 4.5
-        ASTC_RGBA_12x12, //Unity 4.5
-        ETC_RGB4_3DS, //Unity 5.0
-        ETC_RGBA8_3DS, //Unity 5.0
-        RG16, //Unity 2017.1
-        R8, //Unity 2017.1
-        ETC_RGB4Crunched, //Unity 2017.3  //SupportsTextureFormat version code 1
-        ETC2_RGBA8Crunched //Unity 2017.3  //SupportsTextureFormat version code 1
     }
 }

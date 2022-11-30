@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AssetsTools.NET.Extra
+namespace AssetsTools.NET.Texture
 {
     public static class RGBADecoders
     {

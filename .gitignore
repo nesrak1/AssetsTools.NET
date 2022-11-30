@@ -325,3 +325,7 @@ ASALocalRun/
 
 # Zip releases
 *.zip
+
+# CMake
+
+out/

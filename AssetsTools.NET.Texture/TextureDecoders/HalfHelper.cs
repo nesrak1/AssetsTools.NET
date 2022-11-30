@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AssetsTools.NET.Extra
+namespace AssetsTools.NET.Texture
 {
     /// <summary>
     /// Helper class for half-precision (16-bit) floating point numbers

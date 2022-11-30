@@ -1,4 +1,4 @@
-﻿namespace AssetsTools.NET.Extra
+﻿namespace AssetsTools.NET.Texture
 {
     public static class RGBAEncoders
     {
