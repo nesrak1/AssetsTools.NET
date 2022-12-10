@@ -125,54 +125,49 @@ namespace AssetsTools.NET
             if (valueField.TemplateField.IsArray)
             {
                 int arrayChildCount = valueField.TemplateField.Children.Count;
-                if (arrayChildCount == 2)
+                if (arrayChildCount != 2)
+                    throw new Exception($"Expected array to have two children, found {arrayChildCount} instead!");
+
+                AssetValueType sizeType = valueField.TemplateField.Children[0].ValueType;
+
+                if (sizeType != AssetValueType.Int32 && sizeType != AssetValueType.UInt32)
+                    throw new Exception($"Expected int array size type, found {sizeType} instead!");
+
+                if (valueField.TemplateField.ValueType == AssetValueType.ByteArray)
                 {
-                    AssetValueType sizeType = valueField.TemplateField.Children[0].ValueType;
-                    if (sizeType == AssetValueType.Int32 || sizeType == AssetValueType.UInt32)
-                    {
-                        if (valueField.TemplateField.ValueType == AssetValueType.ByteArray)
-                        {
-                            valueField.Children = new List<AssetTypeValueField>(0);
+                    valueField.Children = new List<AssetTypeValueField>(0);
 
-                            int size = reader.ReadInt32();
-                            byte[] data = reader.ReadBytes(size);
+                    int size = reader.ReadInt32();
+                    byte[] data = reader.ReadBytes(size);
 
-                            if (valueField.TemplateField.IsAligned)
-                                reader.Align();
+                    if (valueField.TemplateField.IsAligned)
+                        reader.Align();
 
-                            valueField.Value = new AssetTypeValue(AssetValueType.ByteArray, data);
-                        }
-                        else
-                        {
-                            int size = reader.ReadInt32();
-                            valueField.Children = new List<AssetTypeValueField>(size);
-                            for (int i = 0; i < size; i++)
-                            {
-                                AssetTypeValueField childField = new AssetTypeValueField();
-                                childField.TemplateField = valueField.TemplateField.Children[1];
-                                valueField.Children.Add(ReadType(reader, childField));
-                            }
-                            valueField.Children.TrimExcess();
-
-                            if (valueField.TemplateField.IsAligned)
-                                reader.Align();
-
-                            AssetTypeArrayInfo ata = new AssetTypeArrayInfo
-                            {
-                                size = size
-                            };
-
-                            valueField.Value = new AssetTypeValue(AssetValueType.Array, ata);
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"Expected int array size type, found {sizeType} instead!");
-                    }
+                    valueField.Value = new AssetTypeValue(AssetValueType.ByteArray, data);
                 }
                 else
                 {
-                    throw new Exception($"Expected array to have two children, found {arrayChildCount} instead!");
+                    int size = reader.ReadInt32();
+                    valueField.Children = new List<AssetTypeValueField>(size);
+
+                    for (int i = 0; i < size; i++)
+                    {
+                        AssetTypeValueField childField = new AssetTypeValueField();
+                        childField.TemplateField = valueField.TemplateField.Children[1];
+                        valueField.Children.Add(ReadType(reader, childField));
+                    }
+
+                    valueField.Children.TrimExcess();
+
+                    if (valueField.TemplateField.IsAligned)
+                        reader.Align();
+
+                    AssetTypeArrayInfo arrayTypeInfo = new AssetTypeArrayInfo
+                    {
+                        size = size
+                    };
+
+                    valueField.Value = new AssetTypeValue(AssetValueType.Array, arrayTypeInfo);
                 }
             }
             else
@@ -196,7 +191,6 @@ namespace AssetsTools.NET
                 }
                 else
                 {
-                    valueField.Value = new AssetTypeValue(type, null);
                     if (type == AssetValueType.String)
                     {
                         valueField.Children = new List<AssetTypeValueField>(0);
