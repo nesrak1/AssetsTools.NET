@@ -248,8 +248,45 @@ namespace AssetsTools.NET.Texture
             }
         }
 
+        public bool SetPictureDataFromBundle(BundleFileInstance inst)
+        {
+            StreamingInfo streamInfo = m_StreamData;
+
+            string searchPath = streamInfo.path;
+
+            if (streamInfo.path.StartsWith("archive:/"))
+                searchPath = searchPath.Substring(9);
+
+            searchPath = Path.GetFileName(searchPath);
+
+            AssetBundleFile bundle = inst.file;
+
+            AssetsFileReader reader = bundle.DataReader;
+            AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
+            bool foundFile = false;
+            for (int i = 0; i < dirInf.Length; i++)
+            {
+                AssetBundleDirectoryInfo info = dirInf[i];
+                if (info.Name == searchPath)
+                {
+                    reader.Position = info.Offset + (long)streamInfo.offset;
+                    pictureData = reader.ReadBytes((int)streamInfo.size);
+                    m_StreamData.offset = 0;
+                    m_StreamData.size = 0;
+                    m_StreamData.path = "";
+                    foundFile = true;
+                    break;
+                }
+            }
+            return foundFile;
+        }
+
         public byte[] GetTextureData(AssetsFileInstance inst)
         {
+            if (inst.parentBundle != null && m_StreamData.path != string.Empty)
+            {
+                SetPictureDataFromBundle(inst.parentBundle);
+            }
             return GetTextureData(Path.GetDirectoryName(inst.path));
         }
 
