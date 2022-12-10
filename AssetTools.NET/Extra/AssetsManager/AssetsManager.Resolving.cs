@@ -69,5 +69,13 @@ namespace AssetsTools.NET.Extra
             AssetTypeValueField valueField = tempField.MakeValue(inst.file.Reader, info.AbsoluteByteStart);
             return valueField;
         }
+
+        public AssetTypeValueField GetBaseField(AssetsFileInstance inst, long pathId, bool forceFromCldb = false)
+        {
+            AssetFileInfo info = inst.file.GetAssetInfo(pathId);
+            AssetTypeTemplateField tempField = GetTemplateBaseField(inst, info, forceFromCldb);
+            AssetTypeValueField valueField = tempField.MakeValue(inst.file.Reader, info.AbsoluteByteStart);
+            return valueField;
+        }
     }
 }
