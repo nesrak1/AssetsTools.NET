@@ -98,7 +98,9 @@ namespace AssetsTools.NET
             for (int i = 0; i < scriptTypeCount; i++)
             {
                 int fileId = reader.ReadInt32();
+                reader.Align(); // only align after fileId
                 long pathId = reader.ReadInt64();
+                // no alignment needed here since pathId is a multiple of 4
                 AssetPPtr pptr = new AssetPPtr(fileId, pathId);
                 ScriptTypes.Add(pptr);
             }
@@ -156,6 +158,7 @@ namespace AssetsTools.NET
             for (int i = 0; i < ScriptTypes.Count; i++)
             {
                 writer.Write(ScriptTypes[i].FileId);
+                writer.Align(); // only align after fileId
                 writer.Write(ScriptTypes[i].PathId);
             }
             
