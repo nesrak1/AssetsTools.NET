@@ -33,6 +33,7 @@ namespace AssetsTools.NET
         public void Close()
         {
             Reader.Close();
+            DataReader.Close();
         }
 
         public void Read(AssetsFileReader reader)

@@ -12,10 +12,16 @@ namespace AssetsTools.NET.Extra
     {
         public bool updateAfterLoad = true;
         public bool useTemplateFieldCache = false;
+
         public ClassDatabaseFile classDatabase;
-        public ClassPackageFile classPackage;   
+        public ClassPackageFile classPackage;
+
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
+        public Dictionary<string, AssetsFileInstance> fileLookup = new Dictionary<string, AssetsFileInstance>();
+
         public List<BundleFileInstance> bundles = new List<BundleFileInstance>();
+        public Dictionary<string, BundleFileInstance> bundleLookup = new Dictionary<string, BundleFileInstance>();
+
         private IMonoBehaviourTemplateGenerator monoTempGenerator = null;
         private readonly Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
         private readonly Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
