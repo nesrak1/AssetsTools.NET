@@ -12,6 +12,6 @@ Jump to a tool:
 
 [![Nuget](https://img.shields.io/nuget/v/AssetsTools.NET?style=flat-square)](https://www.nuget.org/packages/AssetsTools.NET) [![Prereleases](https://img.shields.io/github/v/release/nesrak1/AssetsTools.NET?include_prereleases&style=flat-square)](https://github.com/nesrak1/AssetsTools.NET/releases) [![discord](https://img.shields.io/discord/862035581491478558?label=discord&logo=discord&logoColor=FFFFFF&style=flat-square)](https://discord.gg/hd9VdswwZs)
 
-Documentation and examples can be found on the wiki.
+[Documentation and examples can be found on the wiki](https://github.com/nesrak1/AssetsTools.NET/wiki).
 
 AssetsTools.NET allows you to read and write assets files and bundles files.
