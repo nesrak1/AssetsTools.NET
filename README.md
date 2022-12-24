@@ -2,6 +2,10 @@
 
 A .net library for reading and modifying unity assets and bundles based off of the AssetsTools library from [UABE](https://github.com/DerPopo/UABE/).
 
+## AssetsTools.NET v3 is currently in progress!
+
+Rework progress is ongoing on the [upd21-with-inst branch](https://github.com/nesrak1/AssetsTools.NET/tree/upd21-with-inst). If you're trying to use AT2 and having issues on newer engine games, you might want to try AT3.
+
 Jump to a tool:
 
 [![AssetsTools](https://user-images.githubusercontent.com/12544505/73600757-7c97a280-451a-11ea-934b-afd392cc2bcc.png)](#assetstools)
