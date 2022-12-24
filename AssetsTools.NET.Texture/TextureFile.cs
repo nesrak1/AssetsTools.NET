@@ -402,8 +402,8 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.ETC2_RGBA8 => EtcDecoder.DecompressETC2A8(data, width, height, out output),
                 TextureFormat.EAC_R => EtcDecoder.DecompressEACRUnsigned(data, width, height, out output),
                 TextureFormat.EAC_R_SIGNED => EtcDecoder.DecompressEACRSigned(data, width, height, out output),
-                TextureFormat.EAC_RG => EtcDecoder.DecompressEACRGSigned(data, width, height, out output),
-                TextureFormat.EAC_RG_SIGNED => EtcDecoder.DecompressEACRGUnsigned(data, width, height, out output),
+                TextureFormat.EAC_RG => EtcDecoder.DecompressEACRGUnsigned(data, width, height, out output),
+                TextureFormat.EAC_RG_SIGNED => EtcDecoder.DecompressEACRGSigned(data, width, height, out output),
 
                 TextureFormat.ASTC_RGB_4x4 or
                 TextureFormat.ASTC_RGBA_4x4 => AstcDecoder.DecodeASTC(data, width, height, 4, 4, out output),
