@@ -4,7 +4,7 @@
     {
         public int baseFieldCount;
         public AssetTypeValueField[] baseFields;
-        public byte[] memoryToClear;
+        
         public AssetTypeInstance(AssetTypeTemplateField[] baseFields, AssetsFileReader reader, long filePos)
         {
             reader.bigEndian = false;
@@ -18,8 +18,11 @@
                 this.baseFields[i] = atvf;
             }
         }
+
         public AssetTypeInstance(AssetTypeTemplateField baseField, AssetsFileReader reader, long filePos)
-            : this(new[] { baseField }, reader, filePos) { }
+            : this(new[] { baseField }, reader, filePos)
+        {
+        }
 
         public static AssetTypeValueField GetDummyAssetTypeField()
         {
