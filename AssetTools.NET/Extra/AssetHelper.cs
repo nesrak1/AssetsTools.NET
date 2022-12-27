@@ -98,7 +98,7 @@ namespace AssetsTools.NET.Extra
         public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfoEx info)
         {
             ClassDatabaseType type = FindAssetClassByID(cldb, info.curFileType);
-            AssetsFileReader reader = file.reader;
+            var reader = file.reader;
 
             if (file.typeTree.hasTypeTree)
             {
@@ -168,7 +168,7 @@ namespace AssetsTools.NET.Extra
         //no classdatabase but may not work
         public static string GetAssetNameFastNaive(AssetsFile file, AssetFileInfoEx info)
         {
-            AssetsFileReader reader = file.reader;
+            var reader = file.reader;
 
             if (AssetsFileExtra.HasName(info.curFileType))
             {

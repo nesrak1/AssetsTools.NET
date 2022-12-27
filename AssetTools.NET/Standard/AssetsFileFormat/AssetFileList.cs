@@ -20,7 +20,7 @@ namespace AssetsTools.NET
                 return (uint)AssetFileInfo.GetSize(version) * sizeFiles + 4;
             }
         }
-        public void Read(uint version, AssetsFileReader reader)
+        public void Read(uint version, AssetsFileStatefulReader reader)
         {
             sizeFiles = reader.ReadUInt32();
             fileInfs = new AssetFileInfo[sizeFiles];

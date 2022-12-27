@@ -28,7 +28,7 @@ namespace AssetsTools.NET
         public int dependenciesCount;
         public int[] dependencies;
 
-        public void Read(bool hasTypeTree, AssetsFileReader reader, uint version)
+        public void Read(bool hasTypeTree, AssetsFileStatefulReader reader, uint version)
         {
             classId = reader.ReadInt32();
             if (version >= 0x10) unknown16_1 = reader.ReadByte();

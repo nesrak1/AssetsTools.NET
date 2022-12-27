@@ -52,7 +52,7 @@ namespace AssetsTools.NET
                 return false;
 
             SegmentStream stream = new SegmentStream(entryReader.BaseStream, entryPos, entrySize);
-            AssetsFileReader reader = new AssetsFileReader(stream);
+            var reader = AssetsFileReaderHelper.createReader(stream, false, false);
             assetsFile = new AssetsFile(reader);
             return true;
         }

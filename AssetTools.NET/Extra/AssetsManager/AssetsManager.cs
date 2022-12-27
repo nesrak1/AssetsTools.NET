@@ -12,6 +12,7 @@ namespace AssetsTools.NET.Extra
     {
         public bool updateAfterLoad = true;
         public bool useTemplateFieldCache = false;
+        public bool useThreadSafeReader = true;
         public ClassDatabasePackage classPackage;
         public ClassDatabaseFile classFile;
         public List<AssetsFileInstance> files = new List<AssetsFileInstance>();
@@ -26,7 +27,8 @@ namespace AssetsTools.NET.Extra
             int index = files.FindIndex(f => f.path.ToLower() == Path.GetFullPath(path).ToLower());
             if (index == -1)
             {
-                instance = new AssetsFileInstance(stream, path, root);
+                var reader = AssetsFileReaderHelper.createReader(stream, useThreadSafeReader, true);
+                instance = new AssetsFileInstance(reader, path, root);
                 instance.parentBundle = bunInst;
                 files.Add(instance);
             }
@@ -390,11 +392,6 @@ namespace AssetsTools.NET.Extra
                 else
                 {
                     baseField.FromClassDatabase(classFile, AssetHelper.FindAssetClassByID(classFile, fixedId), 0);
-                }
-
-                if (useTemplateFieldCache)
-                {
-                    templateFieldCache[fixedId] = baseField;
                 }
             }
 

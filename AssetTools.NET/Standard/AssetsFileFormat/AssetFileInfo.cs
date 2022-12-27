@@ -26,7 +26,7 @@ namespace AssetsTools.NET
             if (0x0F <= version && version <= 0x10) size += 1;
             return size;
         }
-        public void Read(uint version, AssetsFileReader reader)
+        public void Read(uint version, AssetsFileStatefulReader reader)
         {
             reader.Align();
             if (version >= 0x0E)

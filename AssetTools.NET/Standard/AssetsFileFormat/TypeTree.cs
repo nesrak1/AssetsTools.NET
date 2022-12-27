@@ -14,7 +14,7 @@ namespace AssetsTools.NET
 
         public uint dwUnknown;
 
-        public void Read(AssetsFileReader reader, uint version)
+        public void Read(AssetsFileStatefulReader reader, uint version)
         {
             unityVersion = reader.ReadNullTerminated();
             this.version = reader.ReadUInt32();

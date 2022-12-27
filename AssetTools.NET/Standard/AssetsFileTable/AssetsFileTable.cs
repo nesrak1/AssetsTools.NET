@@ -6,8 +6,7 @@ namespace AssetsTools.NET
     public class AssetsFileTable
     {
         public AssetsFile file;
-        public AssetsFileReader reader;
-        public Stream readerPar;
+        public AssetsFileStatefulReader reader;
 
         public AssetFileInfoEx[] assetFileInfo;
         public uint assetFileInfoCount;
@@ -19,9 +18,8 @@ namespace AssetsTools.NET
         {
             this.file = file;
             reader = file.reader;
-            readerPar = file.readerPar;
             reader.bigEndian = file.header.endianness == 1 ? true : false;
-            reader.BaseStream.Position = file.assetTablePos;
+            reader.Position = file.assetTablePos;
             assetFileInfoCount = file.assetCount;
             assetFileInfo = new AssetFileInfoEx[assetFileInfoCount];
             for (int i = 0; i < assetFileInfoCount; i++)

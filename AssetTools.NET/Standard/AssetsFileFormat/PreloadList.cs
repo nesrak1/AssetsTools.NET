@@ -7,7 +7,7 @@ namespace AssetsTools.NET
         public int len;
         public List<AssetPPtr> items;
 
-        public void Read(AssetsFileReader reader)
+        public void Read(AssetsFileStatefulReader reader)
         {
             len = reader.ReadInt32();
             items = new List<AssetPPtr>();
