@@ -6,16 +6,19 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
-        public AssetTypeTemplateField GetTemplateBaseField(AssetsFileInstance inst, AssetFileInfo info, bool preferEditor = false)
+        public AssetTypeTemplateField GetTemplateBaseField(
+            AssetsFileInstance inst, AssetFileInfo info,
+            bool preferEditor = false, bool skipMonoBehaviourFields = false)
         {
             long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, preferEditor);
+            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, preferEditor, skipMonoBehaviourFields);
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(
             AssetsFileInstance inst, AssetsFileReader reader, long absByteStart,
-            int typeId, ushort scriptIndex, bool preferEditor = false)
+            int typeId, ushort scriptIndex,
+            bool preferEditor = false, bool skipMonoBehaviourFields = false)
         {
             AssetsFile file = inst.file;
             bool hasTypeTree = file.Metadata.TypeTreeEnabled;
@@ -55,7 +58,7 @@ namespace AssetsTools.NET.Extra
                         templateFieldCache[typeId] = baseField;
                     }
 
-                    if (typeId == (int)AssetClassID.MonoBehaviour && monoTempGenerator != null)
+                    if (typeId == (int)AssetClassID.MonoBehaviour && monoTempGenerator != null && !skipMonoBehaviourFields)
                     {
                         AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
                         AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
