@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AssetsTools.NET.Extra;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,12 +23,13 @@ namespace AssetsTools.NET
         /// <summary>
         /// Before version 16 this is the type ID of the asset. In version 16 and later this is the index into the type tree list.
         /// In versions 15 and below, this is the same as TypeId except in MonoBehaviours where this acts as ScriptTypeIndex (negative).
-        /// You should use TypeId for the type ID in either version. <see cref="Extra.AssetClassID"/>
+        /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
         public int TypeIdOrIndex { get; set; }
         /// <summary>
-        /// Class ID of the asset. This field is only used in versions 15 and below and is the same as TypeId.
-        /// You should use TypeId for the type ID in either version. <see cref="Extra.AssetClassID"/>
+        /// Class ID of the asset. This field is only used in versions 15 and below and is the same as TypeId, except when the
+        /// Class ID is negative, in which case the TypeId will be a MonoBehaviour and the Class ID will be the negative number.
+        /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
         public ushort ClassId { get; set; }
         /// <summary>
@@ -157,6 +159,10 @@ namespace AssetsTools.NET
         {
             if (version < 16)
             {
+                if (TypeIdOrIndex < 0)
+                {
+                    return (int)AssetClassID.MonoBehaviour;
+                }
                 return TypeIdOrIndex;
             }
             else
