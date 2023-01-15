@@ -95,8 +95,6 @@ namespace AssetsTools.NET
 
             if (version >= 17)
                 writer.Write(ScriptTypeIndex);
-            else
-                writer.Write(0xffff);
 
             if ((version < 17 && TypeId < 0) || (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour))
             {
