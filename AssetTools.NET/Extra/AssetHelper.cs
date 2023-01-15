@@ -4,6 +4,11 @@
     {
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, int id)
         {
+            if (id < 0)
+            {
+                id = 0x72;
+            }
+
             foreach (ClassDatabaseType type in cldb.Classes)
             {
                 if (type.ClassId == id)
@@ -40,8 +45,8 @@
                 //5.5+
                 if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
                     return type;
-                //5.4-
-                if (type.TypeId < 0 && id == 0x72 && (type.ScriptTypeIndex - 0x10000 == type.TypeId))
+                //5.4- (script index cannot be trusted in this version, so ignore it)
+                if (id == type.TypeId && type.ScriptTypeIndex == 0xffff && scriptIndex != 0xffff)
                     return type;
             }
             return null;

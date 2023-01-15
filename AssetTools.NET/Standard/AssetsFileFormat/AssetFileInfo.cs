@@ -159,10 +159,6 @@ namespace AssetsTools.NET
         {
             if (version < 16)
             {
-                if (TypeIdOrIndex < 0)
-                {
-                    return (int)AssetClassID.MonoBehaviour;
-                }
                 return TypeIdOrIndex;
             }
             else

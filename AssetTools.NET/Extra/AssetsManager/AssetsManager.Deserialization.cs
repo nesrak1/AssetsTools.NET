@@ -38,7 +38,8 @@ namespace AssetsTools.NET.Extra
                         baseField = new AssetTypeTemplateField();
                         baseField.FromTypeTree(ttType);
 
-                        if (useTemplateFieldCache)
+                        // todo: handle monos
+                        if (useTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
                         {
                             templateFieldCache[typeId] = baseField;
                         }
@@ -53,7 +54,8 @@ namespace AssetsTools.NET.Extra
                     baseField = new AssetTypeTemplateField();
                     baseField.FromClassDatabase(classDatabase, cldbType, preferEditor);
 
-                    if (useTemplateFieldCache)
+                    // todo: handle monos
+                    if (useTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
                     {
                         templateFieldCache[typeId] = baseField;
                     }
