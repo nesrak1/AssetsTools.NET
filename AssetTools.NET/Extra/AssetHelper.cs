@@ -4,6 +4,7 @@
     {
         public static ClassDatabaseType FindAssetClassByID(ClassDatabaseFile cldb, int id)
         {
+            // 5.4-
             if (id < 0)
             {
                 id = 0x72;
@@ -42,10 +43,10 @@
             // todo: use metadata for better version checking
             foreach (TypeTreeType type in metadata.TypeTreeTypes)
             {
-                //5.5+
+                // 5.5+
                 if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
                     return type;
-                //5.4- (script index cannot be trusted in this version, so ignore it)
+                // 5.4- (script index cannot be trusted in this version, so ignore it)
                 if (id == type.TypeId && type.ScriptTypeIndex == 0xffff && scriptIndex != 0xffff)
                     return type;
             }

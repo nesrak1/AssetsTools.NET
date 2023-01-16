@@ -137,6 +137,11 @@ namespace AssetsTools.NET
 
                 if (Header.Version < 16)
                 {
+                    // v < 16, class id for monobehaviour is 0x72 and
+                    // type id or index is the negative number
+                    if (replacer.GetClassID() < 0)
+                        newAssetInfo.ClassId = 0x72;
+
                     newAssetInfo.TypeIdOrIndex = replacer.GetClassID();
                 }
                 else
