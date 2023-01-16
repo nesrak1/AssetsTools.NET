@@ -54,7 +54,14 @@ namespace AssetsTools.NET
             {
                 int replacerClassId = replacer.GetClassID();
                 ushort replacerScriptIndex = replacer.GetMonoScriptID();
-                if (!typeTreeTypes.Any(t => t.TypeId == replacerClassId && t.ScriptTypeIndex == replacerScriptIndex))
+
+                bool typeInTree;
+                if (Header.Version >= 16)
+                    typeInTree = typeTreeTypes.Any(t => t.TypeId == replacerClassId && t.ScriptTypeIndex == replacerScriptIndex);
+                else
+                    typeInTree = typeTreeTypes.Any(t => t.TypeId == replacerClassId); // script index is always 0xffff in type tree
+
+                if (!typeInTree)
                 {
                     TypeTreeType type = null;
 
