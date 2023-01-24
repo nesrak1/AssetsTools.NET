@@ -18,14 +18,16 @@ namespace AssetsTools.NET.Extra
         {
             path = Path.GetFullPath(filePath);
             name = Path.GetFileName(path);
-            file = new AssetsFile(new AssetsFileReader(stream));
+            file = new AssetsFile();
+            file.Read(new AssetsFileReader(stream));
             dependencyCache = new Dictionary<int, AssetsFileInstance>();
         }
         public AssetsFileInstance(FileStream stream)
         {
             path = stream.Name;
             name = Path.GetFileName(path);
-            file = new AssetsFile(new AssetsFileReader(stream));
+            file = new AssetsFile();
+            file.Read(new AssetsFileReader(stream));
             dependencyCache = new Dictionary<int, AssetsFileInstance>();
         }
 
@@ -40,7 +42,7 @@ namespace AssetsTools.NET.Extra
                     return null;
                 }
 
-                int instIndex = am.files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
+                int instIndex = am.Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
                 if (instIndex == -1)
                 {
                     string pathDir = Path.GetDirectoryName(path);
@@ -66,7 +68,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else
                 {
-                    dependencyCache[depIdx] = am.files[instIndex];
+                    dependencyCache[depIdx] = am.Files[instIndex];
                 }
             }
             return dependencyCache[depIdx];

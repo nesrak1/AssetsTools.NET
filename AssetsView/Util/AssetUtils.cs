@@ -20,7 +20,7 @@ namespace AssetsView.Util
                 {
                     absAssetPath = Path.Combine(Path.GetDirectoryName(afi.path), dep.PathName);
                 }
-                if (!am.files.Any(d => d != null && Path.GetFileName(d.path).ToLower() == Path.GetFileName(absAssetPath).ToLower()))
+                if (!am.Files.Any(d => d != null && Path.GetFileName(d.path).ToLower() == Path.GetFileName(absAssetPath).ToLower()))
                 {
                     return false;
                 }

@@ -56,10 +56,10 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField atvf, bool onlyGetInfo = false, bool forceFromCldb = false)
+        public AssetExternal GetExtAsset(AssetsFileInstance relativeTo, AssetTypeValueField pptrField, bool onlyGetInfo = false, bool forceFromCldb = false)
         {
-            int fileId = atvf["m_FileID"].AsInt;
-            long pathId = atvf["m_PathID"].AsLong;
+            int fileId = pptrField["m_FileID"].AsInt;
+            long pathId = pptrField["m_PathID"].AsLong;
             return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, forceFromCldb);
         }
 

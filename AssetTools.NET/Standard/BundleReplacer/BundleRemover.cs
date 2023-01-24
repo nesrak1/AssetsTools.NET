@@ -5,15 +5,19 @@ namespace AssetsTools.NET
     public class BundleRemover : BundleReplacer
     {
         private readonly string name;
-        private readonly bool hasSerializedData;
         private readonly int bundleListIndex;
-        //apparently hasSerializedData was removed from the constructor
-        public BundleRemover(string name, bool hasSerializedData, int bundleListIndex = -1)
+
+        public BundleRemover(string name, int bundleListIndex = -1)
         {
             this.name = name;
-            this.hasSerializedData = hasSerializedData;
             this.bundleListIndex = bundleListIndex;
         }
+        public BundleRemover(int index)
+        {
+            name = null;
+            this.bundleListIndex = index;
+        }
+
         public override BundleReplacementType GetReplacementType()
         {
             return BundleReplacementType.Remove;
@@ -30,10 +34,6 @@ namespace AssetsTools.NET
         {
             return name;
         }
-        public override long GetSize()
-        {
-            return 0;
-        }
         public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             return true;
@@ -48,14 +48,22 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            writer.Write((short)0); //replacer type
-            writer.Write((byte)0); //file type (0 bundle, 1 assets)
-            writer.WriteCountStringInt16(name);
+            writer.Write((short)BundleReplacerType.BundleEntryRemover); // replacer type
+            writer.Write((byte)1); // remover version
+            if (name != null)
+            {
+                writer.Write((byte)1);
+                writer.WriteCountStringInt16(name);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
             return writer.Position;
         }
         public override bool HasSerializedData()
         {
-            return hasSerializedData;
+            return false; // doesn't matter
         }
     }
 }

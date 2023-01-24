@@ -5,7 +5,7 @@ namespace AssetsTools.NET
     public class TypeTreeNode
     {
         /// <summary>
-        /// Version of the node
+        /// Version of the node.
         /// </summary>
         public ushort Version { get; set; }
         /// <summary>
@@ -13,7 +13,7 @@ namespace AssetsTools.NET
         /// </summary>
         public byte Level { get; set; }
         /// <summary>
-        /// 1 if array
+        /// 1 if array.
         /// </summary>
         public byte TypeFlags { get; set; }
         /// <summary>
@@ -34,7 +34,7 @@ namespace AssetsTools.NET
         /// </summary>
         public uint Index { get; set; }
         /// <summary>
-        /// 0x4000 if aligned
+        /// 0x4000 if aligned.
         /// </summary>
         public uint MetaFlags { get; set; }
         /// <summary>

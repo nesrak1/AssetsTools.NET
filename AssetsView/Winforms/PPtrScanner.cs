@@ -28,13 +28,13 @@ namespace AssetsView.Winforms
         {
             this.am = am;
             this.dirName = dirName;
-            usedTfc = am.useTemplateFieldCache;
+            usedTfc = am.UseTemplateFieldCache;
             InitializeComponent();
         }
 
         private void PPtrScanner_Load(object sender, EventArgs e)
         {
-            am.useTemplateFieldCache = true;
+            am.UseTemplateFieldCache = true;
 
             GetAllFilesInDirectory();
             refLookup = new Dictionary<AssetID, List<AssetID>>();
@@ -66,7 +66,7 @@ namespace AssetsView.Winforms
                 progressLbl.Text = $"Done.";
                 WritePPtrMap();
 
-                am.useTemplateFieldCache = usedTfc;
+                am.UseTemplateFieldCache = usedTfc;
                 return;
             }
             progressLbl.Text = $"Scanning file {curFileName} ({fileProgress.Value / 10}%)...\nScanning assets ({assetProgress.Value / 10}%)...";

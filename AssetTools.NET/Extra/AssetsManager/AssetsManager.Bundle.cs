@@ -11,12 +11,12 @@ namespace AssetsTools.NET.Extra
         {
             BundleFileInstance bunInst;
             string lookupKey = GetFileLookupKey(path);
-            if (bundleLookup.TryGetValue(lookupKey, out bunInst))
+            if (BundleLookup.TryGetValue(lookupKey, out bunInst))
                 return bunInst;
 
             bunInst = new BundleFileInstance(stream, path, unpackIfPacked);
-            bundles.Add(bunInst);
-            bundleLookup[lookupKey] = bunInst;
+            Bundles.Add(bunInst);
+            BundleLookup[lookupKey] = bunInst;
 
             return bunInst;
         }
@@ -34,7 +34,7 @@ namespace AssetsTools.NET.Extra
         public bool UnloadBundleFile(string path)
         {
             string lookupKey = GetFileLookupKey(path);
-            if (bundleLookup.TryGetValue(lookupKey, out BundleFileInstance bunInst))
+            if (BundleLookup.TryGetValue(lookupKey, out BundleFileInstance bunInst))
             {
                 bunInst.file.Close();
 
@@ -43,8 +43,8 @@ namespace AssetsTools.NET.Extra
                     assetsInst.file.Close();
                 }
 
-                bundles.Remove(bunInst);
-                bundleLookup.Remove(lookupKey);
+                Bundles.Remove(bunInst);
+                BundleLookup.Remove(lookupKey);
                 return true;
             }
             return false;
@@ -59,11 +59,11 @@ namespace AssetsTools.NET.Extra
                 assetsInst.file.Close();
             }
 
-            if (bundles.Contains(bunInst))
+            if (Bundles.Contains(bunInst))
             {
                 string lookupKey = GetFileLookupKey(bunInst.path);
-                bundleLookup.Remove(lookupKey);
-                bundles.Remove(bunInst);
+                BundleLookup.Remove(lookupKey);
+                Bundles.Remove(bunInst);
                 return true;
             }
 
@@ -72,9 +72,9 @@ namespace AssetsTools.NET.Extra
 
         public bool UnloadAllBundleFiles()
         {
-            if (bundles.Count != 0)
+            if (Bundles.Count != 0)
             {
-                foreach (BundleFileInstance bunInst in bundles)
+                foreach (BundleFileInstance bunInst in Bundles)
                 {
                     bunInst.file.Close();
 
@@ -84,8 +84,8 @@ namespace AssetsTools.NET.Extra
                     }
                 }
 
-                bundles.Clear();
-                bundleLookup.Clear();
+                Bundles.Clear();
+                BundleLookup.Clear();
                 return true;
             }
             return false;
@@ -96,7 +96,7 @@ namespace AssetsTools.NET.Extra
             string assetMemPath = Path.Combine(bunInst.path, bunInst.file.GetFileName(index));
             string assetLookupKey = GetFileLookupKey(assetMemPath);
 
-            if (!fileLookup.TryGetValue(assetLookupKey, out AssetsFileInstance fileInst))
+            if (!FileLookup.TryGetValue(assetLookupKey, out AssetsFileInstance fileInst))
             {
                 if (bunInst.file.IsAssetsFile(index))
                 {

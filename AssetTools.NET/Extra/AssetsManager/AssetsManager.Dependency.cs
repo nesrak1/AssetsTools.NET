@@ -19,7 +19,7 @@ namespace AssetsTools.NET.Extra
                     continue;
                 }
 
-                if (files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
+                if (Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
                 {
                     string absPath = Path.Combine(fileDir, depPath);
                     string localAbsPath = Path.Combine(fileDir, Path.GetFileName(depPath));
@@ -40,7 +40,7 @@ namespace AssetsTools.NET.Extra
             for (int i = 0; i < ofFile.file.Metadata.Externals.Count; i++)
             {
                 string depPath = ofFile.file.Metadata.Externals[i].PathName;
-                if (files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
+                if (Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
                 {
                     string bunPath = Path.GetFileName(depPath);
                     int bunIndex = Array.FindIndex(ofBundle.file.BlockAndDirInfo.DirectoryInfos, d => Path.GetFileName(d.Name) == bunPath);

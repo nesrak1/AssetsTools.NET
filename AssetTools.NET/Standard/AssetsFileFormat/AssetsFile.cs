@@ -11,20 +11,20 @@ namespace AssetsTools.NET
         /// <summary>
         /// Assets file header.
         /// </summary>
-        public AssetsFileHeader Header { get; }
+        public AssetsFileHeader Header { get; set; }
         /// <summary>
         /// Contains metadata about the file (TypeTree, engine version, dependencies, etc.)
         /// </summary>
-        public AssetsFileMetadata Metadata { get; }
+        public AssetsFileMetadata Metadata { get; set; }
 
-        public AssetsFileReader Reader { get; }
+        public AssetsFileReader Reader { get; set; }
 
         public void Close()
         {
             Reader.Close();
         }
 
-        public AssetsFile(AssetsFileReader reader)
+        public void Read(AssetsFileReader reader)
         {
             Reader = reader;
             
@@ -34,7 +34,11 @@ namespace AssetsTools.NET
             Metadata = new AssetsFileMetadata();
             Metadata.Read(reader, Header);
         }
-        public AssetsFile(Stream stream) : this(new AssetsFileReader(stream)) { }
+
+        public void Read(Stream stream)
+        {
+            Read(new AssetsFileReader(stream));
+        }
 
         public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, ClassDatabaseFile typeMeta = null)
         {
@@ -67,7 +71,7 @@ namespace AssetsTools.NET
 
                     if (typeMeta != null)
                     {
-                        ClassDatabaseType cldbType = AssetHelper.FindAssetClassByID(typeMeta, replacerClassId);
+                        ClassDatabaseType cldbType = typeMeta.FindAssetClassByID(replacerClassId);
                         if (cldbType != null)
                         {
                             type = ClassDatabaseToTypeTree.Convert(typeMeta, cldbType);
@@ -299,6 +303,8 @@ namespace AssetsTools.NET
         public void GenerateQuickLookupTree() => Metadata.GenerateQuickLookupTree();
         public List<AssetFileInfo> GetAssetsOfType(int typeId) => Metadata.GetAssetsOfType(typeId);
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId) => Metadata.GetAssetsOfType(typeId);
+        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex = 0xffff) => Metadata.GetAssetsOfType(typeId, scriptIndex);
+        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex = 0xffff) => Metadata.GetAssetsOfType(typeId, scriptIndex);
 
         public List<AssetFileInfo> AssetInfos => Metadata.AssetInfos;
     }

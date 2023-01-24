@@ -42,10 +42,6 @@ namespace AssetsTools.NET
         {
             return newName;
         }
-        public override long GetSize()
-        {
-            return size;
-        }
         public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             return true;
@@ -61,12 +57,31 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            writer.Write((short)3); //replacer type
-            writer.Write((byte)0); //file type (0 bundle, 1 assets)
-            writer.WriteCountStringInt16(oldName);
-            writer.WriteCountStringInt16(newName);
+            writer.Write((short)BundleReplacerType.BundleEntryModifierFromMemory); // replacer type
+            writer.Write((byte)1); // replacer from memory version
+
+            if (oldName != null)
+            {
+                writer.Write((byte)1);
+                writer.WriteCountStringInt16(oldName);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+
+            if (newName != null)
+            {
+                writer.Write((byte)1);
+                writer.WriteCountStringInt16(newName);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+
             writer.Write(hasSerializedData);
-            writer.Write(GetSize());
+            writer.Write(size);
             Write(writer);
 
             return writer.Position;

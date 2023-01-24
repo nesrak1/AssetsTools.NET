@@ -26,6 +26,11 @@ namespace AssetsTools.NET.Cpp2IL
             ResetCpp2IL();
         }
 
+        public void Dispose()
+        {
+            ResetCpp2IL();
+        }
+
         public void ResetCpp2IL()
         {
             LibCpp2IlMain.Reset();

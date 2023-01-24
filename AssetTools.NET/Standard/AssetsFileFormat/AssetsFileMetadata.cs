@@ -229,9 +229,98 @@ namespace AssetsTools.NET
             return infos;
         }
 
+        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex = 0xffff)
+        {
+            List<AssetFileInfo> infos = new List<AssetFileInfo>();
+            foreach (AssetFileInfo info in AssetInfos)
+            {
+                if (scriptIndex != 0xffff)
+                {
+                    if (info.TypeId < 0)
+                    {
+                        if (info.ScriptTypeIndex != scriptIndex)
+                            continue;
+
+                        if (typeId != (int)AssetClassID.MonoBehaviour && !(typeId < 0 && info.TypeId == typeId))
+                            continue;
+                    }
+                    else if (info.TypeId == (int)AssetClassID.MonoBehaviour)
+                    {
+                        if (FindTypeTreeTypeByID(info.TypeId, info.ScriptTypeIndex).ScriptTypeIndex != scriptIndex)
+                            continue;
+
+                        if (typeId != (int)AssetClassID.MonoBehaviour)
+                            continue;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (info.TypeId != typeId)
+                        continue;
+                }
+
+                infos.Add(info);
+            }
+            return infos;
+        }
+
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId)
         {
             return GetAssetsOfType((int)typeId);
+        }
+
+        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex = 0xffff)
+        {
+            return GetAssetsOfType((int)typeId, scriptIndex);
+        }
+
+        public TypeTreeType FindTypeTreeTypeByID(int id)
+        {
+            foreach (TypeTreeType type in TypeTreeTypes)
+            {
+                if (type.TypeId == id)
+                    return type;
+            }
+            return null;
+        }
+
+        public TypeTreeType FindTypeTreeTypeByID(int id, ushort scriptIndex)
+        {
+            // todo: use metadata for better version checking
+            foreach (TypeTreeType type in TypeTreeTypes)
+            {
+                // 5.5+
+                if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
+                    return type;
+                // 5.4- (script index cannot be trusted in this version, so ignore it)
+                if (id == type.TypeId && type.ScriptTypeIndex == 0xffff && scriptIndex != 0xffff)
+                    return type;
+            }
+            return null;
+        }
+
+        public TypeTreeType FindTypeTreeTypeByScriptIndex(ushort scriptIndex)
+        {
+            foreach (TypeTreeType type in TypeTreeTypes)
+            {
+                if (type.ScriptTypeIndex == scriptIndex)
+                    return type;
+            }
+            return null;
+        }
+
+        public TypeTreeType FindTypeTreeTypeByName(string name)
+        {
+            foreach (TypeTreeType type in TypeTreeTypes)
+            {
+                if (type.Nodes[0].GetTypeString(type.StringBuffer) == name)
+                    return type;
+            }
+            return null;
         }
     }
 }

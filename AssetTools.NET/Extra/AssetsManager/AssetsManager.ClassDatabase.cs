@@ -9,9 +9,9 @@ namespace AssetsTools.NET.Extra
     {
         public ClassDatabaseFile LoadClassDatabase(Stream stream)
         {
-            classDatabase = new ClassDatabaseFile();
-            classDatabase.Read(new AssetsFileReader(stream));
-            return classDatabase;
+            ClassDatabase = new ClassDatabaseFile();
+            ClassDatabase.Read(new AssetsFileReader(stream));
+            return ClassDatabase;
         }
 
         public ClassDatabaseFile LoadClassDatabase(string path)
@@ -21,19 +21,19 @@ namespace AssetsTools.NET.Extra
 
         public ClassDatabaseFile LoadClassDatabaseFromPackage(UnityVersion version)
         {
-            return classDatabase = classPackage.GetClassDatabase(version);
+            return ClassDatabase = ClassPackage.GetClassDatabase(version);
         }
 
         public ClassDatabaseFile LoadClassDatabaseFromPackage(string version)
         {
-            return classDatabase = classPackage.GetClassDatabase(version);
+            return ClassDatabase = ClassPackage.GetClassDatabase(version);
         }
 
         public ClassPackageFile LoadClassPackage(Stream stream)
         {
-            classPackage = new ClassPackageFile();
-            classPackage.Read(new AssetsFileReader(stream));
-            return classPackage;
+            ClassPackage = new ClassPackageFile();
+            ClassPackage.Read(new AssetsFileReader(stream));
+            return ClassPackage;
         }
 
         public ClassPackageFile LoadClassPackage(string path)

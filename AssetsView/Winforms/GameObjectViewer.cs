@@ -33,7 +33,7 @@ namespace AssetsView.Winforms
             }
             valueGrid.PropertySort = PropertySort.Categorized;
 
-            ClassDatabaseFile classFile = helper.classDatabase;
+            ClassDatabaseFile classFile = helper.ClassDatabase;
             AssetFileInfo info = inst.file.GetAssetInfo(selectedId);
             AssetTypeTemplateField typeTemplate = helper.GetTemplateBaseField(inst, info);
             string typeName = typeTemplate.Type;
@@ -162,8 +162,8 @@ namespace AssetsView.Winforms
 
         private void LoadComponentData(PGProperty root, AssetTypeValueField baseField, AssetFileInfo info, int index, int size)
         {
-            string className = helper.classDatabase.GetString(
-                AssetHelper.FindAssetClassByID(helper.classDatabase, info.TypeId).Name);
+            string className = helper.ClassDatabase.GetString(
+                helper.ClassDatabase.FindAssetClassByID(info.TypeId).Name);
 
             AssetTypeValueField targetBaseField = baseField;
             if (className == "MonoBehaviour")

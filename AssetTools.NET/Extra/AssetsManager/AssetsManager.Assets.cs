@@ -24,7 +24,7 @@ namespace AssetsTools.NET.Extra
         public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
         {
             string lookupKey = GetFileLookupKey(path);
-            if (fileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
+            if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
             {
                 if (loadDeps)
                 {
@@ -43,8 +43,8 @@ namespace AssetsTools.NET.Extra
             AssetsFileInstance fileInst = new AssetsFileInstance(stream, path);
 
             string lookupKey = GetFileLookupKey(path);
-            fileLookup[lookupKey] = fileInst;
-            files.Add(fileInst);
+            FileLookup[lookupKey] = fileInst;
+            Files.Add(fileInst);
 
             if (loadDeps)
             {
@@ -61,7 +61,7 @@ namespace AssetsTools.NET.Extra
         public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps)
         {
             string lookupKey = GetFileLookupKey(path);
-            if (fileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
+            if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
                 return fileInst;
 
             return LoadAssetsFile(File.OpenRead(path), loadDeps);
@@ -70,10 +70,10 @@ namespace AssetsTools.NET.Extra
         public bool UnloadAssetsFile(string path)
         {
             string lookupKey = GetFileLookupKey(path);
-            if (fileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
+            if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
             {
-                files.Remove(fileInst);
-                fileLookup.Remove(lookupKey);
+                Files.Remove(fileInst);
+                FileLookup.Remove(lookupKey);
                 fileInst.file.Close();
                 return true;
             }
@@ -84,11 +84,11 @@ namespace AssetsTools.NET.Extra
         {
             fileInst.file.Close();
 
-            if (files.Contains(fileInst))
+            if (Files.Contains(fileInst))
             {
                 string lookupKey = GetFileLookupKey(fileInst.path);
-                fileLookup.Remove(lookupKey);
-                files.Remove(fileInst);
+                FileLookup.Remove(lookupKey);
+                Files.Remove(fileInst);
                 return true;
             }
 
@@ -103,14 +103,14 @@ namespace AssetsTools.NET.Extra
                 monoTemplateFieldCache.Clear();
             }
 
-            if (files.Count != 0)
+            if (Files.Count != 0)
             {
-                foreach (AssetsFileInstance assetsInst in files)
+                foreach (AssetsFileInstance assetsInst in Files)
                 {
                     assetsInst.file.Close();
                 }
-                files.Clear();
-                fileLookup.Clear();
+                Files.Clear();
+                FileLookup.Clear();
                 return true;
             }
             return false;

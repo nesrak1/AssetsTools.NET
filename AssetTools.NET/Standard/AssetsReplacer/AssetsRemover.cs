@@ -6,18 +6,11 @@ namespace AssetsTools.NET
 {
     public class AssetsRemover : AssetsReplacer
     {
-        private readonly int fileID;
         private readonly long pathID;
-        private readonly int classID;
-        private ushort monoScriptIndex;
 
-        //why is classid and monoscriptindex in the constructor if they go unused?
-        public AssetsRemover(int fileID, long pathID, int classID, ushort monoScriptIndex = 0xFFFF)
+        public AssetsRemover(long pathID)
         {
-            this.fileID = fileID;
             this.pathID = pathID;
-            this.classID = classID;
-            this.monoScriptIndex = monoScriptIndex;
         }
         public override AssetsReplacementType GetReplacementType()
         {
@@ -29,15 +22,14 @@ namespace AssetsTools.NET
         }
         public override int GetClassID()
         {
-            return classID;
+            return 0;
         }
         public override ushort GetMonoScriptID()
         {
-            return monoScriptIndex;
+            return 0;
         }
         public override void SetMonoScriptID(ushort scriptId)
         {
-            monoScriptIndex = scriptId;
         }
         public override long GetSize()
         {
@@ -90,14 +82,21 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            writer.Write((short)0); //replacer type
-            writer.Write((byte)1); //file type (0 bundle, 1 assets)
-            writer.Write((byte)1); //idk, always 1
-            writer.Write(0); //always 0 even when fileid is something else
-            writer.Write(pathID);
-            writer.Write(classID);
-            writer.Write(monoScriptIndex);
-            writer.Write(0); //flags, which are ignored since this is a remover
+            writer.Write((short)AssetsReplacerType.AssetRemover); // replacer type
+            writer.Write((byte)1); // remover version
+            // entry modifier base
+            {
+                // entry replacer base
+                {
+                    writer.Write((byte)1); // entry replacer version
+                    writer.Write(0); // file id (always 0)
+                    writer.Write(pathID);
+                    writer.Write(0); // class id
+                    writer.Write((ushort)0); // mono script index
+                }
+
+                writer.Write(0); //flags, which are ignored since this is a remover
+            }
 
             return writer.Position;
         }

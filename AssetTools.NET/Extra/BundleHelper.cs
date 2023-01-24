@@ -37,7 +37,9 @@ namespace AssetsTools.NET.Extra
             bundle.GetFileRange(index, out long offset, out long length);
             Stream stream = new SegmentStream(bundle.DataReader.BaseStream, offset, length);
             AssetsFileReader reader = new AssetsFileReader(stream);
-            return new AssetsFile(reader);
+            AssetsFile file = new AssetsFile();
+            file.Read(reader);
+            return file;
         }
 
         public static AssetsFile LoadAssetFromBundle(AssetBundleFile bundle, string name)

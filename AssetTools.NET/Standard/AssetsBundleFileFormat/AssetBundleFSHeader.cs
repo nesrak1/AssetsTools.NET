@@ -20,18 +20,18 @@ namespace AssetsTools.NET
         public uint DecompressedSize { get; set; }
         /// <summary>
         /// Flags of this bundle. <br/>
-        /// First 6 bits (0x3f mask): Compression mode. 0 for uncompressed, 1 for LZ4, 2 for LZMA. <br/>
+        /// First 6 bits (0x3f mask): Compression mode. 0 for uncompressed, 1 for LZMA, 2/3 for LZ4/LZ4HC. <br/>
         /// 0x40: Has directory info. Should always be true for 5.2+. <br/>
         /// 0x80: Block and directory info is at end. The Unity editor does not usually use this.
         /// </summary>
-        public uint Flags { get; set; } // todo enum
+        public AssetBundleFSHeaderFlags Flags { get; set; } // todo enum
 
         public void Read(AssetsFileReader reader)
         {
             TotalFileSize = reader.ReadInt64();
             CompressedSize = reader.ReadUInt32();
             DecompressedSize = reader.ReadUInt32();
-            Flags = reader.ReadUInt32();
+            Flags = (AssetBundleFSHeaderFlags)reader.ReadUInt32();
         }
 
         public void Write(AssetsFileWriter writer)
@@ -39,7 +39,7 @@ namespace AssetsTools.NET
             writer.Write(TotalFileSize);
             writer.Write(CompressedSize);
             writer.Write(DecompressedSize);
-            writer.Write(Flags);
+            writer.Write((uint)Flags);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace AssetsTools.NET.Extra
             AssetsFile file = inst.file;
             bool hasTypeTree = file.Metadata.TypeTreeEnabled;
             AssetTypeTemplateField baseField;
-            if (useTemplateFieldCache && templateFieldCache.ContainsKey(typeId))
+            if (UseTemplateFieldCache && templateFieldCache.ContainsKey(typeId))
             {
                 baseField = templateFieldCache[typeId];
                 return baseField;
@@ -32,14 +32,14 @@ namespace AssetsTools.NET.Extra
             {
                 if (hasTypeTree)
                 {
-                    TypeTreeType ttType = AssetHelper.FindTypeTreeTypeByID(file.Metadata, typeId, scriptIndex);
+                    TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
                     if (ttType != null && ttType.Nodes.Count > 0)
                     {
                         baseField = new AssetTypeTemplateField();
                         baseField.FromTypeTree(ttType);
 
                         // todo: handle monos
-                        if (useTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
+                        if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
                         {
                             templateFieldCache[typeId] = baseField;
                         }
@@ -48,19 +48,19 @@ namespace AssetsTools.NET.Extra
                     }
                 }
 
-                ClassDatabaseType cldbType = AssetHelper.FindAssetClassByID(classDatabase, typeId);
+                ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(typeId);
                 if (cldbType != null)
                 {
                     baseField = new AssetTypeTemplateField();
-                    baseField.FromClassDatabase(classDatabase, cldbType, preferEditor);
+                    baseField.FromClassDatabase(ClassDatabase, cldbType, preferEditor);
 
                     // todo: handle monos
-                    if (useTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
+                    if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
                     {
                         templateFieldCache[typeId] = baseField;
                     }
 
-                    if (typeId == (int)AssetClassID.MonoBehaviour && monoTempGenerator != null && !skipMonoBehaviourFields)
+                    if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields)
                     {
                         AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
                         AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
@@ -91,7 +91,7 @@ namespace AssetsTools.NET.Extra
                             if (success)
                             {
                                 AssetTypeTemplateField newBaseField =
-                                    monoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, new UnityVersion(file.Metadata.UnityVersion));
+                                    MonoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, new UnityVersion(file.Metadata.UnityVersion));
 
                                 if (newBaseField != null)
                                 {
@@ -134,9 +134,36 @@ namespace AssetsTools.NET.Extra
             return true;
         }
 
-        public void SetMonoTempGenerator(IMonoBehaviourTemplateGenerator generator)
+        public AssetTypeTemplateField CreateTemplateBaseField(AssetsFileInstance inst, int id, ushort scriptIndex = 0xffff)
         {
-            monoTempGenerator = generator;
+            return CreateTemplateBaseField(inst.file, id, scriptIndex);
+        }
+
+        public AssetTypeTemplateField CreateTemplateBaseField(AssetsFile file, int id, ushort scriptIndex = 0xffff)
+        {
+            AssetTypeTemplateField templateField = new AssetTypeTemplateField();
+            if (file.Metadata.TypeTreeEnabled)
+            {
+                var typeTreeType = file.Metadata.FindTypeTreeTypeByID(id, scriptIndex);
+                templateField.FromTypeTree(typeTreeType);
+            }
+            else
+            {
+                var cldbType = ClassDatabase.FindAssetClassByID(id);
+                templateField.FromClassDatabase(ClassDatabase, cldbType);
+            }
+            return templateField;
+        }
+
+        public AssetTypeValueField CreateValueBaseField(AssetsFileInstance inst, int id, ushort scriptIndex = 0xffff)
+        {
+            return CreateValueBaseField(inst.file, id, scriptIndex);
+        }
+
+        public AssetTypeValueField CreateValueBaseField(AssetsFile file, int id, ushort scriptIndex = 0xffff)
+        {
+            AssetTypeTemplateField tempField = CreateTemplateBaseField(file, id, scriptIndex);
+            return ValueBuilder.DefaultValueFieldFromTemplate(tempField);
         }
     }
 }

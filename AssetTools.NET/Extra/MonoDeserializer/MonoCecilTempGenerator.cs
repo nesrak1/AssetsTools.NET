@@ -17,6 +17,16 @@ namespace AssetsTools.NET.Extra
             this.managedPath = managedPath;
         }
 
+        public void Dispose()
+        {
+            foreach (AssemblyDefinition assembly in loadedAssemblies.Values)
+            {
+                assembly.Dispose();
+            }
+
+            loadedAssemblies.Clear();
+        }
+
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
         {
             // newer games don't have .dll

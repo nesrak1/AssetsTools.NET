@@ -175,7 +175,7 @@ namespace AssetsTools.NET
                     AssetBundleDirectoryInfo info = new AssetBundleDirectoryInfo()
                     {
                         Offset = 0,
-                        DecompressedSize = replacer.GetSize(),
+                        DecompressedSize = 0,
                         Flags = (uint)(replacer.HasSerializedData() ? 0x04 : 0x00),
                         Name = replacer.GetEntryName()
                     };
@@ -191,7 +191,7 @@ namespace AssetsTools.NET
             newBundleInf6.DirectoryInfos = dirInfos.ToArray();
             newBundleInf6.Write(writer);
             
-            if ((Header.FileStreamHeader.Flags & 0x200) != 0)
+            if ((Header.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
             }
@@ -259,7 +259,7 @@ namespace AssetsTools.NET
                     CompressedSize = infoSize,
                     DecompressedSize = infoSize,
                     // Unset "info at end" flag and compression value
-                    Flags = Header.FileStreamHeader.Flags & unchecked((uint)~0x80 & (uint)~0x3f)
+                    Flags = Header.FileStreamHeader.Flags & ~AssetBundleFSHeaderFlags.BlockAndDirAtEnd & ~AssetBundleFSHeaderFlags.CompressionMask
                 }
             };
             newBundleHeader6.Write(writer);
@@ -290,7 +290,12 @@ namespace AssetsTools.NET
                     TotalFileSize = 0,
                     CompressedSize = fsHeader.DecompressedSize,
                     DecompressedSize = fsHeader.DecompressedSize,
-                    Flags = 0x40 | ((fsHeader.Flags & 0x200) != 0 ? 0x200u : 0u)
+                    Flags = AssetBundleFSHeaderFlags.HasDirectoryInfo |
+                    (
+                        (fsHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != AssetBundleFSHeaderFlags.None ?
+                        AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart :
+                        AssetBundleFSHeaderFlags.None
+                    )
                 }
             };
 
@@ -337,7 +342,7 @@ namespace AssetsTools.NET
                 writer.Align16();
             }
             newBundleInf6.Write(writer);
-            if ((newBundleHeader6.FileStreamHeader.Flags & 0x200) != 0)
+            if ((newBundleHeader6.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
             }
@@ -408,7 +413,8 @@ namespace AssetsTools.NET
                 TotalFileSize = 0,
                 CompressedSize = 0,
                 DecompressedSize = 0,
-                Flags = (uint)(0x43 | (blockDirAtEnd ? 0x80 : 0x00))
+                Flags = AssetBundleFSHeaderFlags.LZ4HCCompressed | AssetBundleFSHeaderFlags.HasDirectoryInfo |
+                    (blockDirAtEnd ? AssetBundleFSHeaderFlags.BlockAndDirAtEnd : AssetBundleFSHeaderFlags.None)
             };
 
             AssetBundleHeader newHeader = new AssetBundleHeader()

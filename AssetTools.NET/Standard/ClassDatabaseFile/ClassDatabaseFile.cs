@@ -125,5 +125,31 @@ namespace AssetsTools.NET
             inStream.Position = 0;
             return inStream;
         }
+
+        public ClassDatabaseType FindAssetClassByID(int id)
+        {
+            // 5.4-
+            if (id < 0)
+            {
+                id = 0x72;
+            }
+
+            foreach (ClassDatabaseType type in Classes)
+            {
+                if (type.ClassId == id)
+                    return type;
+            }
+            return null;
+        }
+
+        public ClassDatabaseType FindAssetClassByName(string name)
+        {
+            foreach (ClassDatabaseType type in Classes)
+            {
+                if (GetString(type.Name) == name)
+                    return type;
+            }
+            return null;
+        }
     }
 }

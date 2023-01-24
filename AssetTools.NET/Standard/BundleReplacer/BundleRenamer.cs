@@ -6,17 +6,19 @@ namespace AssetsTools.NET
     {
         private readonly string oldName;
         private readonly string newName;
-        private readonly bool hasSerializedData;
         private readonly int bundleListIndex;
-        public BundleRenamer(string oldName, string newName, bool hasSerializedData, int bundleListIndex = -1)
+        private readonly bool hasSerializedData; // unused, only for compatability with c++ at/uabe
+
+        public BundleRenamer(string oldName, string newName, int bundleListIndex = -1, bool hasSerializedData = false)
         {
             this.oldName = oldName;
             if (newName == null)
                 this.newName = oldName;
             else
                 this.newName = newName;
-            this.hasSerializedData = hasSerializedData;
+
             this.bundleListIndex = bundleListIndex;
+            this.hasSerializedData = hasSerializedData;
         }
         public override BundleReplacementType GetReplacementType()
         {
@@ -34,10 +36,6 @@ namespace AssetsTools.NET
         {
             return newName;
         }
-        public override long GetSize()
-        {
-            return 0;
-        }
         public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             return true;
@@ -52,10 +50,28 @@ namespace AssetsTools.NET
         }
         public override long WriteReplacer(AssetsFileWriter writer)
         {
-            writer.Write((short)1); //replacer type
-            writer.Write((byte)0); //file type (0 bundle, 1 assets)
-            writer.WriteCountStringInt16(oldName);
-            writer.WriteCountStringInt16(newName);
+            writer.Write((short)BundleReplacerType.BundleEntryRenamer); // replacer type
+            writer.Write((byte)1); // renamer version
+            if (oldName != null)
+            {
+                writer.Write((byte)1);
+                writer.WriteCountStringInt16(oldName);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+
+            if (newName != null)
+            {
+                writer.Write((byte)1);
+                writer.WriteCountStringInt16(newName);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+
             writer.Write(hasSerializedData);
             return writer.Position;
         }

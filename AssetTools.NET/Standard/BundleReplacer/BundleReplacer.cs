@@ -9,10 +9,6 @@
         public abstract string GetOriginalEntryName();
         public abstract string GetEntryName();
 
-        //doc says this value isn't reliable, most likely referring to the FromAssets replacer?
-        //anyway, that makes this basically useless if we don't know all values so this just goes unused
-        public abstract long GetSize();
-
         //despite sounding generic, this method only seems to work only on BundleReplacerFromAssets.
         //whenever you read in a BundleReplacerFromAssets, you might not initially have the AssetsFile.
         //in the case of the installer, you read the replacer from the emip first, then call Init

@@ -67,11 +67,11 @@ namespace AssetsTools.NET
             if (Signature != "UnityFS")
                 throw new NotSupportedException($"{Signature} signature not supported!");
 
-            uint flags = FileStreamHeader.Flags;
+            AssetBundleFSHeaderFlags flags = FileStreamHeader.Flags;
             long totalFileSize = FileStreamHeader.TotalFileSize;
             long compressedSize = FileStreamHeader.CompressedSize;
 
-            if ((flags & 0x80) != 0)
+            if ((flags & AssetBundleFSHeaderFlags.BlockAndDirAtEnd) != 0)
             {
                 if (totalFileSize == 0)
                     return -1;
@@ -82,14 +82,14 @@ namespace AssetsTools.NET
                 long ret = GenerationVersion.Length + EngineVersion.Length + 0x1a;
                 if (Version >= 7)
                 {
-                    if ((flags & 0x100) != 0)
+                    if ((flags & AssetBundleFSHeaderFlags.OldWebPluginCompatibility) != 0)
                         return ((ret + 0x0a) + 15) & ~15;
                     else
                         return ((ret + Signature.Length + 1) + 15) & ~15;
                 }
                 else
                 {
-                    if ((flags & 0x100) != 0)
+                    if ((flags & AssetBundleFSHeaderFlags.OldWebPluginCompatibility) != 0)
                         return ret + 0x0a;
                     else
                         return ret + Signature.Length + 1;
@@ -102,20 +102,20 @@ namespace AssetsTools.NET
             if (Signature != "UnityFS")
                 throw new NotSupportedException($"{Signature} signature not supported!");
 
-            uint flags = FileStreamHeader.Flags;
+            AssetBundleFSHeaderFlags flags = FileStreamHeader.Flags;
             long compressedSize = FileStreamHeader.CompressedSize;
 
             long ret = GenerationVersion.Length + EngineVersion.Length + 0x1a;
-            if ((flags & 0x100) != 0)
+            if ((flags & AssetBundleFSHeaderFlags.OldWebPluginCompatibility) != 0)
                 ret += 0x0a;
             else
                 ret += Signature.Length + 1;
 
             if (Version >= 7)
                 ret = (ret + 15) & ~15;
-            if ((flags & 0x80) == 0)
+            if ((flags & AssetBundleFSHeaderFlags.BlockAndDirAtEnd) == 0)
                 ret += compressedSize;
-            if ((flags & 0x200) != 0)
+            if ((flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
                 ret = (ret + 15) & ~15;
 
             return ret;
@@ -127,7 +127,7 @@ namespace AssetsTools.NET
             if (Signature != "UnityFS")
                 throw new NotSupportedException($"{Signature} signature not supported!");
 
-            return (byte)(FileStreamHeader.Flags & 0x3f);
+            return (byte)(FileStreamHeader.Flags & AssetBundleFSHeaderFlags.CompressionMask);
         }
     }
 }
