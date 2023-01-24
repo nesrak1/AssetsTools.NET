@@ -194,21 +194,59 @@ namespace AssetsTools.NET.Extra
                         TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
 
                         TypeDefinition ftd = ft.typeDef;
-                        if (ftd != null)
+
+                        if (f.FieldType is GenericInstanceType gft)
                         {
-                            if (ftd.IsPrimitive ||
-                                ftd.IsEnum ||
-                                ftd.IsSerializable ||
-                                DerivesFromUEObject(ftd) ||
-                                IsSpecialUnityType(ftd)) //field has a serializable type
+                            //Unity can't serialize list of collections, ignoring it
+                            if (gft.ElementType.FullName == "System.Collections.Generic.List`1")
                             {
-                                validFields.Add(f);
+                                TypeDefWithSelfRef elem = ft.typeParamToArg["T"];
+                                if (elem.typeRef.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                                {
+                                    continue;
+                                }
                             }
+
+                            //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                            //https://unity.com/releases/editor/whats-new/2020.1.0
+                            else if (unityVersion.major < 2020)
+                            {
+                                continue;
+                            }
+                        }
+                        //Unity can't serialize array of collections, ignoring it
+                        else if (f.FieldType is ArrayType aft)
+                        {
+                            TypeDefWithSelfRef elem = aft.ElementType;
+                            if (aft.ElementType.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (ftd != null && IsValidDef(ftd))
+                        {
+                            validFields.Add(f);
                         }
                     }
                 }
             }
             return validFields;
+            
+            bool IsValidDef(TypeDefinition def)
+            {
+                //object has IsSerializable=true, which means it passes other check while it shouldn't
+                if (def.FullName == "System.Object")
+                {
+                    return false;
+                }
+
+                return def.IsPrimitive ||
+                       def.IsEnum ||
+                       def.IsSerializable ||
+                       DerivesFromUEObject(def) ||
+                       IsSpecialUnityType(def); //field has a serializable type
+            }
         }
 
         private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
@@ -325,10 +363,10 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.Name = string.Copy(field.Name);
             array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
+            array.ValueType = field.ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
             array.IsArray = true;
             array.IsAligned = true;
-            array.HasValue = false;
+            array.HasValue = true;
             array.Children = new List<AssetTypeTemplateField> {
                 size, data
             };
@@ -359,10 +397,10 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.Name = "Array";
             array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
+            array.ValueType = AssetValueType.ByteArray;
             array.IsArray = true;
             array.IsAligned = true;
-            array.HasValue = false;
+            array.HasValue = true;
             array.Children = new List<AssetTypeTemplateField> {
                 size, data
             };

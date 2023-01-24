@@ -66,6 +66,23 @@ namespace AssetsTools.NET
                 assetField.FromTypeTree(typeTreeType, ref fieldIndex);
                 Children.Add(assetField);
             }
+
+            //There can be a case where string child is not an array but an int
+            //(ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
+            if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
+            {
+                Type = Children[0].Type;
+                ValueType = Children[0].ValueType;
+
+                Children.Clear();
+            }
+
+            if (IsArray)
+            {
+                ValueType = Children[1].ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
+            }
+
+
             Children.TrimExcess();
         }
 
@@ -101,6 +118,22 @@ namespace AssetsTools.NET
                 AssetTypeTemplateField childField = new AssetTypeTemplateField();
                 childField.FromClassDatabase(strTable, childNode);
                 Children.Add(childField);
+            }
+
+            //There can be a case where string child is not an array but an int
+            //(ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
+            if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
+            {
+                Type = Children[0].Type;
+                ValueType = Children[0].ValueType;
+
+                Children.Clear();
+                Children.TrimExcess();
+            }
+
+            if (IsArray)
+            {
+                ValueType = Children[1].ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
             }
         }
 

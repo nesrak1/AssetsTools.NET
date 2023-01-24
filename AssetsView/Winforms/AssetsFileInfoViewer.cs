@@ -66,9 +66,9 @@ namespace AssetsView.Winforms
             foreach (AssetsFileExternal dep in metadata.Externals)
             {
                 string guid = string.Empty;
-                if (dep.Guid.mostSignificant != 0 || dep.Guid.leastSignificant != 0)
+                if (!dep.Guid.IsEmpty)
                 {
-                    guid = $"{dep.Guid.mostSignificant:x8}{dep.Guid.leastSignificant:x8}";
+                    guid = dep.Guid.ToString();
                 }
                 dep_list.Items.Add(new ListViewItem(new[] { dep.PathName, dep.Type.ToString(), guid }));
             }
