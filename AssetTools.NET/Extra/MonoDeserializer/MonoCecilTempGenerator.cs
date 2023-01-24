@@ -55,7 +55,7 @@ namespace AssetsTools.NET.Extra
         {
             this.unityVersion = unityVersion;
             List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, unityVersion);
+            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children);
             return children;
         }
 
@@ -81,14 +81,14 @@ namespace AssetsTools.NET.Extra
             return asmDef;
         }
 
-        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf, UnityVersion unityVersion)
+        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf)
         {
             // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
             TypeDefinition type = new TypeReference(nameSpace, typeName, module, module).Resolve();
-            RecursiveTypeLoad(type, attf, unityVersion);
+            RecursiveTypeLoad(type, attf);
         }
 
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, UnityVersion unityVersion)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
         {
             string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
@@ -98,15 +98,15 @@ namespace AssetsTools.NET.Extra
             {
                 TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
                 typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, attf, unityVersion);
+                RecursiveTypeLoad(typeDef, attf);
             }
 
-            attf.AddRange(ReadTypes(type, unityVersion));
+            attf.AddRange(ReadTypes(type));
         }
 
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, UnityVersion unityVersion)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type)
         {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, unityVersion);
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
@@ -147,7 +147,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (IsSpecialUnityType(fieldTypeDef))
                 {
-                    SetSpecialUnity(field, fieldTypeDef, unityVersion);
+                    SetSpecialUnity(field, fieldTypeDef);
                 }
                 else if (DerivesFromUEObject(fieldTypeDef))
                 {
@@ -155,7 +155,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (fieldTypeDef.typeDef.IsSerializable)
                 {
-                    SetSerialized(field, fieldTypeDef, unityVersion);
+                    SetSerialized(field, fieldTypeDef);
                 }
 
                 if (fieldTypeDef.typeDef.IsEnum)
@@ -178,7 +178,7 @@ namespace AssetsTools.NET.Extra
             return localChildren;
         }
 
-        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, UnityVersion unityVersion)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
             foreach (FieldDefinition f in typeDef.typeDef.Fields)
@@ -448,15 +448,15 @@ namespace AssetsTools.NET.Extra
             };
         }
 
-        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type, UnityVersion unityVersion)
+        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, types, unityVersion);
+            RecursiveTypeLoad(type, types);
             field.Children = types;
         }
 
         #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type, UnityVersion unityVersion)
+        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type)
         {
             switch (type.typeDef.Name)
             {
@@ -491,7 +491,7 @@ namespace AssetsTools.NET.Extra
                     SetVec3Int(field);
                     break;
                 default:
-                    SetSerialized(field, type, unityVersion);
+                    SetSerialized(field, type);
                     break;
             }
         }
