@@ -76,6 +76,13 @@ namespace AssetsTools.NET
 
                 Children.Clear();
             }
+
+            if (IsArray)
+            {
+                ValueType = Children[1].ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
+            }
+
+
             Children.TrimExcess();
         }
 
@@ -122,6 +129,11 @@ namespace AssetsTools.NET
 
                 Children.Clear();
                 Children.TrimExcess();
+            }
+
+            if (IsArray)
+            {
+                ValueType = Children[1].ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
             }
         }
 

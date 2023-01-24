@@ -325,10 +325,10 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.Name = string.Copy(field.Name);
             array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
+            array.ValueType = field.ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array;
             array.IsArray = true;
             array.IsAligned = true;
-            array.HasValue = false;
+            array.HasValue = true;
             array.Children = new List<AssetTypeTemplateField> {
                 size, data
             };
@@ -359,10 +359,10 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField array = new AssetTypeTemplateField();
             array.Name = "Array";
             array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
+            array.ValueType = AssetValueType.ByteArray;
             array.IsArray = true;
             array.IsAligned = true;
-            array.HasValue = false;
+            array.HasValue = true;
             array.Children = new List<AssetTypeTemplateField> {
                 size, data
             };
