@@ -55,7 +55,7 @@ namespace AssetsTools.NET.Extra
         {
             this.unityVersion = unityVersion;
             List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children);
+            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, unityVersion);
             return children;
         }
 
@@ -81,14 +81,14 @@ namespace AssetsTools.NET.Extra
             return asmDef;
         }
 
-        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf, UnityVersion unityVersion)
         {
             // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
             TypeDefinition type = new TypeReference(nameSpace, typeName, module, module).Resolve();
-            RecursiveTypeLoad(type, attf);
+            RecursiveTypeLoad(type, attf, unityVersion);
         }
 
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, UnityVersion unityVersion)
         {
             string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
@@ -98,15 +98,15 @@ namespace AssetsTools.NET.Extra
             {
                 TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
                 typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, attf);
+                RecursiveTypeLoad(typeDef, attf, unityVersion);
             }
 
-            attf.AddRange(ReadTypes(type));
+            attf.AddRange(ReadTypes(type, unityVersion));
         }
 
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, UnityVersion unityVersion)
         {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type);
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, unityVersion);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
@@ -147,7 +147,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (IsSpecialUnityType(fieldTypeDef))
                 {
-                    SetSpecialUnity(field, fieldTypeDef);
+                    SetSpecialUnity(field, fieldTypeDef, unityVersion);
                 }
                 else if (DerivesFromUEObject(fieldTypeDef))
                 {
@@ -155,7 +155,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (fieldTypeDef.typeDef.IsSerializable)
                 {
-                    SetSerialized(field, fieldTypeDef);
+                    SetSerialized(field, fieldTypeDef, unityVersion);
                 }
 
                 if (fieldTypeDef.typeDef.IsEnum)
@@ -178,7 +178,7 @@ namespace AssetsTools.NET.Extra
             return localChildren;
         }
 
-        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, UnityVersion unityVersion)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
             foreach (FieldDefinition f in typeDef.typeDef.Fields)
@@ -194,21 +194,59 @@ namespace AssetsTools.NET.Extra
                         TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
 
                         TypeDefinition ftd = ft.typeDef;
-                        if (ftd != null)
+
+                        if (f.FieldType is GenericInstanceType gft)
                         {
-                            if (ftd.IsPrimitive ||
-                                ftd.IsEnum ||
-                                ftd.IsSerializable ||
-                                DerivesFromUEObject(ftd) ||
-                                IsSpecialUnityType(ftd)) //field has a serializable type
+                            //Unity can't serialize list of collections, ignoring it
+                            if (gft.ElementType.FullName == "System.Collections.Generic.List`1")
                             {
-                                validFields.Add(f);
+                                TypeDefWithSelfRef elem = ft.typeParamToArg["T"];
+                                if (elem.typeRef.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                                {
+                                    continue;
+                                }
                             }
+
+                            //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                            //https://unity.com/releases/editor/whats-new/2020.1.0
+                            else if (unityVersion.major < 2020)
+                            {
+                                continue;
+                            }
+                        }
+                        //Unity can't serialize array of collections, ignoring it
+                        else if (f.FieldType is ArrayType aft)
+                        {
+                            TypeDefWithSelfRef elem = aft.ElementType;
+                            if (aft.ElementType.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (ftd != null && IsValidDef(ftd))
+                        {
+                            validFields.Add(f);
                         }
                     }
                 }
             }
             return validFields;
+            
+            bool IsValidDef(TypeDefinition def)
+            {
+                //object has IsSerializable=true, which means it passes other check while it shouldn't
+                if (def.FullName == "System.Object")
+                {
+                    return false;
+                }
+
+                return def.IsPrimitive ||
+                       def.IsEnum ||
+                       def.IsSerializable ||
+                       DerivesFromUEObject(def) ||
+                       IsSpecialUnityType(def); //field has a serializable type
+            }
         }
 
         private Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
@@ -410,15 +448,15 @@ namespace AssetsTools.NET.Extra
             };
         }
 
-        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type)
+        private void SetSerialized(AssetTypeTemplateField field, TypeDefWithSelfRef type, UnityVersion unityVersion)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, types);
+            RecursiveTypeLoad(type, types, unityVersion);
             field.Children = types;
         }
 
         #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type)
+        private void SetSpecialUnity(AssetTypeTemplateField field, TypeDefWithSelfRef type, UnityVersion unityVersion)
         {
             switch (type.typeDef.Name)
             {
@@ -453,7 +491,7 @@ namespace AssetsTools.NET.Extra
                     SetVec3Int(field);
                     break;
                 default:
-                    SetSerialized(field, type);
+                    SetSerialized(field, type, unityVersion);
                     break;
             }
         }
