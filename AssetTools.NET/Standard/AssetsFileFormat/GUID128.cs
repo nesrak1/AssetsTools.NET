@@ -15,6 +15,11 @@ namespace AssetsTools.NET
 
         public bool IsEmpty => data0 == 0 && data1 == 0 && data2 == 0 && data3 == 0;
 
+        public GUID128(AssetsFileReader reader) : this()
+        {
+            Read(reader);
+        }
+
         public void Read(AssetsFileReader reader)
         {
             data0 = reader.ReadUInt32();
