@@ -31,7 +31,7 @@ namespace AssetsTools.NET.Extra
         {
             UnloadAllAssetsFiles(true);
             UnloadAllBundleFiles();
-            MonoTempGenerator.Dispose();
+            MonoTempGenerator?.Dispose();
             if (unloadClassData)
             {
                 ClassPackage = null;
