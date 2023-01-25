@@ -31,8 +31,7 @@ namespace AssetsTools.NET
         public void Read(AssetsFileReader reader)
         {
             VirtualAssetPathName = reader.ReadNullTerminated();
-            Guid = new GUID128();
-            Guid.Read(reader);
+            Guid = new GUID128(reader);
             Type = (AssetsFileExternalType)reader.ReadInt32();
             PathName = reader.ReadNullTerminated();
             OriginalPathName = PathName;
