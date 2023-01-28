@@ -191,13 +191,7 @@ namespace AssetsView.Winforms
         private void clearFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             assetTree.Nodes.Clear();
-            helper.Files.ForEach(d => {
-                if (d != null)
-                {
-                    d.file.Reader.Close();
-                }
-            });
-            helper.Files.Clear();
+            helper.UnloadAll();
             rootDir = null;
             currentFile = null;
             assetList.Rows.Clear();
