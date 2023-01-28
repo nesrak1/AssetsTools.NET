@@ -27,8 +27,7 @@ namespace AssetsView.Winforms
             fileName = Path.GetFileName(filePath);
             inst = helper.LoadBundleFile(filePath, false);
             file = inst.file;
-            uint compressionMethod = file.Header.GetCompressionType();
-            if (compressionMethod != 1)
+            if (!file.DataIsCompressed)
             {
                 justThisFile.Enabled = true;
                 fileAndDependencies.Enabled = true;
@@ -39,6 +38,8 @@ namespace AssetsView.Winforms
             {
                 decompressBundle.Enabled = true;
                 decompressBundleInMemory.Enabled = true;
+                var firstCompressedBlock = file.BlockAndDirInfo.BlockInfos.FirstOrDefault(i => i.GetCompressionType() != 0);
+                int compressionMethod = (firstCompressedBlock == null) ? 0 : firstCompressedBlock.GetCompressionType();
                 if (compressionMethod == 1)
                 {
                     status.Text = $"Opening bundle file {fileName} (LZMA)...";
