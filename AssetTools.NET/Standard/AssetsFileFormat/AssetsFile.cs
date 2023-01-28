@@ -54,7 +54,7 @@ namespace AssetsTools.NET
 
             List<TypeTreeType> typeTreeTypes = Metadata.TypeTreeTypes;
 
-            foreach (AssetsReplacer replacer in replacers)
+            foreach (AssetsReplacer replacer in replacers.Where(r => r.GetReplacementType() == AssetsReplacementType.AddOrModify))
             {
                 int replacerClassId = replacer.GetClassID();
                 ushort replacerScriptIndex = replacer.GetMonoScriptID();
