@@ -290,17 +290,22 @@ namespace AssetsTools.NET
 
         public TypeTreeType FindTypeTreeTypeByID(int id, ushort scriptIndex)
         {
+            TypeTreeType temp = null;
             // todo: use metadata for better version checking
             foreach (TypeTreeType type in TypeTreeTypes)
             {
-                // 5.5+
-                if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
-                    return type;
-                // 5.4- (script index cannot be trusted in this version, so ignore it)
-                if (id == type.TypeId && type.ScriptTypeIndex == 0xffff && scriptIndex != 0xffff)
-                    return type;
+                // 5.5+ & 5.4-
+                if (type.TypeId == id)
+                {
+                    // 5.5+
+                    if (type.ScriptTypeIndex == scriptIndex)
+                        return type;
+                    // 5.4- (script index cannot be trusted in this version, so ignore it)
+                    else if (type.ScriptTypeIndex == 0xffff && temp == null)
+                        temp = type;
+                }
             }
-            return null;
+            return temp;
         }
 
         public TypeTreeType FindTypeTreeTypeByScriptIndex(ushort scriptIndex)
