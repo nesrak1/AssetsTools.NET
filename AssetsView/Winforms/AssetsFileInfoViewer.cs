@@ -44,7 +44,7 @@ namespace AssetsView.Winforms
             {
                 if (type.Nodes == null || type.Nodes.Count == 0)
                 {
-                    ClassDatabaseType cldt = cldb.Classes.First(c => c.ClassId == type.TypeId);
+                    ClassDatabaseType cldt = cldb.FindAssetClassByID(type.TypeId);
                     ttr_list.Items.Add($"[{cldb.GetString(cldt.Name)}] (0x{type.TypeId.ToString("x")})");
                 }
                 else
@@ -81,7 +81,7 @@ namespace AssetsView.Winforms
             TypeTreeType type = metadata.TypeTreeTypes[ttr_list.SelectedIndex];
             if (type.Nodes == null || type.Nodes.Count == 0)
             {
-                ClassDatabaseType cldt = cldb.Classes.First(c => c.ClassId == type.TypeId);
+                ClassDatabaseType cldt = cldb.FindAssetClassByID(type.TypeId);
                 ttr_type.Text = cldb.GetString(cldt.Name);
             }
             else
