@@ -54,7 +54,7 @@ namespace AssetsTools.NET
 
             List<TypeTreeType> typeTreeTypes = Metadata.TypeTreeTypes;
 
-            foreach (AssetsReplacer replacer in replacers)
+            foreach (AssetsReplacer replacer in replacers.Where(r => r.GetReplacementType() == AssetsReplacementType.AddOrModify))
             {
                 int replacerClassId = replacer.GetClassID();
                 ushort replacerScriptIndex = replacer.GetMonoScriptID();
@@ -303,8 +303,8 @@ namespace AssetsTools.NET
         public void GenerateQuickLookupTree() => Metadata.GenerateQuickLookupTree();
         public List<AssetFileInfo> GetAssetsOfType(int typeId) => Metadata.GetAssetsOfType(typeId);
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId) => Metadata.GetAssetsOfType(typeId);
-        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex = 0xffff) => Metadata.GetAssetsOfType(typeId, scriptIndex);
-        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex = 0xffff) => Metadata.GetAssetsOfType(typeId, scriptIndex);
+        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex) => Metadata.GetAssetsOfType(typeId, scriptIndex);
+        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex) => Metadata.GetAssetsOfType(typeId, scriptIndex);
 
         public List<AssetFileInfo> AssetInfos => Metadata.AssetInfos;
     }

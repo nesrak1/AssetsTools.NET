@@ -229,7 +229,7 @@ namespace AssetsTools.NET
             return infos;
         }
 
-        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex = 0xffff)
+        public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex)
         {
             List<AssetFileInfo> infos = new List<AssetFileInfo>();
             foreach (AssetFileInfo info in AssetInfos)
@@ -273,7 +273,7 @@ namespace AssetsTools.NET
             return GetAssetsOfType((int)typeId);
         }
 
-        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex = 0xffff)
+        public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex)
         {
             return GetAssetsOfType((int)typeId, scriptIndex);
         }
@@ -293,12 +293,15 @@ namespace AssetsTools.NET
             // todo: use metadata for better version checking
             foreach (TypeTreeType type in TypeTreeTypes)
             {
-                // 5.5+
-                if (type.TypeId == id && type.ScriptTypeIndex == scriptIndex)
-                    return type;
-                // 5.4- (script index cannot be trusted in this version, so ignore it)
-                if (id == type.TypeId && type.ScriptTypeIndex == 0xffff && scriptIndex != 0xffff)
-                    return type;
+                if (type.TypeId == id)
+                {
+                    // 5.5+ monobehaviours and 5.4- any other asset
+                    if (type.ScriptTypeIndex == scriptIndex)
+                        return type;
+                    // 5.4- monobehaviours (script index cannot be trusted in this version, so ignore it)
+                    if (id < 0 && type.ScriptTypeIndex == 0xffff)
+                        return type;
+                }
             }
             return null;
         }
