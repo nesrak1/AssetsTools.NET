@@ -152,6 +152,13 @@ namespace AssetsTools.NET
 
             cldb.StringTable = TpkTypeTree.StringTable;
 
+            byte commonStringCount = TpkTypeTree.CommonString.GetCommonStringLengthForVersion(version);
+            cldb.CommonStringBufferIndices = new List<ushort>(commonStringCount);
+            for (int i = 0; i < commonStringCount; i++)
+            {
+                cldb.CommonStringBufferIndices.Add(TpkTypeTree.CommonString.StringBufferIndices[i]);
+            }
+
             return cldb;
         }
         

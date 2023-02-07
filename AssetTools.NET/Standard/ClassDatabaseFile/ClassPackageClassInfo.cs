@@ -52,6 +52,11 @@ namespace AssetsTools.NET
 
         public ClassPackageType GetTypeForVersion(UnityVersion version)
         {
+            if (Classes.Count == 0)
+            {
+                return null;
+            }
+
             ClassPackageType lastType = Classes[0].Value;
             for (int i = 0; i < Classes.Count; i++)
             {

@@ -68,13 +68,14 @@ namespace AssetsTools.NET.Extra
         private void InitializeDefaultStringTableIndices()
         {
             int commonStringTablePos = 0;
-            List<string> commonStrings = cldbFile.StringTable.Strings;
-            foreach (string entry in commonStrings)
+            List<ushort> commonStringIndices = cldbFile.CommonStringBufferIndices;
+            foreach (ushort entry in commonStringIndices)
             {
-                if (entry != string.Empty)
+                string strEntry = cldbFile.StringTable.GetString(entry);
+                if (strEntry != string.Empty)
                 {
-                    commonStringTableLookup.Add(entry, (uint)commonStringTablePos);
-                    commonStringTablePos += entry.Length + 1;
+                    commonStringTableLookup.Add(strEntry, (uint)commonStringTablePos);
+                    commonStringTablePos += strEntry.Length + 1;
                 }
             }
         }

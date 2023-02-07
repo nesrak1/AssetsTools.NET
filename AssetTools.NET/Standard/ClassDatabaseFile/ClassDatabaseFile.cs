@@ -14,15 +14,13 @@ namespace AssetsTools.NET
         public ClassDatabaseFileHeader Header;
         public List<ClassDatabaseType> Classes;
         public ClassDatabaseStringTable StringTable;
+        public List<ushort> CommonStringBufferIndices;
 
         public string GetString(ushort index) => StringTable.GetString(index);
 
         public void Read(AssetsFileReader reader)
         {
-            if (Header == null)
-            {
-                Header = new ClassDatabaseFileHeader();
-            }
+            Header ??= new ClassDatabaseFileHeader();
             Header.Read(reader);
 
             AssetsFileReader dReader = GetDecompressedReader(reader);
@@ -35,11 +33,15 @@ namespace AssetsTools.NET
                 Classes.Add(type);
             }
 
-            if (StringTable == null)
-            {
-                StringTable = new ClassDatabaseStringTable();
-            }
+            StringTable ??= new ClassDatabaseStringTable();
             StringTable.Read(dReader);
+
+            CommonStringBufferIndices ??= new List<ushort>();
+            int size = dReader.ReadInt32();
+            for (int i = 0; i < size; i++)
+            {
+                CommonStringBufferIndices.Add(dReader.ReadUInt16());
+            }
         }
 
         public void Write(AssetsFileWriter writer, ClassFileCompressionType compressionType)
@@ -55,6 +57,12 @@ namespace AssetsTools.NET
             }
 
             StringTable.Write(dWriter);
+
+            dWriter.Write(CommonStringBufferIndices.Count);
+            for (int i = 0; i < CommonStringBufferIndices.Count; i++)
+            {
+                dWriter.Write(CommonStringBufferIndices[i]);
+            }
 
             using MemoryStream cStream = GetCompressedStream(dStream);
 
