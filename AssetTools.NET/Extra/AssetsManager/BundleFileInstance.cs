@@ -19,7 +19,7 @@ namespace AssetsTools.NET.Extra
             name = Path.GetFileName(path);
             file = new AssetBundleFile();
             file.Read(new AssetsFileReader(stream));
-            if (file.Header != null && file.Header.GetCompressionType() == 1 && unpackIfPacked)
+            if (file.Header != null && file.DataIsCompressed && unpackIfPacked)
             {
                 file = BundleHelper.UnpackBundle(file);
             }
