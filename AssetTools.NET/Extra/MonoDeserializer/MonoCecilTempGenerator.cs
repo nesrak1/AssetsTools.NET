@@ -8,6 +8,25 @@ namespace AssetsTools.NET.Extra
 {
     public class MonoCecilTempGenerator : IMonoBehaviourTemplateGenerator
     {
+        //Unity definitly excludes some assemblies from being serialized
+        //but I couldn't find the difinitive list, plus it changes from version-to-version
+        //Those should be enough for most cases
+        //but need more research when it will cause problems for some games
+        private readonly string[] blacklistedAssemblies = new[]
+        {
+            "mscorlib",
+            "netstandard",
+            "System.Core",
+            "System",
+
+            //Got these when testing assembly directly from Library\ScriptAssemblies
+            //Discovered from dotnet by cecil because it couldn't find system libs in the same folder as assembly
+            //Should be safe to also exclude them
+            "System.Private.CoreLib",
+            "System.Collections",
+            "System.Collections.NonGeneric"
+        };
+
         private UnityVersion unityVersion;
         public string managedPath;
         public Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
@@ -201,10 +220,11 @@ namespace AssetsTools.NET.Extra
                             if (gft.ElementType.FullName == "System.Collections.Generic.List`1")
                             {
                                 TypeDefWithSelfRef elem = ft.typeParamToArg["T"];
-                                if (elem.typeRef.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                                if (!elem.typeRef.IsArray && IsValidDef(elem.typeDef))
                                 {
-                                    continue;
+                                    validFields.Add(f);
                                 }
+                                continue;
                             }
 
                             //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
@@ -218,10 +238,11 @@ namespace AssetsTools.NET.Extra
                         else if (f.FieldType is ArrayType aft)
                         {
                             TypeDefWithSelfRef elem = aft.ElementType;
-                            if (aft.ElementType.IsArray || elem.typeDef.FullName == "System.Collections.Generic.List`1" || !IsValidDef(elem.typeDef))
+                            if (!elem.typeRef.IsArray && IsValidDef(elem.typeDef))
                             {
-                                continue;
+                                validFields.Add(f);
                             }
+                            continue;
                         }
 
                         if (ftd != null && IsValidDef(ftd))
@@ -235,17 +256,16 @@ namespace AssetsTools.NET.Extra
             
             bool IsValidDef(TypeDefinition def)
             {
-                //object has IsSerializable=true, which means it passes other check while it shouldn't
-                if (def.FullName == "System.Object")
-                {
-                    return false;
-                }
-
-                return def.IsPrimitive ||
-                       def.IsEnum ||
+                return !def.IsAbstract && 
+                       !def.IsInterface &&
+                       (def.IsPrimitive ||
+                        def.IsEnum ||
+                        def.FullName == "System.String" ||
+                        !blacklistedAssemblies.Contains((def.Scope as ModuleDefinition)?.Assembly.Name.Name ?? def.Scope.Name)) &&
+                       (def.IsEnum ||
                        def.IsSerializable ||
                        DerivesFromUEObject(def) ||
-                       IsSpecialUnityType(def); //field has a serializable type
+                       IsSpecialUnityType(def)); //field has a serializable type
             }
         }
 
@@ -318,6 +338,8 @@ namespace AssetsTools.NET.Extra
 
         private bool DerivesFromUEObject(TypeDefWithSelfRef typeDef)
         {
+            if (typeDef.typeDef.BaseType == null)
+                return false;
             if (typeDef.typeDef.IsInterface)
                 return false;
             if (typeDef.typeDef.BaseType.FullName == "UnityEngine.Object" ||
