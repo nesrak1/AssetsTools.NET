@@ -36,9 +36,17 @@ namespace AssetsTools.NET
         /// </summary>
         public byte[] StringBufferBytes { get; set; }
         /// <summary>
+        /// Is the type a reference type?
+        /// </summary>
+        public bool IsRefType { get; set; }
+        /// <summary>
         /// Type dependencies for this type. Unknown purpose.
         /// </summary>
         public int[] TypeDependencies { get; set; }
+        /// <summary>
+        /// Type reference. Unknown purpose.
+        /// </summary>
+        public AssetsTypeReference TypeReference { get; set; }
 
         public string StringBuffer
         {
@@ -46,22 +54,32 @@ namespace AssetsTools.NET
             set => StringBufferBytes = Encoding.UTF8.GetBytes(value);
         }
 
-        public void Read(AssetsFileReader reader, uint version, bool hasTypeTree)
+        public void Read(AssetsFileReader reader, uint version, bool hasTypeTree, bool isRefType)
         {
             TypeId = reader.ReadInt32();
             if (version >= 16)
+            {
                 IsStrippedType = reader.ReadBoolean();
+            }
 
             if (version >= 17)
+            {
                 ScriptTypeIndex = reader.ReadUInt16();
+            }
             else
+            {
                 ScriptTypeIndex = 0xffff;
+            }
 
-            if ((version < 17 && TypeId < 0) || (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour))
+            if ((version < 17 && TypeId < 0) ||
+                (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||
+                (isRefType && ScriptTypeIndex != 0xffff))
             {
                 ScriptIdHash = new Hash128(reader);
             }
+
             TypeHash = new Hash128(reader);
+            IsRefType = isRefType;
 
             if (hasTypeTree)
             {
@@ -70,18 +88,26 @@ namespace AssetsTools.NET
                 Nodes = new List<TypeTreeNode>(typeTreeNodeCount);
                 for (int i = 0; i < typeTreeNodeCount; i++)
                 {
-                    TypeTreeNode typefield0d = new TypeTreeNode();
-                    typefield0d.Read(reader, version);
-                    Nodes.Add(typefield0d);
+                    TypeTreeNode typeField = new TypeTreeNode();
+                    typeField.Read(reader, version);
+                    Nodes.Add(typeField);
                 }
                 StringBufferBytes = reader.ReadBytes(stringBufferLen);
                 if (version >= 21)
                 {
-                    int dependenciesCount = reader.ReadInt32();
-                    TypeDependencies = new int[dependenciesCount];
-                    for (int i = 0; i < dependenciesCount; i++)
+                    if (!isRefType)
                     {
-                        TypeDependencies[i] = reader.ReadInt32();
+                        int dependenciesCount = reader.ReadInt32();
+                        TypeDependencies = new int[dependenciesCount];
+                        for (int i = 0; i < dependenciesCount; i++)
+                        {
+                            TypeDependencies[i] = reader.ReadInt32();
+                        }
+                    }
+                    else
+                    {
+                        TypeReference = new AssetsTypeReference();
+                        TypeReference.Read(reader);
                     }
                 }
             }
@@ -96,7 +122,9 @@ namespace AssetsTools.NET
             if (version >= 17)
                 writer.Write(ScriptTypeIndex);
 
-            if ((version < 17 && TypeId < 0) || (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour))
+            if ((version < 17 && TypeId < 0) ||
+                (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||
+                (IsRefType && ScriptTypeIndex != 0xffff))
             {
                 writer.Write(ScriptIdHash.data);
             }
@@ -113,10 +141,17 @@ namespace AssetsTools.NET
                 writer.Write(StringBufferBytes);
                 if (version >= 21)
                 {
-                    writer.Write(TypeDependencies.Length);
-                    for (int i = 0; i < TypeDependencies.Length; i++)
+                    if (!IsRefType)
                     {
-                        writer.Write(TypeDependencies[i]);
+                        writer.Write(TypeDependencies.Length);
+                        for (int i = 0; i < TypeDependencies.Length; i++)
+                        {
+                            writer.Write(TypeDependencies[i]);
+                        }
+                    }
+                    else
+                    {
+                        TypeReference.Write(writer);
                     }
                 }
             }

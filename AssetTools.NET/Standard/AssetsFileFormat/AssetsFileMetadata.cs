@@ -37,7 +37,7 @@ namespace AssetsTools.NET
         /// <summary>
         /// List of reference types (unknown what this is for).
         /// </summary>
-        public List<AssetsTypeReference> RefTypes { get; set; }
+        public List<TypeTreeType> RefTypes { get; set; }
         /// <summary>
         /// Unknown.
         /// </summary>
@@ -70,9 +70,9 @@ namespace AssetsTools.NET
             TypeTreeTypes = new List<TypeTreeType>(fieldCount);
             for (int i = 0; i < fieldCount; i++)
             {
-                TypeTreeType type0d = new TypeTreeType();
-                type0d.Read(reader, version, TypeTreeEnabled);
-                TypeTreeTypes.Add(type0d);
+                TypeTreeType typeTreeType = new TypeTreeType();
+                typeTreeType.Read(reader, version, TypeTreeEnabled, false);
+                TypeTreeTypes.Add(typeTreeType);
             }
 
             int assetCount = reader.ReadInt32();
@@ -117,12 +117,12 @@ namespace AssetsTools.NET
             if (version >= 20)
             {
                 int refTypeCount = reader.ReadInt32();
-                RefTypes = new List<AssetsTypeReference>(refTypeCount);
+                RefTypes = new List<TypeTreeType>(refTypeCount);
                 for (int i = 0; i < refTypeCount; i++)
                 {
-                    AssetsTypeReference refType = new AssetsTypeReference();
-                    refType.Read(reader);
-                    RefTypes.Add(refType);
+                    TypeTreeType typeTreeType = new TypeTreeType();
+                    typeTreeType.Read(reader, version, TypeTreeEnabled, true);
+                    RefTypes.Add(typeTreeType);
                 }
             }
 
@@ -173,7 +173,7 @@ namespace AssetsTools.NET
                 writer.Write(RefTypes.Count);
                 for (int j = 0; j < RefTypes.Count; j++)
                 {
-                    RefTypes[j].Write(writer);
+                    RefTypes[j].Write(writer, version, TypeTreeEnabled);
                 }
             }
 

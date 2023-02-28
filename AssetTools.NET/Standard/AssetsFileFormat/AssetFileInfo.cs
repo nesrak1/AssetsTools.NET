@@ -22,7 +22,7 @@ namespace AssetsTools.NET
         public uint ByteSize { get; set; }
         /// <summary>
         /// Before version 16 this is the type ID of the asset. In version 16 and later this is the index into the type tree list.
-        /// In versions 15 and below, this is the same as TypeId except in MonoBehaviours where this acts as ScriptTypeIndex (negative).
+        /// In versions 15 and below, this is the same as TypeId except in MonoBehaviours where this acts similar to ScriptTypeIndex (negative).
         /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
         public int TypeIdOrIndex { get; set; }

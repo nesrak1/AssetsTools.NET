@@ -28,7 +28,7 @@ namespace AssetsTools.NET.Extra
                 AssetInfos = new List<AssetFileInfo>(),
                 ScriptTypes = new List<AssetPPtr>(),
                 Externals = new List<AssetsFileExternal>(),
-                RefTypes = new List<AssetsTypeReference>()
+                RefTypes = new List<TypeTreeType>()
             };
 
             header.Write(writer);
