@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace AssetsTools.NET.Extra
 {
@@ -42,8 +41,7 @@ namespace AssetsTools.NET.Extra
                     return null;
                 }
 
-                int instIndex = am.Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
-                if (instIndex == -1)
+                if (!am.FileLookup.TryGetValue(am.GetFileLookupKey(depPath), out AssetsFileInstance inst))
                 {
                     string pathDir = Path.GetDirectoryName(path);
                     string absPath = Path.Combine(pathDir, depPath);
@@ -68,7 +66,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else
                 {
-                    dependencyCache[depIdx] = am.Files[instIndex];
+                    dependencyCache[depIdx] = inst;
                 }
             }
             return dependencyCache[depIdx];
