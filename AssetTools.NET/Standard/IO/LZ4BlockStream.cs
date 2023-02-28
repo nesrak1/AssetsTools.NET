@@ -228,7 +228,7 @@ namespace AssetsTools.NET
                 return blockInfos[0].DecompressedSize;
             }
 
-            throw new InvalidDataException("No LZ4 blocks were found in block infos. Can't find block size.");
+            throw new Exception("No LZ4 blocks were found in block infos. Can't find block size.");
         }
 
         public override bool CanRead => BaseStream.CanRead;
