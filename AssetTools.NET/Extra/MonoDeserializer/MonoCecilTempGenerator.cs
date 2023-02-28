@@ -214,7 +214,7 @@ namespace AssetsTools.NET.Extra
 
                         TypeDefinition ftd = ft.typeDef;
 
-                        if (f.FieldType is GenericInstanceType gft)
+                        if (ft.typeRef is GenericInstanceType gft)
                         {
                             //Unity can't serialize list of collections, ignoring it
                             if (gft.ElementType.FullName == "System.Collections.Generic.List`1")
@@ -235,7 +235,7 @@ namespace AssetsTools.NET.Extra
                             }
                         }
                         //Unity can't serialize array of collections, ignoring it
-                        else if (f.FieldType is ArrayType aft)
+                        else if (ft.typeRef is ArrayType aft)
                         {
                             TypeDefWithSelfRef elem = aft.ElementType;
                             if (!elem.typeRef.IsArray && IsValidDef(elem.typeDef))
