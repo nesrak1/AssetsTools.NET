@@ -31,6 +31,13 @@ namespace AssetsTools.NET
             PathId = pathId;
         }
 
+        public AssetPPtr(string fileName, long pathId)
+        {
+            FilePath = fileName;
+            FileId = 0;
+            PathId = pathId;
+        }
+
         public AssetPPtr(string fileName, int fileId, long pathId)
         {
             FilePath = fileName;
