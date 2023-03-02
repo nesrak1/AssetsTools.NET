@@ -35,7 +35,7 @@ namespace AssetsTools.NET
         /// </summary>
         public List<AssetsFileExternal> Externals { get; set; }
         /// <summary>
-        /// List of reference types (unknown what this is for).
+        /// List of reference types.
         /// </summary>
         public List<TypeTreeType> RefTypes { get; set; }
         /// <summary>
