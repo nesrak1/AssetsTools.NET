@@ -256,16 +256,17 @@ namespace AssetsTools.NET.Extra
             
             bool IsValidDef(TypeDefinition def)
             {
-                return !def.IsAbstract && 
-                       !def.IsInterface &&
-                       (def.IsPrimitive ||
-                        def.IsEnum ||
-                        def.FullName == "System.String" ||
-                        !blacklistedAssemblies.Contains((def.Scope as ModuleDefinition)?.Assembly.Name.Name ?? def.Scope.Name)) &&
-                       (def.IsEnum ||
-                       def.IsSerializable ||
+                if (!(def.IsPrimitive ||
+                    def.IsEnum ||
+                    def.FullName == "System.String" ||
+                    !blacklistedAssemblies.Contains((def.Scope as ModuleDefinition)?.Assembly.Name.Name ?? def.Scope.Name)))
+                {
+                    return false;
+                }
+
+                return (!def.IsAbstract && (def.IsEnum || def.IsSerializable)) ||
                        DerivesFromUEObject(def) ||
-                       IsSpecialUnityType(def)); //field has a serializable type
+                       IsSpecialUnityType(def);//field has a serializable type
             }
         }
 
