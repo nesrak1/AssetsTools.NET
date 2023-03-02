@@ -73,6 +73,11 @@ namespace AssetsTools.NET
             ValueType = asString ? AssetValueType.String : AssetValueType.ByteArray;
             Value = value;
         }
+        public AssetTypeValue(AssetTypeReferencedObject value)
+        {
+            ValueType = AssetValueType.ReferencedObject;
+            Value = value;
+        }
         public AssetTypeValue(AssetValueType valueType, object value = null)
         {
             ValueType = valueType;
@@ -234,6 +239,11 @@ namespace AssetsTools.NET
         public byte[] AsByteArray
         {
             get => (byte[])Value;
+            set => Value = value;
+        }
+        public AssetTypeReferencedObject AsReferencedObject
+        {
+            get => (AssetTypeReferencedObject)Value;
             set => Value = value;
         }
 

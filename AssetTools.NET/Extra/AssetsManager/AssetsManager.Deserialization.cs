@@ -6,22 +6,46 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
+        public RefTypeManager GetRefTypeManager(AssetsFileInstance inst, int typeId, ushort scriptIndex)
+        {
+            TypeTreeType ttType = inst.file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
+            
+            if (ttType == null || ttType.IsRefType)
+                return null;
+
+            if (ttType.TypeDependencies == null || ttType.TypeDependencies.Length == 0)
+                return null;
+
+            RefTypeManager refMan = new RefTypeManager();
+            refMan.FromTypeTree(inst.file.Metadata, ttType);
+
+            return refMan;
+        }
+
+        public RefTypeManager GetRefTypeManager(AssetsFileInstance inst, AssetFileInfo info)
+        {
+            int typeId = info.TypeId;
+            ushort scriptIndex = inst.file.GetScriptIndex(info);
+
+            return GetRefTypeManager(inst, typeId, scriptIndex);
+        }
+
         public AssetTypeTemplateField GetTemplateBaseField(
             AssetsFileInstance inst, AssetFileInfo info,
             bool preferEditor = false, bool skipMonoBehaviourFields = false)
         {
             long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, preferEditor, skipMonoBehaviourFields);
+            bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
+            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, hasTypeTree, preferEditor, skipMonoBehaviourFields);
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(
             AssetsFileInstance inst, AssetsFileReader reader, long absByteStart,
-            int typeId, ushort scriptIndex,
+            int typeId, ushort scriptIndex, bool hasTypeTree,
             bool preferEditor = false, bool skipMonoBehaviourFields = false)
         {
             AssetsFile file = inst.file;
-            bool hasTypeTree = file.Metadata.TypeTreeEnabled;
             AssetTypeTemplateField baseField;
             if (UseTemplateFieldCache && templateFieldCache.ContainsKey(typeId))
             {
@@ -78,7 +102,7 @@ namespace AssetsTools.NET.Extra
                             ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
                             bool success = GetMonoScriptInfo(
-                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
+                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex, hasTypeTree,
                                 out string assemblyName, out string nameSpace, out string className, preferEditor);
 
                             // newer games don't have .dll
@@ -113,7 +137,7 @@ namespace AssetsTools.NET.Extra
         }
 
         private bool GetMonoScriptInfo(
-            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex,
+            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex, bool hasTypeTree,
             out string assemblyName, out string nameSpace, out string className, bool preferEditor = false)
         {
             assemblyName = null;
@@ -121,7 +145,7 @@ namespace AssetsTools.NET.Extra
             className = null;
 
             // reader argument doesn't matter since it's only used for MonoBehaviours
-            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, null, absFilePos, typeId, scriptIndex, preferEditor);
+            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, null, absFilePos, typeId, scriptIndex, hasTypeTree, preferEditor);
             if (templateField == null)
                 return false;
 

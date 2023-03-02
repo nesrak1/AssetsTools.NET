@@ -5,6 +5,7 @@ using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
+    [Obsolete("use AssetPPtr")]
     public class AssetID
     {
         public string fileName;

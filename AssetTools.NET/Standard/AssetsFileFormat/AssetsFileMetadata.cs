@@ -325,5 +325,15 @@ namespace AssetsTools.NET
             }
             return null;
         }
+
+        public TypeTreeType FindRefTypeByIndex(ushort scriptIndex)
+        {
+            foreach (TypeTreeType type in RefTypes)
+            {
+                if (type.ScriptTypeIndex == scriptIndex)
+                    return type;
+            }
+            return null;
+        }
     }
 }

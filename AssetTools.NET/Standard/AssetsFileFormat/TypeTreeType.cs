@@ -40,13 +40,13 @@ namespace AssetsTools.NET
         /// </summary>
         public bool IsRefType { get; set; }
         /// <summary>
-        /// Type dependencies for this type. Unknown purpose.
+        /// Type dependencies for this type. Used by MonoBehaviours referencing ref types. Only used when IsRefType is false.
         /// </summary>
         public int[] TypeDependencies { get; set; }
         /// <summary>
-        /// Type reference. Unknown purpose.
+        /// Type reference information. Only used when IsRefType is true.
         /// </summary>
-        public AssetsTypeReference TypeReference { get; set; }
+        public AssetTypeReference TypeReference { get; set; }
 
         public string StringBuffer
         {
@@ -106,8 +106,8 @@ namespace AssetsTools.NET
                     }
                     else
                     {
-                        TypeReference = new AssetsTypeReference();
-                        TypeReference.Read(reader);
+                        TypeReference = new AssetTypeReference();
+                        TypeReference.ReadMetadata(reader);
                     }
                 }
             }

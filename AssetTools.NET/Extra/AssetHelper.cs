@@ -5,9 +5,9 @@ namespace AssetsTools.NET.Extra
 {
     public static class AssetHelper
     {
-        public static List<AssetHelperMonoScriptInfo> GetAssetsFileScriptInfos(AssetsManager am, AssetsFileInstance inst)
+        public static List<AssetTypeReference> GetAssetsFileScriptInfos(AssetsManager am, AssetsFileInstance inst)
         {
-            List<AssetHelperMonoScriptInfo> infos = new List<AssetHelperMonoScriptInfo>();
+            List<AssetTypeReference> infos = new List<AssetTypeReference>();
             AssetsFileMetadata metadata = inst.file.Metadata;
             foreach (AssetPPtr scriptPPtr in metadata.ScriptTypes)
             {
@@ -15,8 +15,8 @@ namespace AssetsTools.NET.Extra
                 string assemblyName = msBaseField["m_AssemblyName"].AsString;
                 string nameSpace = msBaseField["m_Namespace"].AsString;
                 string className = msBaseField["m_ClassName"].AsString;
-                
-                AssetHelperMonoScriptInfo info = new AssetHelperMonoScriptInfo(assemblyName, nameSpace, className);
+
+                AssetTypeReference info = new AssetTypeReference(className, nameSpace, assemblyName);
                 infos.Add(info);
             }
 
@@ -91,20 +91,6 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return typeName;
-        }
-    }
-
-    public struct AssetHelperMonoScriptInfo
-    {
-        public string assemblyName;
-        public string nameSpace;
-        public string className;
-
-        public AssetHelperMonoScriptInfo(string assemblyName, string nameSpace, string className)
-        {
-            this.assemblyName = assemblyName;
-            this.nameSpace = nameSpace;
-            this.className = className;
         }
     }
 }

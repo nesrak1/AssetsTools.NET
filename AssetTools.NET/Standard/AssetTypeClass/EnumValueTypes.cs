@@ -16,6 +16,7 @@
         Double,
         String,
         Array,
-        ByteArray
+        ByteArray,
+        ReferencedObject
     }
 }

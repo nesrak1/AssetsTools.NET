@@ -53,6 +53,19 @@ namespace AssetsView.Winforms
                     ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBuffer)} (0x{type.TypeId.ToString("x")})");
                 }
             }
+            foreach (TypeTreeType type in metadata.RefTypes)
+            {
+                if (type.Nodes == null || type.Nodes.Count == 0)
+                {
+                    ClassDatabaseType cldt = cldb.FindAssetClassByID(type.TypeId);
+                    ttr_list.Items.Add($"[{cldb.GetString(cldt.Name)}] (0x{type.TypeId.ToString("x")}) REF");
+                }
+                else
+                {
+                    TypeTreeNode baseField = type.Nodes[0];
+                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBuffer)} (0x{type.TypeId.ToString("x")}) REF");
+                }
+            }
             //preload list
             foreach (AssetPPtr pptr in metadata.ScriptTypes)
             {
@@ -78,7 +91,18 @@ namespace AssetsView.Winforms
         private void Ttr_list_SelectedIndexChanged(object sender, EventArgs e)
         {
             AssetsFileMetadata metadata = file.Metadata;
-            TypeTreeType type = metadata.TypeTreeTypes[ttr_list.SelectedIndex];
+            int index = ttr_list.SelectedIndex;
+
+            TypeTreeType type;
+            if (index >= metadata.TypeTreeTypes.Count)
+            {
+                type = metadata.RefTypes[index - metadata.TypeTreeTypes.Count];
+            }
+            else
+            {
+                type = metadata.TypeTreeTypes[ttr_list.SelectedIndex];
+            }
+
             if (type.Nodes == null || type.Nodes.Count == 0)
             {
                 ClassDatabaseType cldt = cldb.FindAssetClassByID(type.TypeId);

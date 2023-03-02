@@ -137,6 +137,8 @@ namespace AssetsTools.NET
                     return AssetValueType.Array;
                 case "TypelessData":
                     return AssetValueType.ByteArray;
+                case "ReferencedObject":
+                    return AssetValueType.ReferencedObject;
                 default:
                     return AssetValueType.None;
             }
@@ -146,7 +148,8 @@ namespace AssetsTools.NET
         {
             if (TemplateField.IsArray)
             {
-                if (TemplateField.ValueType == AssetValueType.ByteArray)
+                if (TemplateField.ValueType == AssetValueType.ByteArray ||
+                    TemplateField.ValueType == AssetValueType.ReferencedObject)
                 {
                     byte[] byteArray = AsByteArray;
 
@@ -299,6 +302,7 @@ namespace AssetsTools.NET
         public object AsObject { get => Value.AsObject; set => Value.AsObject = value; }
         public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
         public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
+        public AssetTypeReferencedObject AsReferencedObject { get => Value.AsReferencedObject; set => Value.AsReferencedObject = value; }
 
         public string TypeName { get => TemplateField.Type; }
         public string FieldName { get => TemplateField.Name; }
