@@ -49,11 +49,11 @@ namespace AssetsTools.NET.Extra
 
                     if (File.Exists(absPath))
                     {
-                        dependencyCache[depIdx] = am.LoadAssetsFile(File.OpenRead(absPath), true);
+                        dependencyCache[depIdx] = am.LoadAssetsFile(absPath, true);
                     }
                     else if (File.Exists(localAbsPath))
                     {
-                        dependencyCache[depIdx] = am.LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                        dependencyCache[depIdx] = am.LoadAssetsFile(localAbsPath, true);
                     }
                     else if (parentBundle != null)
                     {

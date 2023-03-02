@@ -25,11 +25,11 @@ namespace AssetsTools.NET.Extra
                     string localAbsPath = Path.Combine(fileDir, Path.GetFileName(depPath));
                     if (File.Exists(absPath))
                     {
-                        LoadAssetsFile(File.OpenRead(absPath), true);
+                        LoadAssetsFile(absPath, true);
                     }
                     else if (File.Exists(localAbsPath))
                     {
-                        LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                        LoadAssetsFile(localAbsPath, true);
                     }
                 }
             }
@@ -64,19 +64,19 @@ namespace AssetsTools.NET.Extra
                     }
                     else if (File.Exists(absPath))
                     {
-                        LoadAssetsFile(File.OpenRead(absPath), true);
+                        LoadAssetsFile(absPath, true);
                     }
                     else if (File.Exists(localAbsPath))
                     {
-                        LoadAssetsFile(File.OpenRead(localAbsPath), true);
+                        LoadAssetsFile(localAbsPath, true);
                     }
                     else if (File.Exists(nbAbsPath))
                     {
-                        LoadAssetsFile(File.OpenRead(nbAbsPath), true);
+                        LoadAssetsFile(nbAbsPath, true);
                     }
                     else if (File.Exists(nbLocalAbsPath))
                     {
-                        LoadAssetsFile(File.OpenRead(nbLocalAbsPath), true);
+                        LoadAssetsFile(nbLocalAbsPath, true);
                     }
                 }
             }
