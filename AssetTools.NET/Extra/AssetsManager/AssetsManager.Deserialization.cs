@@ -32,21 +32,25 @@ namespace AssetsTools.NET.Extra
 
         public AssetTypeTemplateField GetTemplateBaseField(
             AssetsFileInstance inst, AssetFileInfo info,
-            bool preferEditor = false, bool skipMonoBehaviourFields = false)
+            AssetReadFlags readFlags = AssetReadFlags.None)
         {
             long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
-            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, hasTypeTree, preferEditor, skipMonoBehaviourFields);
+            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, readFlags);
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(
             AssetsFileInstance inst, AssetsFileReader reader, long absByteStart,
-            int typeId, ushort scriptIndex, bool hasTypeTree,
-            bool preferEditor = false, bool skipMonoBehaviourFields = false)
+            int typeId, ushort scriptIndex, AssetReadFlags readFlags)
         {
             AssetsFile file = inst.file;
             AssetTypeTemplateField baseField;
+            bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
+
+            bool preferEditor = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.PreferEditor);
+            bool forceFromCldb = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.ForceFromCldb);
+            bool skipMonoBehaviourFields = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.SkipMonoBehaviourFields);
+
             if (UseTemplateFieldCache && templateFieldCache.ContainsKey(typeId))
             {
                 baseField = templateFieldCache[typeId];
@@ -54,7 +58,7 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                if (hasTypeTree)
+                if (hasTypeTree && !forceFromCldb)
                 {
                     TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
                     if (ttType != null && ttType.Nodes.Count > 0)
@@ -102,8 +106,8 @@ namespace AssetsTools.NET.Extra
                             ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
                             bool success = GetMonoScriptInfo(
-                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex, hasTypeTree,
-                                out string assemblyName, out string nameSpace, out string className, preferEditor);
+                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
+                                out string assemblyName, out string nameSpace, out string className, readFlags);
 
                             // newer games don't have .dll
                             // let's just be consistent and remove .dll from all assemblyName strings
@@ -137,15 +141,16 @@ namespace AssetsTools.NET.Extra
         }
 
         private bool GetMonoScriptInfo(
-            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex, bool hasTypeTree,
-            out string assemblyName, out string nameSpace, out string className, bool preferEditor = false)
+            AssetsFileInstance inst, long absFilePos, int typeId, ushort scriptIndex,
+            out string assemblyName, out string nameSpace, out string className,
+            AssetReadFlags readFlags)
         {
             assemblyName = null;
             nameSpace = null;
             className = null;
 
             // reader argument doesn't matter since it's only used for MonoBehaviours
-            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, null, absFilePos, typeId, scriptIndex, hasTypeTree, preferEditor);
+            AssetTypeTemplateField templateField = GetTemplateBaseField(inst, null, absFilePos, typeId, scriptIndex, readFlags);
             if (templateField == null)
                 return false;
 
