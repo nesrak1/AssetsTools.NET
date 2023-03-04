@@ -27,6 +27,12 @@ namespace AssetsTools.NET
 
                 AssetTypeTemplateField templateField = new AssetTypeTemplateField();
                 templateField.FromTypeTree(type);
+                //If RefType has fields with [SerializeReference] it will contain its own registry,
+                //but it shouldn't be there, as the registry is only available at the root type
+                if (templateField.Children.Count > 0 && templateField.Children[templateField.Children.Count - 1].Type == "ManagedReferencesRegistry")
+                {
+                    templateField.Children.RemoveAt(templateField.Children.Count - 1);
+                }
 
                 lookup[type.TypeReference] = templateField;
             }
