@@ -183,8 +183,8 @@ namespace AssetsView.Winforms
         private void PopulateDataGrid(AssetTypeValueField atvf, PGProperty node, AssetFileInfo info, string category, bool arrayChildren = false)
         {
             List<AssetTypeValueField> children;
-            if (atvf.Value != null && atvf.Value.ValueType == AssetValueType.ReferencedObject)
-                children = new List<AssetTypeValueField>() { atvf.Value.AsReferencedObject.data };
+            if (atvf.Value != null && atvf.Value.ValueType == AssetValueType.ManagedReferencesRegistry)
+                children = atvf.Value.AsManagedReferencesRegistry.references.Select(r => r.data).ToList();
             else
                 children = atvf.Children;
 
@@ -192,7 +192,9 @@ namespace AssetsView.Winforms
                 return;
         
             string arrayName = string.Empty;
-            if (arrayChildren && children.Count > 0)
+            if (atvf.Value != null && atvf.Value.ValueType == AssetValueType.ManagedReferencesRegistry) 
+                arrayName = atvf.TemplateField.Name;
+            else if (arrayChildren && children.Count > 0)
                 arrayName = children[0].TemplateField.Name;
         
             for (int i = 0; i < children.Count; i++)
@@ -208,7 +210,7 @@ namespace AssetsView.Winforms
                     key = $"{arrayName}[{i}]";
         
                 AssetValueType evt;
-                if (atvfc.Value != null && atvfc.Value.ValueType != AssetValueType.ReferencedObject)
+                if (atvfc.Value != null)
                 {
                     evt = atvfc.Value.ValueType;
                     if (evt != AssetValueType.None)
@@ -238,6 +240,15 @@ namespace AssetsView.Winforms
                             prop.category = category;
                             SetSelectedStateIfSelected(info, prop);
                             node.Add(prop);
+                        }
+                        else if (evt == AssetValueType.ManagedReferencesRegistry)
+                        {
+                            PGProperty childProps = new PGProperty("child", null, $"[size: {atvfc.Value.AsManagedReferencesRegistry.references.Count}]");
+                            PGProperty prop = new PGProperty(key, childProps, $"[size: {atvfc.Value.AsManagedReferencesRegistry.references.Count}]");
+                            prop.category = category;
+                            SetSelectedStateIfSelected(info, prop);
+                            node.Add(prop);
+                            PopulateDataGrid(atvfc, childProps, info, category, true);
                         }
                     }
                 }

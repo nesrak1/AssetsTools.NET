@@ -231,26 +231,44 @@ namespace AssetsTools.NET
                         valueField.Value = new AssetTypeValue(reader.ReadBytes(length), true);
                         reader.Align();
                     }
-                    else if (type == AssetValueType.ReferencedObject)
+                    else if (type == AssetValueType.ManagedReferencesRegistry)
                     {
                         // todo: error handling like in array
                         if (refMan == null)
                             throw new Exception("refMan MUST be set to deserialize objects with ref types!");
 
-                        valueField.Children = new List<AssetTypeValueField>(0);
+                        ManagedReferencesRegistry registry = new ManagedReferencesRegistry();
+                        valueField.Value = new AssetTypeValue(registry);
+                        int registryChildCount = valueField.TemplateField.Children.Count;
+                        if (registryChildCount != 2)
+                            throw new Exception($"Expected ManagedReferencesRegistry to have two children, found {registryChildCount} instead!");
 
-                        AssetTypeReferencedObject refdObject = new AssetTypeReferencedObject();
+                        registry.version = reader.ReadInt32();
+                        registry.references = new List<AssetTypeReferencedObject>(0);
 
-                        refdObject.rid = reader.ReadInt64();
-
-                        AssetTypeReference refType = new AssetTypeReference();
-                        refType.ReadAsset(reader);
-                        refdObject.type = refType;
-
-                        AssetTypeTemplateField objectTempField = refMan.GetTemplateField(refType);
-                        refdObject.data = objectTempField.MakeValue(reader, refMan);
-
-                        valueField.Value = new AssetTypeValue(refdObject);
+                        if (registry.version == 1)
+                        {
+                            while (true)
+                            {
+                                var refdObject = MakeReferencedObject(reader, registry.version, registry.references.Count, refMan);
+                                registry.references.Add(refdObject);
+                                if (refdObject.type.ClassName == "Terminus" &&
+                                    refdObject.type.Namespace == "UnityEngine.DMAT" &&
+                                    refdObject.type.AsmName == "FAKE_ASM")
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            int childCount = reader.ReadInt32();
+                            for (int i = 0; i < childCount; i++)
+                            {
+                                var refdObject = MakeReferencedObject(reader, registry.version, i, refMan);
+                                registry.references.Add(refdObject);
+                            }
+                        }
                     }
                     else
                     {
@@ -307,6 +325,40 @@ namespace AssetsTools.NET
 
             }
             return valueField;
+        }
+
+        private AssetTypeReferencedObject MakeReferencedObject(AssetsFileReader reader, int registryVersion, int referenceIndex, RefTypeManager refMan)
+        {
+            AssetTypeReferencedObject refdObject = new AssetTypeReferencedObject();
+
+            if (registryVersion == 1)
+            {
+                refdObject.rid = referenceIndex;
+            }
+            else
+            {
+                refdObject.rid = reader.ReadInt64();
+            }
+
+            AssetTypeReference refType = new AssetTypeReference();
+            refType.ReadAsset(reader);
+            refdObject.type = refType;
+
+            AssetTypeTemplateField objectTempField = refMan.GetTemplateField(refType);
+            if (objectTempField != null)
+            {
+                refdObject.data = new AssetTypeValueField()
+                {
+                    TemplateField = objectTempField
+                };
+                refdObject.data = ReadType(reader, refdObject.data, refMan);
+            }
+            else
+            {
+                refdObject.data = AssetTypeValueField.DUMMY_FIELD;
+            }
+
+            return refdObject;
         }
     }
 }
