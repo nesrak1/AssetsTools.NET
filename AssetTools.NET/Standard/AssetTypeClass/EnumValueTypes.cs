@@ -17,6 +17,6 @@
         String,
         Array,
         ByteArray,
-        ReferencedObject
+        ManagedReferencesRegistry
     }
 }

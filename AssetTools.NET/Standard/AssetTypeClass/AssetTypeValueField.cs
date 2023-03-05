@@ -22,7 +22,7 @@ namespace AssetsTools.NET
 
         public bool IsDummy { get; set; }
 
-        public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField() { IsDummy = true };
+        public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField() { IsDummy = true, Children = new List<AssetTypeValueField>() };
 
         public void Read(AssetTypeValue value, AssetTypeTemplateField templateField, List<AssetTypeValueField> children)
         {
@@ -137,8 +137,8 @@ namespace AssetsTools.NET
                     return AssetValueType.Array;
                 case "TypelessData":
                     return AssetValueType.ByteArray;
-                case "ReferencedObject":
-                    return AssetValueType.ReferencedObject;
+                case "ManagedReferencesRegistry":
+                    return AssetValueType.ManagedReferencesRegistry;
                 default:
                     return AssetValueType.None;
             }
@@ -148,8 +148,7 @@ namespace AssetsTools.NET
         {
             if (TemplateField.IsArray)
             {
-                if (TemplateField.ValueType == AssetValueType.ByteArray ||
-                    TemplateField.ValueType == AssetValueType.ReferencedObject)
+                if (TemplateField.ValueType == AssetValueType.ByteArray)
                 {
                     byte[] byteArray = AsByteArray;
 
@@ -246,6 +245,25 @@ namespace AssetsTools.NET
                             writer.Write(AsByteArray);
                             writer.Align();
                             break;
+                        case AssetValueType.ManagedReferencesRegistry:
+                            writer.Write(AsManagedReferencesRegistry.version);
+                            int childCount = AsManagedReferencesRegistry.references.Count;
+                            
+                            for (int i = 0; i < childCount; i++)
+                            {
+                                AssetTypeReferencedObject refdObject = AsManagedReferencesRegistry.references[i];
+                                if (AsManagedReferencesRegistry.version == 1)
+                                {
+                                    writer.Write(refdObject.rid);
+                                }
+                                refdObject.type.Write(writer);
+                                refdObject.data.Write(writer);
+                            }
+                            if (AsManagedReferencesRegistry.version == 1)
+                            {
+                                AssetTypeReference.TERMINUS.Write(writer);
+                            }
+                            break;
                     }
                 }
                 else
@@ -302,7 +320,7 @@ namespace AssetsTools.NET
         public object AsObject { get => Value.AsObject; set => Value.AsObject = value; }
         public AssetTypeArrayInfo AsArray { get => Value.AsArray; set => Value.AsArray = value; }
         public byte[] AsByteArray { get => Value.AsByteArray; set => Value.AsByteArray = value; }
-        public AssetTypeReferencedObject AsReferencedObject { get => Value.AsReferencedObject; set => Value.AsReferencedObject = value; }
+        public ManagedReferencesRegistry AsManagedReferencesRegistry { get => Value.AsManagedReferencesRegistry; set => Value.AsManagedReferencesRegistry = value; }
 
         public string TypeName { get => TemplateField.Type; }
         public string FieldName { get => TemplateField.Name; }

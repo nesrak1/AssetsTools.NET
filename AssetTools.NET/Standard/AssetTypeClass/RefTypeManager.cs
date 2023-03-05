@@ -7,7 +7,7 @@ namespace AssetsTools.NET
     public class RefTypeManager
     {
         private Dictionary<AssetTypeReference, AssetTypeTemplateField> lookup;
-        
+
         public RefTypeManager()
         {
             lookup = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
@@ -27,11 +27,17 @@ namespace AssetsTools.NET
 
                 AssetTypeTemplateField templateField = new AssetTypeTemplateField();
                 templateField.FromTypeTree(type);
+                //If RefType has fields with [SerializeReference] it will contain its own registry,
+                //but it shouldn't be there, as the registry is only available at the root type
+                if (templateField.Children.Count > 0 && templateField.Children[templateField.Children.Count - 1].ValueType == AssetValueType.ManagedReferencesRegistry)
+                {
+                    templateField.Children.RemoveAt(templateField.Children.Count - 1);
+                }
 
                 lookup[type.TypeReference] = templateField;
             }
         }
-        
+
         public void FromTypeTree(AssetsFileMetadata metadata, TypeTreeType ttType)
         {
             foreach (int dep in ttType.TypeDependencies)
@@ -43,6 +49,12 @@ namespace AssetsTools.NET
 
                 AssetTypeTemplateField templateField = new AssetTypeTemplateField();
                 templateField.FromTypeTree(type);
+                //If RefType has fields with [SerializeReference] it will contain its own registry,
+                //but it shouldn't be there, as the registry is only available at the root type
+                if (templateField.Children.Count > 0 && templateField.Children[templateField.Children.Count - 1].ValueType == AssetValueType.ManagedReferencesRegistry)
+                {
+                    templateField.Children.RemoveAt(templateField.Children.Count - 1);
+                }
 
                 lookup[type.TypeReference] = templateField;
             }

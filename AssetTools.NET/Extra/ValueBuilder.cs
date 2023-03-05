@@ -79,8 +79,8 @@ namespace AssetsTools.NET.Extra
                     obj = new byte[0]; break;
                 case AssetValueType.Array:
                     obj = new AssetTypeArrayInfo(); break;
-                case AssetValueType.ReferencedObject:
-                    throw new NotImplementedException("ReferencedObject is not supported by ValueBuilder yet");
+                case AssetValueType.ManagedReferencesRegistry:
+                    throw new NotImplementedException("ManagedReferencesRegistry is not supported by ValueBuilder yet");
                 default:
                     obj = null; break;
             }

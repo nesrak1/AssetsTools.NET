@@ -12,6 +12,8 @@ namespace AssetsTools.NET
         public string Namespace { get; set; }
         public string AsmName { get; set; }
 
+        public static readonly AssetTypeReference TERMINUS = new AssetTypeReference("Terminus", "UnityEngine.DMAT", "FAKE_ASM");
+
         public AssetTypeReference() { }
         
         public AssetTypeReference(string className, string nameSpace, string asmName)
