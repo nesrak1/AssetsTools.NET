@@ -251,13 +251,11 @@ namespace AssetsTools.NET
                             while (true)
                             {
                                 var refdObject = MakeReferencedObject(reader, registry.version, registry.references.Count, refMan);
-                                registry.references.Add(refdObject);
-                                if (refdObject.type.ClassName == "Terminus" &&
-                                    refdObject.type.Namespace == "UnityEngine.DMAT" &&
-                                    refdObject.type.AsmName == "FAKE_ASM")
+                                if (refdObject.type.Equals(AssetTypeReference.TERMINUS))
                                 {
                                     break;
                                 }
+                                registry.references.Add(refdObject);
                             }
                         }
                         else

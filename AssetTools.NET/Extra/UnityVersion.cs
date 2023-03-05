@@ -42,6 +42,10 @@ namespace AssetsTools.NET.Extra
                             break;
                         }
                     }
+                    if (newPatchNumString.Length > 0)
+                    {
+                        typeNum = int.Parse(newPatchNumString);
+                    }
                 }
             }
             else

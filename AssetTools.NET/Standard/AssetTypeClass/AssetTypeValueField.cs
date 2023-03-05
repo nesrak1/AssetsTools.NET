@@ -259,6 +259,10 @@ namespace AssetsTools.NET
                                 refdObject.type.Write(writer);
                                 refdObject.data.Write(writer);
                             }
+                            if (AsManagedReferencesRegistry.version == 1)
+                            {
+                                AssetTypeReference.TERMINUS.Write(writer);
+                            }
                             break;
                     }
                 }
