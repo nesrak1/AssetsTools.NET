@@ -5,19 +5,42 @@ namespace AssetsTools.NET.Extra
 {
     public static class AssetHelper
     {
-        public static List<AssetTypeReference> GetAssetsFileScriptInfos(AssetsManager am, AssetsFileInstance inst)
+        public static Dictionary<int, AssetTypeReference> GetAssetsFileScriptInfos(AssetsManager am, AssetsFileInstance inst)
         {
-            List<AssetTypeReference> infos = new List<AssetTypeReference>();
-            AssetsFileMetadata metadata = inst.file.Metadata;
-            foreach (AssetPPtr scriptPPtr in metadata.ScriptTypes)
+            Dictionary<int, AssetTypeReference> infos = new Dictionary<int, AssetTypeReference>();
+            List<AssetPPtr> scriptTypes = inst.file.Metadata.ScriptTypes;
+            for (int i = 0; i < scriptTypes.Count; i++)
             {
-                AssetTypeValueField msBaseField = am.GetExtAsset(inst, scriptPPtr.FileId, scriptPPtr.PathId).baseField;
-                string assemblyName = msBaseField["m_AssemblyName"].AsString;
-                string nameSpace = msBaseField["m_Namespace"].AsString;
-                string className = msBaseField["m_ClassName"].AsString;
+                AssetPPtr scriptPPtr = scriptTypes[i];
+
+                AssetTypeValueField msBaseField;
+                try
+                {
+                    msBaseField = am.GetExtAsset(inst, scriptPPtr.FileId, scriptPPtr.PathId).baseField;
+                    if (msBaseField == null)
+                    {
+                        continue;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+
+                AssetTypeValueField assemblyNameField = msBaseField["m_AssemblyName"];
+                AssetTypeValueField nameSpaceField = msBaseField["m_Namespace"];
+                AssetTypeValueField classNameField = msBaseField["m_ClassName"];
+                if (assemblyNameField.IsDummy || nameSpaceField.IsDummy || classNameField.IsDummy)
+                {
+                    continue;
+                }
+
+                string assemblyName = assemblyNameField.AsString;
+                string nameSpace = nameSpaceField.AsString;
+                string className = classNameField.AsString;
 
                 AssetTypeReference info = new AssetTypeReference(className, nameSpace, assemblyName);
-                infos.Add(info);
+                infos[i] = info;
             }
 
             return infos;
