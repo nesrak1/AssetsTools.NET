@@ -55,6 +55,7 @@ namespace AssetsTools.NET
                             {
                                 foundChild = true;
                                 field = child;
+                                break;
                             }
                         }
 
