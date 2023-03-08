@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Cryptography;
 
 namespace AssetsTools.NET
@@ -323,6 +324,21 @@ namespace AssetsTools.NET
 
             }
             return valueField;
+        }
+
+        public AssetTypeTemplateField Clone()
+        {
+            var clone = new AssetTypeTemplateField
+            {
+                Name = Name,
+                Type = Type,
+                ValueType = ValueType,
+                IsArray = IsArray,
+                IsAligned = IsAligned,
+                HasValue = HasValue,
+                Children = Children.Select(c => c.Clone()).ToList()
+            };
+            return clone;
         }
 
         private AssetTypeReferencedObject MakeReferencedObject(AssetsFileReader reader, int registryVersion, int referenceIndex, RefTypeManager refMan)

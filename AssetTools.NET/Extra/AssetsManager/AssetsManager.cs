@@ -12,6 +12,8 @@ namespace AssetsTools.NET.Extra
     {
         public bool UpdateAfterLoad { get; set; } = true;
         public bool UseTemplateFieldCache { get; set; } = false;
+        public bool UseMonoTemplateFieldCache { get; set; } = false;
+        public bool UseRefTypeManagerCache { get; set; } = false;
 
         public ClassDatabaseFile ClassDatabase { get; private set; }
         public ClassPackageFile ClassPackage { get; private set; }
@@ -25,7 +27,10 @@ namespace AssetsTools.NET.Extra
         public IMonoBehaviourTemplateGenerator MonoTempGenerator { get; set; } = null;
 
         private readonly Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
-        private readonly Dictionary<string, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<string, AssetTypeTemplateField>();
+        private readonly Dictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
+        private readonly Dictionary<AssetsFileInstance, Dictionary<ushort, AssetTypeTemplateField>> monoTypeTreeTemplateFieldCache = new Dictionary<AssetsFileInstance, Dictionary<ushort, AssetTypeTemplateField>>();
+        private readonly Dictionary<AssetsFileInstance, Dictionary<long, AssetTypeTemplateField>> monoCldbTemplateFieldCache = new Dictionary<AssetsFileInstance, Dictionary<long, AssetTypeTemplateField>>();
+        private readonly Dictionary<AssetsFileInstance, RefTypeManager> refTypeManagerCache = new Dictionary<AssetsFileInstance, RefTypeManager>();
 
         public void UnloadAll(bool unloadClassData = false)
         {

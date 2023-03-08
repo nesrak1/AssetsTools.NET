@@ -6,28 +6,27 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
-        public RefTypeManager GetRefTypeManager(AssetsFileInstance inst, int typeId, ushort scriptIndex)
+        public RefTypeManager GetRefTypeManager(AssetsFileInstance inst)
         {
-            TypeTreeType ttType = inst.file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
+            if (UseRefTypeManagerCache && refTypeManagerCache.TryGetValue(inst, out RefTypeManager refMan))
+            {
+                return refMan;
+            }
+
+            refMan = new RefTypeManager();
+            refMan.FromTypeTree(inst.file.Metadata);
             
-            if (ttType == null || ttType.IsRefType)
-                return null;
+            if (MonoTempGenerator != null)
+            {
+                refMan.WithMonoTemplateGenerator(inst.file.Metadata, MonoTempGenerator, UseMonoTemplateFieldCache ? monoTemplateFieldCache : null);
+            }
 
-            if (ttType.TypeDependencies == null || ttType.TypeDependencies.Length == 0)
-                return null;
-
-            RefTypeManager refMan = new RefTypeManager();
-            refMan.FromTypeTree(inst.file.Metadata, ttType);
+            if (UseRefTypeManagerCache)
+            {
+                refTypeManagerCache[inst] = refMan;
+            }
 
             return refMan;
-        }
-
-        public RefTypeManager GetRefTypeManager(AssetsFileInstance inst, AssetFileInfo info)
-        {
-            int typeId = info.TypeId;
-            ushort scriptIndex = inst.file.GetScriptIndex(info);
-
-            return GetRefTypeManager(inst, typeId, scriptIndex);
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(
@@ -44,100 +43,161 @@ namespace AssetsTools.NET.Extra
             int typeId, ushort scriptIndex, AssetReadFlags readFlags)
         {
             AssetsFile file = inst.file;
-            AssetTypeTemplateField baseField;
+            AssetTypeTemplateField baseField = null;
             bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
 
             bool preferEditor = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.PreferEditor);
             bool forceFromCldb = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.ForceFromCldb);
             bool skipMonoBehaviourFields = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.SkipMonoBehaviourFields);
 
-            if (UseTemplateFieldCache && templateFieldCache.ContainsKey(typeId))
+            if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour && templateFieldCache.TryGetValue(typeId, out baseField))
             {
-                baseField = templateFieldCache[typeId];
                 return baseField;
             }
-            else
+
+            if (hasTypeTree && !forceFromCldb)
             {
-                if (hasTypeTree && !forceFromCldb)
+                if (UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
                 {
-                    TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
-                    if (ttType != null && ttType.Nodes.Count > 0)
+                    if (monoTypeTreeTemplateFieldCache.TryGetValue(inst, out Dictionary<ushort, AssetTypeTemplateField> templates) &&
+                        templates.TryGetValue(scriptIndex, out AssetTypeTemplateField template))
                     {
-                        baseField = new AssetTypeTemplateField();
-                        baseField.FromTypeTree(ttType);
-
-                        // todo: handle monos
-                        if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
-                        {
-                            templateFieldCache[typeId] = baseField;
-                        }
-
-                        return baseField;
+                        return template;
                     }
                 }
 
-                ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(typeId);
-                if (cldbType != null)
+                TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
+                if (ttType != null && ttType.Nodes.Count > 0)
                 {
                     baseField = new AssetTypeTemplateField();
-                    baseField.FromClassDatabase(ClassDatabase, cldbType, preferEditor);
+                    baseField.FromTypeTree(ttType);
 
-                    // todo: handle monos
                     if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
                     {
                         templateFieldCache[typeId] = baseField;
                     }
-
-                    if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields)
+                    else if (UseMonoTemplateFieldCache && typeId == (uint)AssetClassID.MonoBehaviour)
                     {
-                        AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
-                        AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
-                        if (!msPtr.IsNull())
+                        if (!monoTypeTreeTemplateFieldCache.TryGetValue(inst, out Dictionary<ushort, AssetTypeTemplateField> templates))
                         {
-                            AssetsFileInstance monoScriptFile;
-                            if (msPtr.FileId == 0)
-                                monoScriptFile = inst;
-                            else
-                                monoScriptFile = inst.GetDependency(this, msPtr.FileId - 1);
-
-                            AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
-                            long monoScriptAbsFilePos = monoScriptInfo.AbsoluteByteStart;
-                            int monoScriptTypeId = monoScriptInfo.TypeId;
-                            ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
-
-                            bool success = GetMonoScriptInfo(
-                                monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
-                                out string assemblyName, out string nameSpace, out string className, readFlags);
-
-                            // newer games don't have .dll
-                            // let's just be consistent and remove .dll from all assemblyName strings
-                            if (assemblyName.EndsWith(".dll"))
-                            {
-                                assemblyName = assemblyName.Substring(0, assemblyName.Length - 4);
-                            }
-
-                            if (success)
-                            {
-                                AssetTypeTemplateField newBaseField =
-                                    MonoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, new UnityVersion(file.Metadata.UnityVersion));
-
-                                if (newBaseField != null)
-                                {
-                                    baseField = newBaseField;
-                                }
-                                else
-                                {
-                                    // failure, maybe report why?
-                                }
-                            }
+                            monoTypeTreeTemplateFieldCache[inst] = templates = new Dictionary<ushort, AssetTypeTemplateField>();
                         }
+                        templates[scriptIndex] = baseField;
                     }
 
                     return baseField;
                 }
-
-                return null;
             }
+
+            if (UseTemplateFieldCache && UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
+            {
+                if (templateFieldCache.TryGetValue(typeId, out baseField))
+                {
+                    baseField = baseField.Clone();
+                }
+            }
+
+            if (baseField == null)
+            {
+                ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(typeId);
+                if (cldbType == null)
+                {
+                    return null;
+                }
+
+                baseField = new AssetTypeTemplateField();
+                baseField.FromClassDatabase(ClassDatabase, cldbType, preferEditor);
+
+                if (UseTemplateFieldCache)
+                {
+                    if (typeId == (int)AssetClassID.MonoBehaviour)
+                    {
+                        templateFieldCache[typeId] = baseField.Clone();
+                    }
+                    else
+                    {
+                        templateFieldCache[typeId] = baseField;
+                    }
+                }
+            }
+
+            if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields)
+            {
+                AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
+                AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
+                if (!msPtr.IsNull())
+                {
+                    AssetsFileInstance monoScriptFile;
+                    if (msPtr.FileId == 0)
+                        monoScriptFile = inst;
+                    else
+                        monoScriptFile = inst.GetDependency(this, msPtr.FileId - 1);
+
+                    Dictionary<long, AssetTypeTemplateField> templates = null;
+                    if (UseMonoTemplateFieldCache)
+                    {
+                        if (monoCldbTemplateFieldCache.TryGetValue(monoScriptFile, out templates))
+                        {
+                            if (templates.TryGetValue(msPtr.PathId, out AssetTypeTemplateField template))
+                            {
+                                return template;
+                            }
+                        }
+                        else
+                        {
+                            monoCldbTemplateFieldCache[monoScriptFile] = templates = new Dictionary<long, AssetTypeTemplateField>();
+                        }
+                    }
+
+                    AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
+                    long monoScriptAbsFilePos = monoScriptInfo.AbsoluteByteStart;
+                    int monoScriptTypeId = monoScriptInfo.TypeId;
+                    ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
+
+                    bool success = GetMonoScriptInfo(
+                        monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,
+                        out string assemblyName, out string nameSpace, out string className, readFlags);
+
+                    // newer games don't have .dll
+                    // let's just be consistent and remove .dll from all assemblyName strings
+                    if (assemblyName.EndsWith(".dll"))
+                    {
+                        assemblyName = assemblyName.Substring(0, assemblyName.Length - 4);
+                    }
+
+                    if (success)
+                    {
+                        AssetTypeReference reference = new AssetTypeReference(className, nameSpace, assemblyName);
+                        if (UseMonoTemplateFieldCache)
+                        {
+                            if (monoTemplateFieldCache.TryGetValue(reference, out AssetTypeTemplateField template))
+                            {
+                                templates[msPtr.PathId] = template;
+                                return template;
+                            }
+                        }
+
+                        AssetTypeTemplateField newBaseField =
+                            MonoTempGenerator.GetTemplateField(baseField, assemblyName, nameSpace, className, new UnityVersion(file.Metadata.UnityVersion));
+
+                        if (newBaseField != null)
+                        {
+                            baseField = newBaseField;
+                            if (UseMonoTemplateFieldCache)
+                            {
+                                templates[msPtr.PathId] = monoTemplateFieldCache[reference] = baseField;
+                                return baseField;
+                            }
+                        }
+                        else
+                        {
+                            // failure, maybe report why?
+                        }
+                    }
+                }
+            }
+
+            return baseField;
         }
 
         private bool GetMonoScriptInfo(

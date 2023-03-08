@@ -72,6 +72,10 @@ namespace AssetsTools.NET.Extra
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
             {
+                monoTypeTreeTemplateFieldCache.Remove(fileInst);
+                monoCldbTemplateFieldCache.Remove(fileInst);
+                refTypeManagerCache.Remove(fileInst);
+
                 Files.Remove(fileInst);
                 FileLookup.Remove(lookupKey);
                 fileInst.file.Close();
@@ -86,6 +90,10 @@ namespace AssetsTools.NET.Extra
 
             if (Files.Contains(fileInst))
             {
+                monoTypeTreeTemplateFieldCache.Remove(fileInst);
+                monoCldbTemplateFieldCache.Remove(fileInst);
+                refTypeManagerCache.Remove(fileInst);
+
                 string lookupKey = GetFileLookupKey(fileInst.path);
                 FileLookup.Remove(lookupKey);
                 Files.Remove(fileInst);
@@ -102,6 +110,10 @@ namespace AssetsTools.NET.Extra
                 templateFieldCache.Clear();
                 monoTemplateFieldCache.Clear();
             }
+
+            monoTypeTreeTemplateFieldCache.Clear();
+            monoCldbTemplateFieldCache.Clear();
+            refTypeManagerCache.Clear();
 
             if (Files.Count != 0)
             {
