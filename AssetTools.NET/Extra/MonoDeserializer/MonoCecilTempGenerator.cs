@@ -122,11 +122,16 @@ namespace AssetsTools.NET.Extra
                 type = typeRef.Resolve();
             }
 
-            RecursiveTypeLoad(type, attf, availableDepth);
+            RecursiveTypeLoad(type, attf, availableDepth, true);
         }
 
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth, bool isRecursiveCall = false)
         {
+            if (!isRecursiveCall)
+            {
+                availableDepth--;
+            }
+
             string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
@@ -135,7 +140,7 @@ namespace AssetsTools.NET.Extra
             {
                 TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
                 typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, attf, availableDepth);
+                RecursiveTypeLoad(typeDef, attf, availableDepth, true);
             }
 
             attf.AddRange(ReadTypes(type, availableDepth));
@@ -143,7 +148,7 @@ namespace AssetsTools.NET.Extra
 
         private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, int availableDepth)
         {
-            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, availableDepth--);
+            List<FieldDefinition> acceptableFields = GetAcceptableFields(type, availableDepth);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
@@ -277,7 +282,8 @@ namespace AssetsTools.NET.Extra
                             ft = elemType;
                         }
                         //Unity doesn't serialize a field of the same type as declaring type
-                        else if (typeDef.typeDef.FullName == ft.typeDef.FullName)
+                        //unless it inherits from UnityEngine.Object
+                        else if (typeDef.typeDef.FullName == ft.typeDef.FullName && !DerivesFromUEObject(typeDef))
                         {
                             continue;
                         }
