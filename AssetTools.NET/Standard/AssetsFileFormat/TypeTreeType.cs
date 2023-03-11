@@ -151,7 +151,7 @@ namespace AssetsTools.NET
                     }
                     else
                     {
-                        TypeReference.Write(writer);
+                        TypeReference.WriteMetadata(writer);
                     }
                 }
             }

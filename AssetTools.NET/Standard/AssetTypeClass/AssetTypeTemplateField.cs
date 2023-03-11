@@ -238,6 +238,7 @@ namespace AssetsTools.NET
                         if (refMan == null)
                             throw new Exception("refMan MUST be set to deserialize objects with ref types!");
 
+                        valueField.Children = new List<AssetTypeValueField>(0);
                         ManagedReferencesRegistry registry = new ManagedReferencesRegistry();
                         valueField.Value = new AssetTypeValue(registry);
                         int registryChildCount = valueField.TemplateField.Children.Count;

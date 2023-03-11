@@ -37,11 +37,18 @@ namespace AssetsTools.NET
             AsmName = reader.ReadCountStringInt32(); reader.Align();
         }
 
-        public void Write(AssetsFileWriter writer)
+        public void WriteMetadata(AssetsFileWriter writer)
         {
             writer.WriteNullTerminated(ClassName);
             writer.WriteNullTerminated(Namespace);
             writer.WriteNullTerminated(AsmName);
+        }
+
+        public void WriteAsset(AssetsFileWriter writer)
+        {
+            writer.WriteCountStringInt32(ClassName); writer.Align();
+            writer.WriteCountStringInt32(Namespace); writer.Align();
+            writer.WriteCountStringInt32(AsmName); writer.Align();
         }
 
         public override bool Equals(object obj)
