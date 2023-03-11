@@ -16,16 +16,23 @@ namespace AssetsTools.NET.Extra
         private static readonly string[] blacklistedAssemblies = new[]
         {
             "mscorlib",
+            "mscorlib.dll",
             "netstandard",
+            "netstandard.dll",
             "System.Core",
+            "System.Core.dll",
             "System",
+            "System.dll",
 
             //Got these when testing assembly directly from Library\ScriptAssemblies
             //Discovered from dotnet by cecil because it couldn't find system libs in the same folder as assembly
             //Should be safe to also exclude them
             "System.Private.CoreLib",
+            "System.Private.CoreLib.dll",
             "System.Collections",
-            "System.Collections.NonGeneric"
+            "System.Collections.dll",
+            "System.Collections.NonGeneric",
+            "System.Collections.NonGeneric.dll"
         };
 
         private static readonly string[] specialUnityTypes = new[]
@@ -47,6 +54,22 @@ namespace AssetsTools.NET.Extra
             "UnityEngine.Vector2Int",
             "UnityEngine.Vector3Int",
             "UnityEngine.BoundsInt"
+        };
+
+        private static readonly string[] primitiveTypes = new[]
+        {
+            "System.Boolean",
+            "System.SByte",
+            "System.Byte",
+            "System.Char",
+            "System.Int16",
+            "System.UInt16",
+            "System.Int32",
+            "System.UInt32",
+            "System.Int64",
+            "System.UInt64",
+            "System.Double",
+            "System.Single"
         };
 
         private static readonly Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
@@ -116,6 +139,11 @@ namespace AssetsTools.NET.Extra
             return blacklistedAssemblies.Contains(assembly);
         }
 
+        public static bool IsPrimitiveType(string fullName)
+        {
+            return primitiveTypes.Contains(fullName);
+        }
+
         public static bool TypeAligns(AssetValueType valueType)
         {
             if (valueType.Equals(AssetValueType.Bool) ||
@@ -125,6 +153,18 @@ namespace AssetsTools.NET.Extra
                 valueType.Equals(AssetValueType.UInt16))
                 return true;
             return false;
+        }
+
+        public static int GetSerializationLimit(UnityVersion unityVersion)
+        {
+            if (unityVersion.major > 2020 ||
+                (unityVersion.major == 2020 && (unityVersion.minor >= 2 || (unityVersion.minor == 1 && unityVersion.patch >= 4))) ||
+                (unityVersion.major == 2019 && unityVersion.minor == 4 && unityVersion.patch >= 9))
+            {
+                return 10;
+            }
+
+            return 7;
         }
 
         #endregion

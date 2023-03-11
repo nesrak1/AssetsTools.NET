@@ -18,6 +18,7 @@ namespace AssetsTools.NET.Cpp2IL
         private int[] _il2cppUnityVersion;
         private UnityVersion _unityVersion;
         private bool _initialized;
+        private bool anyFieldIsManagedReference;
 
         public Cpp2IlTempGenerator(string globalMetadataPath, string assemblyPath)
         {
@@ -77,6 +78,7 @@ namespace AssetsTools.NET.Cpp2IL
             }
 
             _unityVersion = unityVersion;
+            anyFieldIsManagedReference = false;
 
             Il2CppMetadata meta = LibCpp2IlMain.TheMetadata;
 
@@ -86,26 +88,31 @@ namespace AssetsTools.NET.Cpp2IL
                 throw new Exception($"Assembly \"{assemblyName}\" was not found in the IL2CPP metadata.");
             }
 
-            Il2CppTypeDefinition type = asm.Image.Types.FirstOrDefault(t => t.Namespace == nameSpace && t.Name == className);
+            string fullName = $"{nameSpace}{(string.IsNullOrEmpty(nameSpace) ? "" : ".")}{className}";
+
+            Il2CppTypeDefinition type = asm.Image.Types.FirstOrDefault(t => t.FullName == fullName);
             if (type == null)
             {
                 throw new Exception($"Type \"{nameSpace}::{className}\" was not found in the IL2CPP metadata.");
             }
+            Il2CppTypeReflectionData typeRef = new Il2CppTypeReflectionData
+            {
+                baseType = type,
+                genericParams = Array.Empty<Il2CppTypeReflectionData>(),
+                arrayRank = 0,
+                arrayType = null,
+                isArray = false,
+                isGenericType = type.GenericContainer != null,
+                isPointer = false,
+                isType = true,
+                variableGenericParamName = null,
+            };
 
             List<AssetTypeTemplateField> templateFields = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, templateFields);
+            RecursiveTypeLoad(typeRef, templateFields, CommonMonoTemplateHelper.GetSerializationLimit(_unityVersion), true);
 
-            templateFields.InsertRange(0, baseField.Children);
-            AssetTypeTemplateField newBaseField = new AssetTypeTemplateField
-            {
-                Name = baseField.Name,
-                Type = baseField.Type,
-                ValueType = baseField.ValueType,
-                IsArray = baseField.IsArray,
-                IsAligned = baseField.IsAligned,
-                HasValue = baseField.HasValue,
-                Children = templateFields
-            };
+            AssetTypeTemplateField newBaseField = baseField.Clone();
+            newBaseField.Children.AddRange(templateFields);
 
             return newBaseField;
         }
@@ -134,668 +141,304 @@ namespace AssetsTools.NET.Cpp2IL
             return attributeNames;
         }
 
-        private void RecursiveTypeLoad(Il2CppTypeDefinition type, List<AssetTypeTemplateField> templateFields)
+        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> templateFields, int availableDepth, bool isRecursiveCall = false)
         {
-            string baseName = type.FullName;
+            if (!isRecursiveCall)
+            {
+                availableDepth--;
+            }
+
+            string baseName = type.typeDef.BaseType.baseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
                 baseName != "UnityEngine.MonoBehaviour" &&
                 baseName != "UnityEngine.ScriptableObject")
             {
-                Il2CppTypeDefinition typeDef = type.BaseType.baseType;
-                //typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, templateFields);
+                TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
+                typeDef.AssignTypeParams(type);
+                RecursiveTypeLoad(typeDef, templateFields, availableDepth, true);
             }
 
-            templateFields.AddRange(ReadTypes(type));
+            templateFields.AddRange(ReadTypes(type, availableDepth));
         }
 
-        private List<AssetTypeTemplateField> ReadTypes(Il2CppTypeDefinition type)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, int availableDepth)
         {
-            List<Il2CppFieldDefinition> acceptableFields = GetAcceptableFields(type);
+            List<Il2CppFieldDefinition> acceptableFields = GetAcceptableFields(type, availableDepth);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
             for (int i = 0; i < acceptableFields.Count; i++)
             {
                 AssetTypeTemplateField field = new AssetTypeTemplateField();
                 Il2CppFieldDefinition fieldDef = acceptableFields[i];
-                Il2CppTypeReflectionData fieldType = fieldDef.FieldType;
-                Il2CppTypeDefinition fieldTypeDef = fieldDef.FieldType.baseType;
-                //TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
+                TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
 
                 bool isArrayOrList = false;
+                bool isPrimitive = false;
+                bool derivesFromUEObject = false;
+                bool isManagedReference = false;
 
-                if (fieldType.isArray)
+                if (fieldTypeDef.typeRef.isArray)
                 {
-                    fieldTypeDef = fieldDef.FieldType.arrayType.baseType;
-                    isArrayOrList = fieldType.arrayRank == 1;
+                    isArrayOrList = fieldTypeDef.typeRef.arrayRank == 1;
+                    fieldTypeDef = fieldTypeDef.typeRef.arrayType;
                 }
-                else if (fieldTypeDef.FullName == "System.Collections.Generic.List`1")
+                else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldTypeDef = fieldDef.FieldType.genericParams[0].baseType;
+                    fieldTypeDef = fieldTypeDef.typeRef.genericParams[0];
                     isArrayOrList = true;
                 }
 
-                TypeAttributes typeAttrs = (TypeAttributes)fieldTypeDef.flags;
+                List<string> attributeNames = GetAttributeNamesOnField(type.typeDef.DeclaringAssembly, fieldDef);
+                TypeAttributes typeAttrs = (TypeAttributes)fieldTypeDef.typeDef.flags;
                 bool isSerializable = typeAttrs.HasFlag(TypeAttributes.Serializable);
 
                 field.Name = fieldDef.Name;
-                if (baseToPrimitive.ContainsKey(fieldTypeDef.FullName))
+                if (isPrimitive = fieldTypeDef.typeDef.IsEnumType)
                 {
-                    field.Type = baseToPrimitive[fieldTypeDef.FullName];
+                    var enumType = fieldTypeDef.typeDef.GetEnumUnderlyingType().baseType.FullName;
+                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(enumType);
+                }
+                else if (isPrimitive = CommonMonoTemplateHelper.IsPrimitiveType(fieldTypeDef.typeDef.FullName))
+                {
+                    field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(fieldTypeDef.typeDef.FullName);
+                }
+                else if (fieldTypeDef.typeDef.FullName == "System.String")
+                {
+                    field.Type = "string";
+                }
+                else if (derivesFromUEObject = DerivesFromUEObject(fieldTypeDef))
+                {
+                    field.Type = $"PPtr<${fieldTypeDef.typeDef.Name}>";
+                }
+                else if (isManagedReference = attributeNames.Contains("UnityEngine.SerializeReference"))
+                {
+                    anyFieldIsManagedReference = true;
+                    field.Type = "managedReference";
                 }
                 else
                 {
-                    field.Type = fieldTypeDef.Name;
+                    field.Type = fieldTypeDef.typeDef.Name;
                 }
 
-                if (IsPrimitiveType(fieldTypeDef))
+                if (isPrimitive)
                 {
                     field.Children = new List<AssetTypeTemplateField>();
                 }
-                else if (fieldTypeDef.FullName == "System.String")
+                else if (fieldTypeDef.typeDef.FullName == "System.String")
                 {
-                    SetString(field);
+                    field.Children = CommonMonoTemplateHelper.String();
                 }
-                else if (IsSpecialUnityType(fieldTypeDef))
+                else if (CommonMonoTemplateHelper.IsSpecialUnityType(fieldTypeDef.typeDef.FullName))
                 {
-                    SetSpecialUnity(field, fieldTypeDef);
+                    field.Children = SpecialUnity(fieldTypeDef, availableDepth);
                 }
-                else if (DerivesFromUEObject(fieldTypeDef))
+                else if (derivesFromUEObject)
                 {
-                    SetPPtr(field, true);
+                    field.Children = CommonMonoTemplateHelper.PPtr(_unityVersion);
+                }
+                else if (isManagedReference)
+                {
+                    field.Children = CommonMonoTemplateHelper.ManagedReference(_unityVersion);
                 }
                 else if (isSerializable)
                 {
-                    SetSerialized(field, fieldTypeDef);
+                    field.Children = Serialized(fieldTypeDef, availableDepth);
                 }
                 else
                 {
                     Console.WriteLine("you wot mate");
                 }
 
-                if (fieldTypeDef.IsEnumType)
-                {
-                    field.ValueType = AssetValueType.Int32;
-                }
-                else
-                {
-                    field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
-                }
-                field.IsAligned = TypeAligns(field.ValueType);
+                field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
+                field.IsAligned = CommonMonoTemplateHelper.TypeAligns(field.ValueType);
                 field.HasValue = field.ValueType != AssetValueType.None;
-
+                
                 if (isArrayOrList)
                 {
-                    field = SetArray(field);
+                    if (isPrimitive || derivesFromUEObject)
+                    {
+                        field = CommonMonoTemplateHelper.Vector(field);
+                    }
+                    else
+                    {
+                        field = CommonMonoTemplateHelper.VectorWithType(field);
+                    }
                 }
+
                 localChildren.Add(field);
             }
+
+            if (anyFieldIsManagedReference && DerivesFromUEObject(type))
+            {
+                localChildren.Add(CommonMonoTemplateHelper.ManagedReferencesRegistry("references", _unityVersion));
+            }
+
             return localChildren;
         }
 
-        private List<Il2CppFieldDefinition> GetAcceptableFields(Il2CppTypeDefinition typeDef)
+        private List<Il2CppFieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, int availableDepth)
         {
             List<Il2CppFieldDefinition> validFields = new List<Il2CppFieldDefinition>();
-            for (int i = 0; i < typeDef.field_count; i++)
+            for (int i = 0; i < typeDef.typeDef.field_count; i++)
             {
-                Il2CppFieldDefinition f = typeDef.Fields[i];
-                FieldAttributes attr = typeDef.FieldAttributes[i];
+                Il2CppFieldDefinition f = typeDef.typeDef.Fields[i];
+                FieldAttributes attr = typeDef.typeDef.FieldAttributes[i];
 
-                List<string> attributeNames = GetAttributeNamesOnField(typeDef.DeclaringAssembly, f);
+                List<string> attributeNames = GetAttributeNamesOnField(typeDef.typeDef.DeclaringAssembly, f);
 
                 if (attr.HasFlag(FieldAttributes.Public) ||
-                    attributeNames.Contains("UnityEngine.SerializeField")) //field is public or has exception attribute
+                    attributeNames.Contains("UnityEngine.SerializeField") ||
+                    attributeNames.Contains("UnityEngine.SerializeReference")) //field is public or has exception attribute
                 {
                     if (!attr.HasFlag(FieldAttributes.Static) &&
                         !attr.HasFlag(FieldAttributes.NotSerialized) &&
                         !attr.HasFlag(FieldAttributes.InitOnly) &&
                         !attr.HasFlag(FieldAttributes.Literal)) //field is not public, has exception attribute, readonly, or const
                     {
-                        Il2CppTypeDefinition ftd;
-                        if (f.FieldType.isArray)
+                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+
+                        if (TryGetListOrArrayElement(ft, out Il2CppTypeReflectionData elemType))
                         {
-                            if (f.FieldType.arrayRank != 1)
+                            //Array are not serialized at and past the serialization limit
+                            if (availableDepth < 0)
                             {
                                 continue;
                             }
-                            ftd = f.FieldType.arrayType.baseType;
-                        }
-                        else
-                        {
-                            ftd = f.FieldType.baseType;
-                        }
-
-                        if (ftd != null)
-                        {
-                            TypeAttributes typeAttrs = (TypeAttributes)ftd.flags;
-
-                            if (IsPrimitiveTypeString(ftd) ||
-                                ftd.IsEnumType ||
-                                typeAttrs.HasFlag(TypeAttributes.Serializable) ||
-                                DerivesFromUEObject(ftd) ||
-                                IsSpecialUnityType(ftd)) //field has a serializable type
+                            //Unity can't serialize collection of collections, ignoring it
+                            if (TryGetListOrArrayElement(elemType, out _))
                             {
-                                validFields.Add(f);
+                                continue;
                             }
+                            ft = elemType;
+                        }
+                        //Unity doesn't serialize a field of the same type as declaring type
+                        //unless it inherits from UnityEngine.Object
+                        else if (typeDef.typeDef.FullName == ft.typeDef.FullName && !DerivesFromUEObject(typeDef))
+                        {
+                            continue;
+                        }
+
+                        if (IsValidDef(attributeNames, ft, availableDepth))
+                        {
+                            validFields.Add(f);
                         }
                     }
                 }
             }
             return validFields;
+
+            bool TryGetListOrArrayElement(TypeDefWithSelfRef fieldType, out Il2CppTypeReflectionData elemType)
+            {
+                if (fieldType.typeRef.isArray)
+                {
+                    elemType = fieldType.typeRef.arrayType;
+                    return true;
+                }
+                else if (fieldType.typeRef.isGenericType && fieldType.typeRef.baseType.FullName == "System.Collections.Generic.List`1")
+                {
+                    elemType = fieldType.typeRef.genericParams[0];
+                    return true;
+                }
+
+                elemType = default;
+                return false;
+            }
+
+            bool IsValidDef(List<string> attributeNames, TypeDefWithSelfRef typeDef, int availableDepth)
+            {
+                //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                //https://unity.com/releases/editor/whats-new/2020.1.0
+                if (typeDef.typeDef.GenericContainer != null && _unityVersion.major < 2020)
+                {
+                    return false;
+                }
+
+                if (CommonMonoTemplateHelper.IsPrimitiveType(typeDef.typeDef.FullName) ||
+                    typeDef.typeDef.FullName == "System.String")
+                {
+                    return true;
+                }
+
+                //Unity doesn't support long enums
+                if (typeDef.typeDef.IsEnumType)
+                {
+                    var enumType = typeDef.typeDef.GetEnumUnderlyingType().baseType.FullName;
+                    return enumType != "System.Int64" && enumType != "System.UInt64";
+                }
+
+
+                TypeAttributes typeAttrs = (TypeAttributes)typeDef.typeDef.flags;
+                //Value types are not affected by the serialization limit
+                if (availableDepth < 0)
+                {
+                    return typeDef.typeDef.IsValueType && (typeAttrs.HasFlag(TypeAttributes.Serializable) || CommonMonoTemplateHelper.IsSpecialUnityType(typeDef.typeDef.FullName));
+                }
+
+                if (DerivesFromUEObject(typeDef) ||
+                    CommonMonoTemplateHelper.IsSpecialUnityType(typeDef.typeDef.FullName))
+                {
+                    return true;
+                }
+
+                if (attributeNames.Contains("UnityEngine.SerializeReference"))
+                {
+                    if (_unityVersion.major == 2019 && _unityVersion.minor == 3 && _unityVersion.patch < 8 && typeDef.typeDef.FullName == "System.Object")
+                    {
+                        return false;
+                    }
+
+                    return !typeDef.typeDef.IsValueType && typeDef.typeDef.GenericContainer == null;
+                }
+
+                if (CommonMonoTemplateHelper.IsAssemblyBlacklisted(typeDef.typeDef.DeclaringAssembly.Name, _unityVersion))
+                {
+                    return false;
+                }
+
+                return !typeDef.typeDef.IsAbstract && typeAttrs.HasFlag(TypeAttributes.Serializable);
+            }
         }
 
-        private readonly Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
+        private bool DerivesFromUEObject(TypeDefWithSelfRef typeDef)
         {
-            {"System.Boolean","bool"},
-            {"System.Int64","SInt64"},
-            {"System.Int16","SInt16"},
-            {"System.UInt64","SInt64"},
-            {"System.UInt32","unsigned int"},
-            {"System.UInt16","UInt16"},
-            {"System.Char","char"},
-            {"System.Byte","UInt8"},
-            {"System.SByte","SInt8"},
-            {"System.Double","double"},
-            {"System.Single","float"},
-            {"System.Int32","int"},
-            {"System.String","string"}
-        };
+            TypeAttributes typeAttributes = (TypeAttributes)typeDef.typeDef.flags;
 
-        private bool IsPrimitiveType(Il2CppTypeDefinition typeDef)
-        {
-            string name = typeDef.FullName;
-            if (typeDef.IsEnumType ||
-                name == "System.Boolean" ||
-                name == "System.Int64" ||
-                name == "System.Int16" ||
-                name == "System.UInt64" ||
-                name == "System.UInt32" ||
-                name == "System.UInt16" ||
-                name == "System.Char" ||
-                name == "System.Byte" ||
-                name == "System.SByte" ||
-                name == "System.Double" ||
-                name == "System.Single" ||
-                name == "System.Int32") return true;
-            return false;
-        }
-
-        private bool IsPrimitiveTypeString(Il2CppTypeDefinition typeDef)
-        {
-            string name = typeDef.FullName;
-            if (IsPrimitiveType(typeDef) ||
-                name == "System.String") return true; // this is useless. string is already a System.Object
-            return false;
-        }
-
-        private bool IsSpecialUnityType(Il2CppTypeDefinition typeDef)
-        {
-            string name = typeDef.FullName;
-            if (name == "UnityEngine.Color" ||
-                name == "UnityEngine.Color32" ||
-                name == "UnityEngine.Gradient" ||
-                name == "UnityEngine.Vector2" ||
-                name == "UnityEngine.Vector3" ||
-                name == "UnityEngine.Vector4" ||
-                name == "UnityEngine.LayerMask" ||
-                name == "UnityEngine.Quaternion" ||
-                name == "UnityEngine.Bounds" ||
-                name == "UnityEngine.Rect" ||
-                name == "UnityEngine.Matrix4x4" ||
-                name == "UnityEngine.AnimationCurve" ||
-                name == "UnityEngine.GUIStyle" ||
-                name == "UnityEngine.Vector2Int" ||
-                name == "UnityEngine.Vector3Int" ||
-                name == "UnityEngine.BoundsInt") return true;
-            return false;
-        }
-
-        private bool DerivesFromUEObject(Il2CppTypeDefinition typeDef)
-        {
-            TypeAttributes typeAttributes = (TypeAttributes)typeDef.flags;
-
+            if (typeDef.typeDef.BaseType == null)
+                return false;
             if (typeAttributes.HasFlag(TypeAttributes.Interface))
                 return false;
-            if (typeDef.BaseType.baseType.FullName == "UnityEngine.Object" ||
-                typeDef.FullName == "UnityEngine.Object")
+            if (typeDef.typeDef.BaseType.baseType.FullName == "UnityEngine.Object" ||
+                typeDef.typeDef.FullName == "UnityEngine.Object")
                 return true;
-            if (typeDef.BaseType.baseType.FullName != "System.Object")
-                return DerivesFromUEObject(typeDef.BaseType.baseType);
+            if (typeDef.typeDef.BaseType.baseType.FullName != "System.Object")
+                return DerivesFromUEObject(typeDef.typeDef.BaseType);
             return false;
         }
 
-        private bool TypeAligns(AssetValueType valueType)
-        {
-            if (valueType.Equals(AssetValueType.Bool) ||
-                valueType.Equals(AssetValueType.Int8) ||
-                valueType.Equals(AssetValueType.UInt8) ||
-                valueType.Equals(AssetValueType.Int16) ||
-                valueType.Equals(AssetValueType.UInt16))
-                return true;
-            return false;
-        }
-
-
-        private AssetTypeTemplateField SetArray(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField size = new AssetTypeTemplateField();
-            size.Name = "size";
-            size.Type = "int";
-            size.ValueType = AssetValueType.Int32;
-            size.IsArray = false;
-            size.IsAligned = false;
-            size.HasValue = true;
-            size.Children = new List<AssetTypeTemplateField>(0);
-
-            AssetTypeTemplateField data = new AssetTypeTemplateField();
-            data.Name = string.Copy(field.Name);
-            data.Type = string.Copy(field.Type);
-            data.ValueType = field.ValueType;
-            data.IsArray = false;
-            data.IsAligned = false;//IsAlignable(field.valueType);
-            data.HasValue = field.HasValue;
-            data.Children = field.Children;
-
-            AssetTypeTemplateField array = new AssetTypeTemplateField();
-            array.Name = string.Copy(field.Name);
-            array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
-            array.IsArray = true;
-            array.IsAligned = true;
-            array.HasValue = false;
-            array.Children = new List<AssetTypeTemplateField> {
-                size, data
-            };
-
-            return array;
-        }
-
-        private void SetString(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField size = new AssetTypeTemplateField();
-            size.Name = "size";
-            size.Type = "int";
-            size.ValueType = AssetValueType.Int32;
-            size.IsArray = false;
-            size.IsAligned = false;
-            size.HasValue = true;
-            size.Children = new List<AssetTypeTemplateField>(0);
-
-            AssetTypeTemplateField data = new AssetTypeTemplateField();
-            data.Name = "data";
-            data.Type = "char";
-            data.ValueType = AssetValueType.UInt8;
-            data.IsArray = false;
-            data.IsAligned = false;
-            data.HasValue = true;
-            data.Children = new List<AssetTypeTemplateField>(0);
-
-            AssetTypeTemplateField array = new AssetTypeTemplateField();
-            array.Name = "Array";
-            array.Type = "Array";
-            array.ValueType = AssetValueType.Array;
-            array.IsArray = true;
-            array.IsAligned = true;
-            array.HasValue = false;
-            array.Children = new List<AssetTypeTemplateField> {
-                size, data
-            };
-
-            field.Children = new List<AssetTypeTemplateField> {
-                array
-            };
-        }
-
-        private void SetPPtr(AssetTypeTemplateField field, bool dollar)
-        {
-            if (dollar)
-                field.Type = $"PPtr<${field.Type}>";
-            else
-                field.Type = $"PPtr<{field.Type}>";
-
-            AssetTypeTemplateField fileID = new AssetTypeTemplateField();
-            fileID.Name = "m_FileID";
-            fileID.Type = "int";
-            fileID.ValueType = AssetValueType.Int32;
-            fileID.IsArray = false;
-            fileID.IsAligned = false;
-            fileID.HasValue = true;
-            fileID.Children = new List<AssetTypeTemplateField>(0);
-
-            AssetTypeTemplateField pathID = new AssetTypeTemplateField();
-            pathID.Name = "m_PathID";
-            if (_unityVersion.major >= 5)
-            {
-                pathID.Type = "SInt64";
-                pathID.ValueType = AssetValueType.Int64;
-            }
-            else
-            {
-                pathID.Type = "int";
-                pathID.ValueType = AssetValueType.Int32;
-            }
-            pathID.IsArray = false;
-            pathID.IsAligned = false;
-            pathID.HasValue = true;
-            pathID.Children = new List<AssetTypeTemplateField>(0);
-
-            field.Children = new List<AssetTypeTemplateField> {
-                fileID, pathID
-            };
-        }
-
-        private void SetSerialized(AssetTypeTemplateField field, Il2CppTypeDefinition type)
+        private List<AssetTypeTemplateField> Serialized(TypeDefWithSelfRef type, int availableDepth)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, types);
-            field.Children = types;
+            RecursiveTypeLoad(type, types, availableDepth);
+            return types;
         }
 
-        #region special unity serialization
-        private void SetSpecialUnity(AssetTypeTemplateField field, Il2CppTypeDefinition type)
+        private List<AssetTypeTemplateField> SpecialUnity(TypeDefWithSelfRef type, int availableDepth)
         {
-            switch (type.FullName)
+            return type.typeDef.Name switch
             {
-                case "UnityEngine.Gradient":
-                    SetGradient(field);
-                    break;
-                case "UnityEngine.AnimationCurve":
-                    SetAnimationCurve(field);
-                    break;
-                case "UnityEngine.LayerMask":
-                    SetBitField(field);
-                    break;
-                case "UnityEngine.Bounds":
-                    SetAABB(field);
-                    break;
-                case "UnityEngine.Rect":
-                    SetRectf(field);
-                    break;
-                case "UnityEngine.Color32":
-                    SetGradientRGBAb(field);
-                    break;
-                case "UnityEngine.GUIStyle":
-                    SetGUIStyle(field);
-                    break;
-                case "UnityEngine.BoundsInt":
-                    SetAABBInt(field);
-                    break;
-                case "UnityEngine.Vector2Int":
-                    SetVec2Int(field);
-                    break;
-                case "UnityEngine.Vector3Int":
-                    SetVec3Int(field);
-                    break;
-                default:
-                    SetSerialized(field, type);
-                    break;
-            }
-        }
-
-        private void SetGradient(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField key0 = CreateTemplateField("key0", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key1 = CreateTemplateField("key1", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key2 = CreateTemplateField("key2", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key3 = CreateTemplateField("key3", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key4 = CreateTemplateField("key4", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key5 = CreateTemplateField("key5", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key6 = CreateTemplateField("key6", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField key7 = CreateTemplateField("key7", "ColorRGBA", AssetValueType.None, RGBAf());
-            AssetTypeTemplateField ctime0 = CreateTemplateField("ctime0", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime1 = CreateTemplateField("ctime1", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime2 = CreateTemplateField("ctime2", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime3 = CreateTemplateField("ctime3", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime4 = CreateTemplateField("ctime4", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime5 = CreateTemplateField("ctime5", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime6 = CreateTemplateField("ctime6", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField ctime7 = CreateTemplateField("ctime7", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime0 = CreateTemplateField("atime0", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime1 = CreateTemplateField("atime1", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime2 = CreateTemplateField("atime2", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime3 = CreateTemplateField("atime3", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime4 = CreateTemplateField("atime4", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime5 = CreateTemplateField("atime5", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime6 = CreateTemplateField("atime6", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField atime7 = CreateTemplateField("atime7", "UInt16", AssetValueType.UInt16);
-            AssetTypeTemplateField m_Mode = CreateTemplateField("m_Mode", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_NumColorKeys = CreateTemplateField("m_NumColorKeys", "UInt8", AssetValueType.UInt8);
-            AssetTypeTemplateField m_NumAlphaKeys = CreateTemplateField("m_NumAlphaKeys", "UInt8", AssetValueType.UInt8, false, true);
-            field.Children = new List<AssetTypeTemplateField> {
-                key0, key1, key2, key3, key4, key5, key6, key7, ctime0, ctime1, ctime2, ctime3, ctime4, ctime5, ctime6, ctime7, atime0, atime1, atime2, atime3, atime4, atime5, atime6, atime7, m_Mode, m_NumColorKeys, m_NumAlphaKeys
+                "Gradient" => CommonMonoTemplateHelper.Gradient(_unityVersion),
+                "AnimationCurve" => CommonMonoTemplateHelper.AnimationCurve(_unityVersion),
+                "LayerMask" => CommonMonoTemplateHelper.BitField(),
+                "Bounds" => CommonMonoTemplateHelper.AABB(),
+                "BoundsInt" => CommonMonoTemplateHelper.BoundsInt(),
+                "Rect" => CommonMonoTemplateHelper.Rectf(),
+                "RectOffset" => CommonMonoTemplateHelper.RectOffset(),
+                "Color32" => CommonMonoTemplateHelper.RGBAi(),
+                "GUIStyle" => CommonMonoTemplateHelper.GUIStyle(_unityVersion),
+                "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
+                "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
+                _ => Serialized(type, availableDepth)
             };
         }
-
-        private List<AssetTypeTemplateField> RGBAf()
-        {
-            AssetTypeTemplateField r = CreateTemplateField("r", "float", AssetValueType.Float);
-            AssetTypeTemplateField g = CreateTemplateField("g", "float", AssetValueType.Float);
-            AssetTypeTemplateField b = CreateTemplateField("b", "float", AssetValueType.Float);
-            AssetTypeTemplateField a = CreateTemplateField("a", "float", AssetValueType.Float);
-            return new List<AssetTypeTemplateField> { r, g, b, a };
-        }
-
-        private void SetAnimationCurve(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField time = CreateTemplateField("time", "float", AssetValueType.Float);
-            AssetTypeTemplateField value = CreateTemplateField("value", "float", AssetValueType.Float);
-            AssetTypeTemplateField inSlope = CreateTemplateField("inSlope", "float", AssetValueType.Float);
-            AssetTypeTemplateField outSlope = CreateTemplateField("outSlope", "float", AssetValueType.Float);
-            //new in 2019
-            AssetTypeTemplateField weightedMode = CreateTemplateField("weightedMode", "int", AssetValueType.Int32);
-            AssetTypeTemplateField inWeight = CreateTemplateField("inWeight", "float", AssetValueType.Float);
-            AssetTypeTemplateField outWeight = CreateTemplateField("outWeight", "float", AssetValueType.Float);
-            /////////////
-            AssetTypeTemplateField size = CreateTemplateField("size", "int", AssetValueType.Int32);
-            AssetTypeTemplateField data;
-            if (_unityVersion.major >= 2018)
-            {
-                data = CreateTemplateField("data", "Keyframe", AssetValueType.None, new List<AssetTypeTemplateField> {
-                    time, value, inSlope, outSlope, weightedMode, inWeight, outWeight
-                });
-            }
-            else
-            {
-                data = CreateTemplateField("data", "Keyframe", AssetValueType.None, new List<AssetTypeTemplateField> {
-                    time, value, inSlope, outSlope
-                });
-            }
-            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", AssetValueType.Array, true, false, new List<AssetTypeTemplateField> {
-                size, data
-            });
-            AssetTypeTemplateField m_Curve = CreateTemplateField("m_Curve", "vector", AssetValueType.None, new List<AssetTypeTemplateField> {
-                Array
-            });
-            AssetTypeTemplateField m_PreInfinity = CreateTemplateField("m_PreInfinity", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_PostInfinity = CreateTemplateField("m_PostInfinity", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_RotationOrder = CreateTemplateField("m_RotationOrder", "int", AssetValueType.Int32);
-            field.Children = new List<AssetTypeTemplateField> {
-                m_Curve, m_PreInfinity, m_PostInfinity, m_RotationOrder
-            };
-        }
-
-        private void SetBitField(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_Bits = CreateTemplateField("m_Bits", "unsigned int", AssetValueType.UInt32);
-            field.Children = new List<AssetTypeTemplateField> {
-                m_Bits
-            };
-        }
-
-        private void SetAABB(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3f", AssetValueType.None, Vec3f());
-            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3f", AssetValueType.None, Vec3f());
-            field.Children = new List<AssetTypeTemplateField> {
-                m_Center, m_Extent
-            };
-        }
-
-        private List<AssetTypeTemplateField> Vec3f()
-        {
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", AssetValueType.Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", AssetValueType.Float);
-            AssetTypeTemplateField z = CreateTemplateField("z", "float", AssetValueType.Float);
-            return new List<AssetTypeTemplateField> { x, y, z };
-        }
-
-        private void SetRectf(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", AssetValueType.Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", AssetValueType.Float);
-            AssetTypeTemplateField width = CreateTemplateField("width", "float", AssetValueType.Float);
-            AssetTypeTemplateField height = CreateTemplateField("height", "float", AssetValueType.Float);
-            field.Children = new List<AssetTypeTemplateField> {
-                x, y, width, height
-            };
-        }
-
-        private void SetGradientRGBAb(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField rgba = CreateTemplateField("rgba", "unsigned int", AssetValueType.UInt32);
-            field.Children = new List<AssetTypeTemplateField> {
-                rgba
-            };
-        }
-
-        //only supports 2019 right now
-        private void SetGUIStyle(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_Name = CreateTemplateField("m_Name", "string", AssetValueType.String, String());
-            AssetTypeTemplateField m_Normal = CreateTemplateField("m_Normal", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_Hover = CreateTemplateField("m_Hover", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_Active = CreateTemplateField("m_Active", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_Focused = CreateTemplateField("m_Focused", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_OnNormal = CreateTemplateField("m_OnNormal", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_OnHover = CreateTemplateField("m_OnHover", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_OnActive = CreateTemplateField("m_OnActive", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_OnFocused = CreateTemplateField("m_OnFocused", "GUIStyleState", AssetValueType.None, GUIStyleState());
-            AssetTypeTemplateField m_Border = CreateTemplateField("m_Border", "RectOffset", AssetValueType.None, RectOffset());
-            AssetTypeTemplateField m_Margin = CreateTemplateField("m_Margin", "RectOffset", AssetValueType.None, RectOffset());
-            AssetTypeTemplateField m_Padding = CreateTemplateField("m_Padding", "RectOffset", AssetValueType.None, RectOffset());
-            AssetTypeTemplateField m_Overflow = CreateTemplateField("m_Overflow", "RectOffset", AssetValueType.None, RectOffset());
-            AssetTypeTemplateField m_Font = CreateTemplateField("m_Font", "PPtr<Font>", AssetValueType.None, PPtr());
-            AssetTypeTemplateField m_FontSize = CreateTemplateField("m_FontSize", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_FontStyle = CreateTemplateField("m_FontStyle", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Alignment = CreateTemplateField("m_Alignment", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_WordWrap = CreateTemplateField("m_WordWrap", "bool", AssetValueType.Bool);
-            AssetTypeTemplateField m_RichText = CreateTemplateField("m_RichText", "bool", AssetValueType.Bool, false, true);
-            AssetTypeTemplateField m_TextClipping = CreateTemplateField("m_TextClipping", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_ImagePosition = CreateTemplateField("m_ImagePosition", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_ContentOffset = CreateTemplateField("m_ContentOffset", "Vector2f", AssetValueType.None, Vec2f());
-            AssetTypeTemplateField m_FixedWidth = CreateTemplateField("m_FixedWidth", "float", AssetValueType.Float);
-            AssetTypeTemplateField m_FixedHeight = CreateTemplateField("m_FixedHeight", "float", AssetValueType.Float);
-            AssetTypeTemplateField m_StretchWidth = CreateTemplateField("m_StretchWidth", "bool", AssetValueType.Bool);
-            AssetTypeTemplateField m_StretchHeight = CreateTemplateField("m_StretchHeight", "bool", AssetValueType.Bool, false, true);
-            field.Children = new List<AssetTypeTemplateField> {
-                m_Name, m_Normal, m_Hover, m_Active, m_Focused, m_OnNormal, m_OnHover, m_OnActive, m_OnFocused, m_Border, m_Margin, m_Padding, m_Overflow, m_Font, m_FontSize, m_FontStyle, m_Alignment, m_WordWrap, m_RichText, m_TextClipping, m_ImagePosition, m_ContentOffset, m_FixedWidth, m_FixedHeight, m_StretchWidth, m_StretchHeight
-            };
-        }
-
-        private void SetAABBInt(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_Center = CreateTemplateField("m_Center", "Vector3Int", AssetValueType.None, Vec3Int());
-            AssetTypeTemplateField m_Extent = CreateTemplateField("m_Extent", "Vector3Int", AssetValueType.None, Vec3Int());
-            field.Children = new List<AssetTypeTemplateField> {
-                m_Center, m_Extent
-            };
-        }
-
-        private List<AssetTypeTemplateField> Vec3Int()
-        {
-            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Z = CreateTemplateField("m_Z", "int", AssetValueType.Int32);
-            return new List<AssetTypeTemplateField> { m_X, m_Y, m_Z };
-        }
-
-        private void SetVec2Int(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", AssetValueType.Int32);
-            field.Children = new List<AssetTypeTemplateField> {
-                m_X, m_Y
-            };
-        }
-
-        private void SetVec3Int(AssetTypeTemplateField field)
-        {
-            AssetTypeTemplateField m_X = CreateTemplateField("m_X", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Y = CreateTemplateField("m_Y", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Z = CreateTemplateField("m_Z", "int", AssetValueType.Int32);
-            field.Children = new List<AssetTypeTemplateField> {
-                m_X, m_Y, m_Z
-            };
-        }
-
-        private List<AssetTypeTemplateField> String()
-        {
-            AssetTypeTemplateField size = CreateTemplateField("size", "int", AssetValueType.Int32);
-            AssetTypeTemplateField data = CreateTemplateField("char", "data", AssetValueType.UInt8);
-            AssetTypeTemplateField Array = CreateTemplateField("Array", "Array", AssetValueType.Array, true, true, new List<AssetTypeTemplateField> {
-                size, data
-            });
-            return new List<AssetTypeTemplateField> { Array };
-        }
-
-        private List<AssetTypeTemplateField> GUIStyleState()
-        {
-            AssetTypeTemplateField m_Background = CreateTemplateField("m_Background", "PPtr<Texture2D>", AssetValueType.None, PPtr());
-            AssetTypeTemplateField m_TextColor = CreateTemplateField("m_TextColor", "ColorRGBA", AssetValueType.None, RGBAf());
-            return new List<AssetTypeTemplateField> { m_Background, m_TextColor };
-        }
-
-        private List<AssetTypeTemplateField> RectOffset()
-        {
-            AssetTypeTemplateField m_Left = CreateTemplateField("m_Left", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Right = CreateTemplateField("m_Right", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Top = CreateTemplateField("m_Top", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_Bottom = CreateTemplateField("m_Bottom", "int", AssetValueType.Int32);
-            return new List<AssetTypeTemplateField> { m_Left, m_Right, m_Top, m_Bottom };
-        }
-
-        private List<AssetTypeTemplateField> PPtr()
-        {
-            AssetTypeTemplateField m_FileID = CreateTemplateField("m_FileID", "int", AssetValueType.Int32);
-            AssetTypeTemplateField m_PathID = CreateTemplateField("m_PathID", "SInt64", AssetValueType.Int64);
-            return new List<AssetTypeTemplateField> { m_FileID, m_PathID };
-        }
-
-        private List<AssetTypeTemplateField> Vec2f()
-        {
-            AssetTypeTemplateField x = CreateTemplateField("x", "float", AssetValueType.Float);
-            AssetTypeTemplateField y = CreateTemplateField("y", "float", AssetValueType.Float);
-            return new List<AssetTypeTemplateField> { x, y };
-        }
-
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType)
-        {
-            return CreateTemplateField(name, type, valueType, false, false, new List<AssetTypeTemplateField>(0));
-        }
-
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType, bool isArray, bool align)
-        {
-            return CreateTemplateField(name, type, valueType, isArray, align, new List<AssetTypeTemplateField>(0));
-        }
-
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType, List<AssetTypeTemplateField> children)
-        {
-            return CreateTemplateField(name, type, valueType, false, false, children);
-        }
-
-        private AssetTypeTemplateField CreateTemplateField(string name, string type, AssetValueType valueType, bool isArray, bool align, List<AssetTypeTemplateField> children)
-        {
-            AssetTypeTemplateField field = new AssetTypeTemplateField();
-            field.Name = name;
-            field.Type = type;
-            field.ValueType = valueType;
-            field.IsArray = isArray;
-            field.IsAligned = align;
-            field.HasValue = valueType != AssetValueType.None;
-            field.Children = children;
-
-            return field;
-        }
-        #endregion
     }
 }

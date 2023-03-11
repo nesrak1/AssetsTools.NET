@@ -34,7 +34,7 @@ namespace AssetsTools.NET
                 ValueType = AssetValueType.None,
                 Children = new List<AssetTypeTemplateField>(0)
             },
-            Value = new AssetTypeValue(AssetValueType.None),
+            Value = null,
             IsDummy = true,
             Children = new List<AssetTypeValueField>(0)
         };

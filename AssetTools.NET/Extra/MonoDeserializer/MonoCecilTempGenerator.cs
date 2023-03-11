@@ -43,9 +43,13 @@ namespace AssetsTools.NET.Extra
             {
                 return null;
             }
+
             List<AssetTypeTemplateField> newFields = Read(assemblyPath, nameSpace, className, unityVersion);
-            baseField.Children.AddRange(newFields);
-            return baseField;
+
+            AssetTypeTemplateField newBaseField = baseField.Clone();
+            newBaseField.Children.AddRange(newFields);
+
+            return newBaseField;
         }
 
         public List<AssetTypeTemplateField> Read(string assemblyPath, string nameSpace, string typeName, UnityVersion unityVersion)
@@ -60,19 +64,7 @@ namespace AssetsTools.NET.Extra
             anyFieldIsManagedReference = false;
             List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
 
-            int availableDepth;
-            if (unityVersion.major > 2020 ||
-                (unityVersion.major == 2020 && (unityVersion.minor >= 2 || (unityVersion.minor == 1 && unityVersion.patch >= 4))) ||
-                (unityVersion.major == 2019 && unityVersion.minor == 4 && unityVersion.patch >= 9))
-            {
-                availableDepth = 10;
-            }
-            else
-            {
-                availableDepth = 7;
-            }
-
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, availableDepth);
+            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, CommonMonoTemplateHelper.GetSerializationLimit(unityVersion));
             return children;
         }
 
@@ -107,9 +99,10 @@ namespace AssetsTools.NET.Extra
             if (typeName.Contains('/'))
             {
                 string[] types = typeName.Split('/');
-                for (int i = 0; i < types.Length; i++)
+                type = new TypeReference(nameSpace, types[0], module, module).Resolve();
+                for (int i = 1; i < types.Length; i++)
                 {
-                    typeRef = new TypeReference(nameSpace, types[i], module, module)
+                    typeRef = new TypeReference("", types[i], module, module)
                     {
                         DeclaringType = type
                     };
@@ -257,7 +250,8 @@ namespace AssetsTools.NET.Extra
             foreach (FieldDefinition f in typeDef.typeDef.Fields)
             {
                 if (Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Public) ||
-                    f.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeField")) //field is public or has exception attribute
+                    f.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField") ||
+                    f.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeReference")) //field is public or has exception attribute
                 {
                     if (!Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Static) &&
                         !Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.NotSerialized) &&
