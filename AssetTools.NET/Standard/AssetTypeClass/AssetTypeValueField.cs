@@ -22,7 +22,22 @@ namespace AssetsTools.NET
 
         public bool IsDummy { get; set; }
 
-        public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField() { IsDummy = true, Children = new List<AssetTypeValueField>() };
+        public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField()
+        {
+            TemplateField = new AssetTypeTemplateField
+            {
+                Name = "DUMMY",
+                HasValue = false,
+                IsAligned = false,
+                IsArray = false,
+                Type = "DUMMY",
+                ValueType = AssetValueType.None,
+                Children = new List<AssetTypeTemplateField>(0)
+            },
+            Value = null,
+            IsDummy = true,
+            Children = new List<AssetTypeValueField>(0)
+        };
 
         public void Read(AssetTypeValue value, AssetTypeTemplateField templateField, List<AssetTypeValueField> children)
         {
@@ -253,16 +268,16 @@ namespace AssetsTools.NET
                             for (int i = 0; i < childCount; i++)
                             {
                                 AssetTypeReferencedObject refdObject = AsManagedReferencesRegistry.references[i];
-                                if (AsManagedReferencesRegistry.version == 1)
+                                if (AsManagedReferencesRegistry.version != 1)
                                 {
                                     writer.Write(refdObject.rid);
                                 }
-                                refdObject.type.Write(writer);
+                                refdObject.type.WriteAsset(writer);
                                 refdObject.data.Write(writer);
                             }
                             if (AsManagedReferencesRegistry.version == 1)
                             {
-                                AssetTypeReference.TERMINUS.Write(writer);
+                                AssetTypeReference.TERMINUS.WriteAsset(writer);
                             }
                             break;
                     }

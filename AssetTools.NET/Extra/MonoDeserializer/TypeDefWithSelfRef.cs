@@ -35,7 +35,6 @@ namespace AssetsTools.NET.Extra
                     }
                 }
             }
-
         }
 
         public void AssignTypeParams(TypeDefWithSelfRef parentTypeDef)
@@ -52,7 +51,6 @@ namespace AssetsTools.NET.Extra
                             typeParamToArg[typeDef.GenericParameters[i].Name] = mappedType;
                         }
                     }
-
                 }
             }
         }

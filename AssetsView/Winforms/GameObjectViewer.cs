@@ -187,10 +187,7 @@ namespace AssetsView.Winforms
                 children = atvf.Value.AsManagedReferencesRegistry.references.Select(r => r.data).ToList();
             else
                 children = atvf.Children;
-
-            if (children == null || children.Count == 0)
-                return;
-        
+                    
             string arrayName = string.Empty;
             if (atvf.Value != null && atvf.Value.ValueType == AssetValueType.ManagedReferencesRegistry) 
                 arrayName = atvf.TemplateField.Name;
@@ -251,6 +248,14 @@ namespace AssetsView.Winforms
                             PopulateDataGrid(atvfc, childProps, info, category, true);
                         }
                     }
+                }
+                else if (atvfc.IsDummy && atvf.Value != null && atvf.Value.ValueType == AssetValueType.ManagedReferencesRegistry)
+                {
+                    PGProperty prop = new PGProperty(key, "null");
+                    prop.category = category;
+                    SetSelectedStateIfSelected(info, prop);
+                    node.Add(prop);
+                    PopulateDataGrid(atvfc, prop, info, category);
                 }
                 else
                 {
