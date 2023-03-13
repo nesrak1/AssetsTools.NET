@@ -41,6 +41,7 @@ namespace AssetsTools.NET.Extra
         private AssetsFileInstance LoadAssetsFileCacheless(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
         {
             AssetsFileInstance fileInst = new AssetsFileInstance(stream, path);
+            fileInst.parentBundle = bunInst;
 
             string lookupKey = GetFileLookupKey(path);
             FileLookup[lookupKey] = fileInst;
