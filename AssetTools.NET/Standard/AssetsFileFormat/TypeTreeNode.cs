@@ -13,9 +13,9 @@ namespace AssetsTools.NET
         /// </summary>
         public byte Level { get; set; }
         /// <summary>
-        /// 1 if array.
+        /// Information about whether the node is an array, registry, etc.
         /// </summary>
-        public byte TypeFlags { get; set; }
+        public TypeTreeNodeFlags TypeFlags { get; set; }
         /// <summary>
         /// Offset of the type string in the string table.
         /// </summary>
@@ -27,6 +27,7 @@ namespace AssetsTools.NET
         /// <summary>
         /// Byte size of the field's type (for example, int is 4).
         /// If the field isn't a value type, then this value is a sum of all children sizes.
+        /// If the size is variable, this is set to -1.
         /// </summary>
         public int ByteSize { get; set; }
         /// <summary>
@@ -46,7 +47,7 @@ namespace AssetsTools.NET
         {
             Version = reader.ReadUInt16();
             Level = reader.ReadByte();
-            TypeFlags = reader.ReadByte();
+            TypeFlags = (TypeTreeNodeFlags)reader.ReadByte();
             TypeStrOffset = reader.ReadUInt32();
             NameStrOffset = reader.ReadUInt32();
             ByteSize = reader.ReadInt32();
@@ -62,7 +63,7 @@ namespace AssetsTools.NET
         {
             writer.Write(Version);
             writer.Write(Level);
-            writer.Write(TypeFlags);
+            writer.Write((byte)TypeFlags);
             writer.Write(TypeStrOffset);
             writer.Write(NameStrOffset);
             writer.Write(ByteSize);

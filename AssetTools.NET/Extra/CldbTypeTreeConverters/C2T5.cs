@@ -122,7 +122,7 @@ namespace AssetsTools.NET.Extra
                 Level = (byte)depth,
                 MetaFlags = node.MetaFlag,
                 Index = (uint)typeTreeNodes.Count,
-                TypeFlags = node.TypeFlags,
+                TypeFlags = (TypeTreeNodeFlags)node.TypeFlags,
                 NameStrOffset = fieldNamePos,
                 ByteSize = node.ByteSize,
                 TypeStrOffset = typeNamePos,

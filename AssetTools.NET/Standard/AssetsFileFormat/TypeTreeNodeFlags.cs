@@ -3,7 +3,7 @@
 namespace AssetsTools.NET
 {
     [Flags]
-    public enum TypeTreeTypeFlags
+    public enum TypeTreeNodeFlags
     {
         None = 0,
         /// <summary>
