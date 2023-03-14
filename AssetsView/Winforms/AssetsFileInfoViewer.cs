@@ -1,4 +1,5 @@
 ﻿using AssetsTools.NET;
+using AssetsTools.NET.Extra;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -165,7 +166,7 @@ namespace AssetsView.Winforms
                 TypeTreeNode field = (TypeTreeNode)node.Tag;
                 ttr_version.Text = field.Version.ToString();
                 ttr_depth.Text = field.Level.ToString();
-                ttr_isarray.Text = (field.TypeFlags == 1).ToString().ToLower();
+                ttr_isarray.Text = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array).ToString().ToLower();
                 ttr_size.Text = field.ByteSize.ToString();
                 ttr_index.Text = field.Index.ToString();
                 ttr_flags.Text = "0x" + field.TypeFlags.ToString("X4");
