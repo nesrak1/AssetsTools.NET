@@ -169,7 +169,7 @@ namespace AssetsView.Winforms
                 ttr_isarray.Text = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array).ToString().ToLower();
                 ttr_size.Text = field.ByteSize.ToString();
                 ttr_index.Text = field.Index.ToString();
-                ttr_flags.Text = "0x" + field.TypeFlags.ToString("X4");
+                ttr_flags.Text = field.TypeFlags.ToString();
                 ttr_aligned.Text = "0x" + field.MetaFlags.ToString("X4");
             }
             else
