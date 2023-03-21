@@ -18,10 +18,6 @@ namespace AssetsTools.NET.Cpp2IL
         {
             this.typeRef = typeRef;
             typeDef = typeRef.Resolve();
-            if (typeDef is null)
-            {
-
-            }
             typeParamToArg = new Dictionary<string, TypeDefWithSelfRef>();
             paramNames = Array.Empty<string>();
 

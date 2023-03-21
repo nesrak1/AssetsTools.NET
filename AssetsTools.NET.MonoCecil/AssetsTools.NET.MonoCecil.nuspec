@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AssetsTools.NET.MonoCecil</id>
+    <version>1.0.0-preview1</version>
+    <authors>nesrak1</authors>
+    <owners>nesrak1</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>icon.png</icon>
+    <summary>Mono.Cecil support for AssetsTools.NET</summary>
+    <description>Adds MonoBehaviour deserialization for AssetsTools.NET using Mono.Cecil.</description>
+    <releaseNotes>v1.0.0-preview1 - new package, same great taste.</releaseNotes>
+    <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
+    <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
+    <dependencies>
+      <group targetFramework=".NETFramework3.5">
+        <dependency id="Mono.Cecil" version="0.10.4" />
+        <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
+      </group>
+      <group targetFramework=".NETFramework4.0">
+        <dependency id="Mono.Cecil" version="0.10.4" />
+        <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Mono.Cecil" version="0.11.3" />
+        <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="icon.png" target="" />
+    
+    <file src="bin\Release\net35\AssetsTools.NET.MonoCecil.dll" target="lib/net35" />
+    <file src="bin\Release\net35\AssetsTools.NET.MonoCecil.pdb" target="lib/net35" />
+    <file src="bin\Release\net40\AssetsTools.NET.MonoCecil.dll" target="lib/net40" />
+    <file src="bin\Release\net40\AssetsTools.NET.MonoCecil.pdb" target="lib/net40" />
+    <file src="bin\Release\netstandard2.0\AssetsTools.NET.MonoCecil.dll" target="lib/netstandard2.0" />
+    <file src="bin\Release\netstandard2.0\AssetsTools.NET.MonoCecil.pdb" target="lib/netstandard2.0" />
+  </files>
+</package>

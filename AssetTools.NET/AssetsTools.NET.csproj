@@ -37,13 +37,4 @@
     <None Remove="*.nupkg" />
     <None Remove="*.nuspec" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net35'">
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
-    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Mono.Cecil" Version="0.11.3" />
-  </ItemGroup>
 </Project>

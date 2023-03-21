@@ -7,7 +7,7 @@ using System.Text;
 
 namespace AssetsTools.NET.Cpp2IL
 {
-    public static class Extensions
+    internal static class Extensions
     {
         public static Il2CppTypeDefinition Resolve(this Il2CppTypeReflectionData typeRef)
         {

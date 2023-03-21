@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET.Cpp2IL</id>
-    <version>1.0.0-preview1</version>
+    <version>1.0.0-preview2</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -11,12 +11,12 @@
     <icon>icon.png</icon>
     <summary>Cpp2IL support for AssetsTools.NET</summary>
     <description>Adds MonoBehaviour deserialization for AssetsTools.NET using Cpp2IL.</description>
-    <releaseNotes>v1.0.0-preview1 - initial prerelease. still has some bugs so watch out.</releaseNotes>
+    <releaseNotes>v1.0.0-preview2 - upgraded at, using common code.</releaseNotes>
     <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
       <group targetFramework=".NETStandard2.0">
-        <dependency id="AssetsTools.NET" version="3.0.0-preview2" />
+        <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
         <dependency id="Samboy063.LibCpp2IL" version="2022.0.7.2" />
       </group>
     </dependencies>
