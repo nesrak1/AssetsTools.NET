@@ -11,39 +11,51 @@ namespace AssetsTools.NET.Extra
             List<AssetPPtr> scriptTypes = inst.file.Metadata.ScriptTypes;
             for (int i = 0; i < scriptTypes.Count; i++)
             {
-                AssetPPtr scriptPPtr = scriptTypes[i];
-
-                AssetTypeValueField msBaseField;
-                try
-                {
-                    msBaseField = am.GetExtAsset(inst, scriptPPtr.FileId, scriptPPtr.PathId).baseField;
-                    if (msBaseField == null)
-                    {
-                        continue;
-                    }
-                }
-                catch
+                AssetTypeReference typeRef = GetAssetsFileScriptInfo(am, inst, i);
+                if (typeRef == null)
                 {
                     continue;
                 }
 
-                AssetTypeValueField assemblyNameField = msBaseField["m_AssemblyName"];
-                AssetTypeValueField nameSpaceField = msBaseField["m_Namespace"];
-                AssetTypeValueField classNameField = msBaseField["m_ClassName"];
-                if (assemblyNameField.IsDummy || nameSpaceField.IsDummy || classNameField.IsDummy)
-                {
-                    continue;
-                }
-
-                string assemblyName = assemblyNameField.AsString;
-                string nameSpace = nameSpaceField.AsString;
-                string className = classNameField.AsString;
-
-                AssetTypeReference info = new AssetTypeReference(className, nameSpace, assemblyName);
-                infos[i] = info;
+                infos[i] = typeRef;
             }
 
             return infos;
+        }
+
+        public static AssetTypeReference GetAssetsFileScriptInfo(AssetsManager am, AssetsFileInstance inst, int index)
+        {
+            List<AssetPPtr> scriptTypes = inst.file.Metadata.ScriptTypes;
+            AssetPPtr scriptPPtr = scriptTypes[index];
+
+            AssetTypeValueField msBaseField;
+            try
+            {
+                msBaseField = am.GetExtAsset(inst, scriptPPtr.FileId, scriptPPtr.PathId).baseField;
+                if (msBaseField == null)
+                {
+                    return null;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+
+            AssetTypeValueField assemblyNameField = msBaseField["m_AssemblyName"];
+            AssetTypeValueField nameSpaceField = msBaseField["m_Namespace"];
+            AssetTypeValueField classNameField = msBaseField["m_ClassName"];
+            if (assemblyNameField.IsDummy || nameSpaceField.IsDummy || classNameField.IsDummy)
+            {
+                return null;
+            }
+
+            string assemblyName = assemblyNameField.AsString;
+            string nameSpace = nameSpaceField.AsString;
+            string className = classNameField.AsString;
+
+            AssetTypeReference info = new AssetTypeReference(className, nameSpace, assemblyName);
+            return info;
         }
 
         public static string GetAssetNameFast(AssetsFile file, ClassDatabaseFile cldb, AssetFileInfo info)

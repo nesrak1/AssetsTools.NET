@@ -225,11 +225,7 @@ namespace AssetsTools.NET.Extra
 
         public AssetTypeTemplateField CreateTemplateBaseField(AssetsFileInstance inst, int id, ushort scriptIndex = 0xffff)
         {
-            return CreateTemplateBaseField(inst.file, id, scriptIndex);
-        }
-
-        public AssetTypeTemplateField CreateTemplateBaseField(AssetsFile file, int id, ushort scriptIndex = 0xffff)
-        {
+            AssetsFile file = inst.file;
             AssetTypeTemplateField templateField = new AssetTypeTemplateField();
             if (file.Metadata.TypeTreeEnabled)
             {
@@ -238,21 +234,53 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                var cldbType = ClassDatabase.FindAssetClassByID(id);
-                templateField.FromClassDatabase(ClassDatabase, cldbType);
+                if (id != 0x72 || scriptIndex == 0xffff)
+                {
+                    var cldbType = ClassDatabase.FindAssetClassByID(id);
+                    templateField.FromClassDatabase(ClassDatabase, cldbType);
+                }
+                else
+                {
+                    if (MonoTempGenerator == null)
+                    {
+                        throw new Exception($"{nameof(MonoTempGenerator)} must be non-null to create a MonoBehaviour!");
+                    }
+
+                    // MonoBehaviour doesn't exist yet, so we can't just read
+                    // the m_Script field. instead, we look in ScriptTypes.
+                    var scriptTypeInfo = AssetHelper.GetAssetsFileScriptInfo(this, inst, scriptIndex);
+                    var mbTempField = GetTemplateBaseField(inst, file.Reader, -1, (int)AssetClassID.MonoBehaviour, scriptIndex, AssetReadFlags.SkipMonoBehaviourFields);
+                    var unityVersion = new UnityVersion(file.Metadata.UnityVersion);
+                    templateField = MonoTempGenerator.GetTemplateField(
+                        mbTempField,
+                        scriptTypeInfo.AsmName,
+                        scriptTypeInfo.Namespace,
+                        scriptTypeInfo.ClassName,
+                        unityVersion
+                    );
+                }
             }
             return templateField;
         }
 
         public AssetTypeValueField CreateValueBaseField(AssetsFileInstance inst, int id, ushort scriptIndex = 0xffff)
         {
-            return CreateValueBaseField(inst.file, id, scriptIndex);
+            AssetTypeTemplateField tempField = CreateTemplateBaseField(inst, id, scriptIndex);
+            return ValueBuilder.DefaultValueFieldFromTemplate(tempField);
         }
 
-        public AssetTypeValueField CreateValueBaseField(AssetsFile file, int id, ushort scriptIndex = 0xffff)
+        public AssetTypeValueField GetBaseField(AssetsFileInstance inst, AssetFileInfo info, AssetReadFlags readFlags = AssetReadFlags.None)
         {
-            AssetTypeTemplateField tempField = CreateTemplateBaseField(file, id, scriptIndex);
-            return ValueBuilder.DefaultValueFieldFromTemplate(tempField);
+            AssetTypeTemplateField tempField = GetTemplateBaseField(inst, info, readFlags);
+            RefTypeManager refMan = GetRefTypeManager(inst);
+            AssetTypeValueField valueField = tempField.MakeValue(inst.file.Reader, info.AbsoluteByteStart, refMan);
+            return valueField;
+        }
+
+        public AssetTypeValueField GetBaseField(AssetsFileInstance inst, long pathId, AssetReadFlags readFlags = AssetReadFlags.None)
+        {
+            AssetFileInfo info = inst.file.GetAssetInfo(pathId);
+            return GetBaseField(inst, info, readFlags);
         }
     }
 }

@@ -62,19 +62,5 @@ namespace AssetsTools.NET.Extra
             long pathId = pptrField["m_PathID"].AsLong;
             return GetExtAsset(relativeTo, fileId, pathId, onlyGetInfo, readFlags);
         }
-
-        public AssetTypeValueField GetBaseField(AssetsFileInstance inst, AssetFileInfo info, AssetReadFlags readFlags = AssetReadFlags.None)
-        {
-            AssetTypeTemplateField tempField = GetTemplateBaseField(inst, info, readFlags);
-            RefTypeManager refMan = GetRefTypeManager(inst);
-            AssetTypeValueField valueField = tempField.MakeValue(inst.file.Reader, info.AbsoluteByteStart, refMan);
-            return valueField;
-        }
-
-        public AssetTypeValueField GetBaseField(AssetsFileInstance inst, long pathId, AssetReadFlags readFlags = AssetReadFlags.None)
-        {
-            AssetFileInfo info = inst.file.GetAssetInfo(pathId);
-            return GetBaseField(inst, info, readFlags);
-        }
     }
 }
