@@ -39,7 +39,6 @@ namespace AssetsView.Winforms
             rsrcDataAdded = false;
 
             helper = new AssetsManager();
-            helper.UpdateAfterLoad = false;
             if (!File.Exists("classdata.tpk"))
             {
                 MessageBox.Show("classdata.tpk could not be found. Make sure it exists and restart.", "Assets View");
