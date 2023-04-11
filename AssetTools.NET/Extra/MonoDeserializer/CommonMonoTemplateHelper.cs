@@ -74,7 +74,7 @@ namespace AssetsTools.NET.Extra
 
         private static readonly Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
-            ["System.Boolean"] = "UInt8",
+            ["System.Boolean"] = "bool",
             ["System.SByte"] = "SInt8",
             ["System.Byte"] = "UInt8",
             ["System.Char"] = "UInt16",
