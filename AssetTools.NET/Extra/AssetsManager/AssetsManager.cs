@@ -10,7 +10,6 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
-        public bool UpdateAfterLoad { get; set; } = true;
         public bool UseTemplateFieldCache { get; set; } = false;
         public bool UseMonoTemplateFieldCache { get; set; } = false;
         public bool UseRefTypeManagerCache { get; set; } = false;
