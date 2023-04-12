@@ -74,7 +74,7 @@ namespace AssetsTools.NET.Extra
 
         private static readonly Dictionary<string, string> baseToPrimitive = new Dictionary<string, string>()
         {
-            ["System.Boolean"] = "bool",
+            ["System.Boolean"] = "UInt8", // keep this UInt8! this is the official conversion despite bool existing
             ["System.SByte"] = "SInt8",
             ["System.Byte"] = "UInt8",
             ["System.Char"] = "UInt16",
