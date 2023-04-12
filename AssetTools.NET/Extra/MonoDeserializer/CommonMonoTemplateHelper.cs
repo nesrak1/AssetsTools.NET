@@ -91,7 +91,7 @@ namespace AssetsTools.NET.Extra
 
         private static readonly Dictionary<string, AssetValueType> baseToAssetValueType = new Dictionary<string, AssetValueType>()
         {
-            ["System.Boolean"] = AssetValueType.Bool,
+            ["System.Boolean"] = AssetValueType.UInt8,
             ["System.SByte"] = AssetValueType.Int8,
             ["System.Byte"] = AssetValueType.UInt8,
             ["System.Char"] = AssetValueType.UInt16,
