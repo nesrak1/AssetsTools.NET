@@ -376,5 +376,10 @@ namespace AssetsTools.NET
 
             return refdObject;
         }
+
+        public override string ToString()
+        {
+            return Type + " " + Name;
+        }
     }
 }

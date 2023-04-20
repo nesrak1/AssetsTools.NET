@@ -320,6 +320,14 @@ namespace AssetsTools.NET
             return Children.GetEnumerator();
         }
 
+        public override string ToString()
+        {
+            if (TemplateField != null)
+                return TemplateField.ToString();
+
+            return default;
+        }
+
         // for convenience
         public bool AsBool { get => Value.AsBool; set => Value.AsBool = value; }
         public sbyte AsSByte { get => Value.AsSByte; set => Value.AsSByte = value; }
