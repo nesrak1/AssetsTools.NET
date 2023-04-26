@@ -17,6 +17,7 @@ namespace AssetsTools.NET
             TypeName = reader.ReadUInt16();
             FieldName = reader.ReadUInt16();
             ByteSize = reader.ReadInt32();
+            Version = reader.ReadUInt16();
             TypeFlags = reader.ReadByte();
             MetaFlag = reader.ReadUInt32();
             
