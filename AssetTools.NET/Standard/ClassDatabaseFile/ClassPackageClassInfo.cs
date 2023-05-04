@@ -57,10 +57,19 @@ namespace AssetsTools.NET
                 return null;
             }
 
+            if (Classes[0].Key.ToUInt64() > version.ToUInt64())
+            {
+                return null;
+            }
+
             ClassPackageType lastType = Classes[0].Value;
             for (int i = 0; i < Classes.Count; i++)
             {
-                if (Classes[i].Key.ToUInt64() >= version.ToUInt64())
+                if (Classes[i].Key.ToUInt64() == version.ToUInt64())
+                {
+                    return Classes[i].Value;
+                }
+                if (Classes[i].Key.ToUInt64() > version.ToUInt64())
                 {
                     return lastType;
                 }
