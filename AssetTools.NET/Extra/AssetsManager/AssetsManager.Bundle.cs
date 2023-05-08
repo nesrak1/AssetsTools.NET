@@ -56,8 +56,10 @@ namespace AssetsTools.NET.Extra
 
             foreach (AssetsFileInstance assetsInst in bunInst.loadedAssetsFiles)
             {
-                assetsInst.file.Close();
+                UnloadAssetsFile(assetsInst);
             }
+
+            bunInst.loadedAssetsFiles.Clear();
 
             if (Bundles.Contains(bunInst))
             {
@@ -80,10 +82,11 @@ namespace AssetsTools.NET.Extra
 
                     foreach (AssetsFileInstance assetsInst in bunInst.loadedAssetsFiles)
                     {
-                        assetsInst.file.Close();
+                        UnloadAssetsFile(assetsInst);
                     }
-                }
 
+                    bunInst.loadedAssetsFiles.Clear();
+                }
                 Bundles.Clear();
                 BundleLookup.Clear();
                 return true;
