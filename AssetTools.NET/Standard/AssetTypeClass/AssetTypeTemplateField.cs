@@ -38,6 +38,10 @@ namespace AssetsTools.NET
         /// </summary>
         public List<AssetTypeTemplateField> Children { get; set; }
 
+        /// <summary>
+        /// Read the template field from a type tree type.
+        /// </summary>
+        /// <param name="typeTreeType">The type tree type to read from.</param>
         public void FromTypeTree(TypeTreeType typeTreeType)
         {
             int fieldIndex = 0;
@@ -70,8 +74,8 @@ namespace AssetsTools.NET
                 Children.Add(assetField);
             }
 
-            //There can be a case where string child is not an array but an int
-            //(ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
+            // there can be a case where string child is not an array but an int
+            // (ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
             if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
             {
                 Type = Children[0].Type;
@@ -88,6 +92,12 @@ namespace AssetsTools.NET
             Children.TrimExcess();
         }
 
+        /// <summary>
+        /// Read the template field from a class database type.
+        /// </summary>
+        /// <param name="cldbFile">The class database file to read from.</param>
+        /// <param name="cldbType">The class database type to read.</param>
+        /// <param name="preferEditor">Read from the editor version of this type if available?</param>
         public void FromClassDatabase(ClassDatabaseFile cldbFile, ClassDatabaseType cldbType, bool preferEditor = false)
         {
             if (cldbType.EditorRootNode == null && cldbType.ReleaseRootNode == null)
@@ -139,6 +149,12 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Deserialize an asset into a value field.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="refMan">The ref type manager to use, if reading a MonoBehaviour using a ref type.</param>
+        /// <returns>The deserialized base field.</returns>
         public AssetTypeValueField MakeValue(AssetsFileReader reader, RefTypeManager refMan = null)
         {
             AssetTypeValueField valueField = new AssetTypeValueField
@@ -149,12 +165,26 @@ namespace AssetsTools.NET
             return valueField;
         }
 
+        /// <summary>
+        /// Deserialize an asset into a value field.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="position">The position to start reading from.</param>
+        /// <param name="refMan">The ref type manager to use, if reading a MonoBehaviour using a ref type.</param>
+        /// <returns>The deserialized value field.</returns>
         public AssetTypeValueField MakeValue(AssetsFileReader reader, long position, RefTypeManager refMan = null)
         {
             reader.Position = position;
             return MakeValue(reader, refMan);
         }
 
+        /// <summary>
+        /// Deserialize a single field and its children.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="valueField">The empty base value field to use.</param>
+        /// <param name="refMan">The ref type manager to use, if reading a MonoBehaviour using a ref type.</param>
+        /// <returns>The deserialized base field.</returns>
         public AssetTypeValueField ReadType(AssetsFileReader reader, AssetTypeValueField valueField, RefTypeManager refMan)
         {
             if (valueField.TemplateField.IsArray)
@@ -328,6 +358,10 @@ namespace AssetsTools.NET
             return valueField;
         }
 
+        /// <summary>
+        /// Clone the field.
+        /// </summary>
+        /// <returns>The cloned field.</returns>
         public AssetTypeTemplateField Clone()
         {
             var clone = new AssetTypeTemplateField

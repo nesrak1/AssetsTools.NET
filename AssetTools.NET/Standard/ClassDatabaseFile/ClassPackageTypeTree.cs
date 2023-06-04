@@ -14,7 +14,11 @@ namespace AssetsTools.NET
 		public List<ClassPackageTypeNode> Nodes { get; set; }
 		public ClassDatabaseStringTable StringTable { get; set; }
 
-		public void Read(AssetsFileReader reader)
+        /// <summary>
+        /// Read the <see cref="ClassPackageTypeTree"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        public void Read(AssetsFileReader reader)
         {
 			CreationTime = DateTime.FromBinary(reader.ReadInt64());
 
@@ -50,7 +54,11 @@ namespace AssetsTools.NET
 			StringTable.Read(reader);
 		}
 
-		public void Write(AssetsFileWriter writer)
+        /// <summary>
+        /// Write the <see cref="ClassPackageTypeTree"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
+        public void Write(AssetsFileWriter writer)
         {
 			writer.Write(CreationTime.ToBinary());
 

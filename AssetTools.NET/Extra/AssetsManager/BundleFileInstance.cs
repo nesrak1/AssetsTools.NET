@@ -8,6 +8,13 @@ namespace AssetsTools.NET.Extra
         public string path;
         public string name;
         public AssetBundleFile file;
+        /// <summary>
+        /// List of loaded assets files for this bundle.
+        /// </summary>
+        /// <remarks>
+        /// This list does not contain <i>every</i> assets file for the bundle,
+        /// instead only the ones that have been loaded so far.
+        /// </remarks>
         public List<AssetsFileInstance> loadedAssetsFiles;
 
         public Stream BundleStream => file.Reader.BaseStream;

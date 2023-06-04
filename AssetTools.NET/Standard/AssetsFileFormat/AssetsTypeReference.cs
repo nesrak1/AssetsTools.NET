@@ -23,6 +23,11 @@ namespace AssetsTools.NET
             AsmName = asmName;
         }
 
+        /// <summary>
+        /// Read the <see cref="AssetTypeReference"/> with the provided reader, used in
+        /// reading <see cref="AssetsFileMetadata"/>.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void ReadMetadata(AssetsFileReader reader)
         {
             ClassName = reader.ReadNullTerminated();
@@ -30,6 +35,11 @@ namespace AssetsTools.NET
             AsmName = reader.ReadNullTerminated();
         }
 
+        /// <summary>
+        /// Read the <see cref="AssetTypeReference"/> with the provided reader, used in
+        /// reading <see cref="AssetTypeReferencedObject"/>.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void ReadAsset(AssetsFileReader reader)
         {
             ClassName = reader.ReadCountStringInt32(); reader.Align();
@@ -37,6 +47,11 @@ namespace AssetsTools.NET
             AsmName = reader.ReadCountStringInt32(); reader.Align();
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetTypeReference"/> with the provided writer, used in
+        /// writing <see cref="AssetsFileMetadata"/>.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void WriteMetadata(AssetsFileWriter writer)
         {
             writer.WriteNullTerminated(ClassName);
@@ -44,6 +59,11 @@ namespace AssetsTools.NET
             writer.WriteNullTerminated(AsmName);
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetTypeReference"/> with the provided writer, used in
+        /// writing <see cref="AssetTypeReferencedObject"/>.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void WriteAsset(AssetsFileWriter writer)
         {
             writer.WriteCountStringInt32(ClassName); writer.Align();

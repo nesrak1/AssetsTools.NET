@@ -11,13 +11,15 @@ namespace AssetsTools.NET
 {
     public class ClassDatabaseFile
     {
-        public ClassDatabaseFileHeader Header;
-        public List<ClassDatabaseType> Classes;
-        public ClassDatabaseStringTable StringTable;
-        public List<ushort> CommonStringBufferIndices;
+        public ClassDatabaseFileHeader Header { get; set; }
+        public List<ClassDatabaseType> Classes { get; set; }
+        public ClassDatabaseStringTable StringTable { get; set; }
+        public List<ushort> CommonStringBufferIndices { get; set; }
 
-        public string GetString(ushort index) => StringTable.GetString(index);
-
+        /// <summary>
+        /// Read the <see cref="ClassDatabaseFile"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             Header ??= new ClassDatabaseFileHeader();
@@ -44,6 +46,11 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassDatabaseFile"/> with the provided writer and compression type.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
+        /// <param name="compressionType">The compression method to use.</param>
         public void Write(AssetsFileWriter writer, ClassFileCompressionType compressionType)
         {
             Header.CompressionType = compressionType;
@@ -79,7 +86,7 @@ namespace AssetsTools.NET
             if (Header.CompressionType != ClassFileCompressionType.Uncompressed)
             {
                 MemoryStream ms;
-                if (Header.CompressionType == ClassFileCompressionType.Lz4) // lz4
+                if (Header.CompressionType == ClassFileCompressionType.Lz4)
                 {
                     byte[] uncompressedBytes = new byte[Header.DecompressedSize];
                     using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes(Header.CompressedSize)))
@@ -90,7 +97,7 @@ namespace AssetsTools.NET
                     }
                     ms = new MemoryStream(uncompressedBytes);
                 }
-                else if (Header.CompressionType == ClassFileCompressionType.Lzma) // lzma
+                else if (Header.CompressionType == ClassFileCompressionType.Lzma)
                 {
                     using (MemoryStream tempMs = new MemoryStream(reader.ReadBytes(Header.CompressedSize)))
                     {
@@ -112,12 +119,12 @@ namespace AssetsTools.NET
         {
             if (Header.CompressionType != ClassFileCompressionType.Uncompressed)
             {
-                if (Header.CompressionType == ClassFileCompressionType.Lz4) // lz4
+                if (Header.CompressionType == ClassFileCompressionType.Lz4)
                 {
                     byte[] data = LZ4Codec.Encode32HC(inStream.ToArray(), 0, (int)inStream.Length);
                     return new MemoryStream(data);
                 }
-                else if (Header.CompressionType == ClassFileCompressionType.Lzma) // lzma
+                else if (Header.CompressionType == ClassFileCompressionType.Lzma)
                 {
                     MemoryStream outStream = new MemoryStream();
                     SevenZipHelper.Compress(inStream, outStream);
@@ -134,6 +141,11 @@ namespace AssetsTools.NET
             return inStream;
         }
 
+        /// <summary>
+        /// Find a class database type by type ID.
+        /// </summary>
+        /// <param name="id">The type's type ID to search for.</param>
+        /// <returns>The type of that type ID.</returns>
         public ClassDatabaseType FindAssetClassByID(int id)
         {
             // 5.4-
@@ -150,6 +162,11 @@ namespace AssetsTools.NET
             return null;
         }
 
+        /// <summary>
+        /// Find a class database type by type name.
+        /// </summary>
+        /// <param name="name">The type's type name to search for.</param>
+        /// <returns>The type of that type name.</returns>
         public ClassDatabaseType FindAssetClassByName(string name)
         {
             foreach (ClassDatabaseType type in Classes)
@@ -159,5 +176,14 @@ namespace AssetsTools.NET
             }
             return null;
         }
+
+        // for convenience
+        
+        /// <summary>
+        /// Get a string from the string table.
+        /// </summary>
+        /// <param name="index">The index of the string in the table.</param>
+        /// <returns>The string at that index.</returns>
+        public string GetString(ushort index) => StringTable.GetString(index);
     }
 }

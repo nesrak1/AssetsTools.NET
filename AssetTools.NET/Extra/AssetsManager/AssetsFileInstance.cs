@@ -3,14 +3,34 @@ using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
+    /// <summary>
+    /// A wrapper around an <see cref="AssetsFile"/> with information such as the path to the file
+    /// (used for handling dependencies) and the bundle it belongs to.
+    /// </summary>
     public class AssetsFileInstance
     {
+        /// <summary>
+        /// The full path to the file. This path can be fake it is not from disk.
+        /// </summary>
         public string path;
+        /// <summary>
+        /// The name of the file. This is the file name part of the path.
+        /// </summary>
         public string name;
+        /// <summary>
+        /// The base <see cref="AssetsFile"/>.
+        /// </summary>
         public AssetsFile file;
+        /// <summary>
+        /// The bundle this <see cref="AssetsFile"/> is a part of, if there is one.
+        /// </summary>
         public BundleFileInstance parentBundle = null;
+
         internal Dictionary<int, AssetsFileInstance> dependencyCache;
 
+        /// <summary>
+        /// The stream the assets file uses.
+        /// </summary>
         public Stream AssetsStream => file.Reader.BaseStream;
 
         public AssetsFileInstance(Stream stream, string filePath)

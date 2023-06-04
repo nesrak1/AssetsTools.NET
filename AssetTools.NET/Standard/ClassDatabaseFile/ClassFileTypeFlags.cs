@@ -24,7 +24,7 @@ namespace AssetsTools.NET
         /// </summary>
         IsEditorOnly = 4,
         /// <summary>
-        /// Does the class only appear in game files? Not currently used
+        /// Does the class only appear in game files? Not currently used.
         /// </summary>
         IsReleaseOnly = 8,
         /// <summary>

@@ -24,10 +24,15 @@ namespace AssetsTools.NET
         /// </summary>
         public string PathName { get; set; }
         /// <summary>
-        /// Original path name listed in the assets file (if it was changed). You shouldn't modify this.
+        /// Original path name listed in the assets file (if it was changed).
+        /// You shouldn't modify this.
         /// </summary>
         public string OriginalPathName { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="AssetsFileExternal"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             VirtualAssetPathName = reader.ReadNullTerminated();
@@ -57,6 +62,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetsFileExternal"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.WriteNullTerminated(VirtualAssetPathName);

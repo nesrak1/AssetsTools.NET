@@ -38,6 +38,11 @@ namespace AssetsTools.NET
             return (ushort)index;
         }
 
+        /// <summary>
+        /// Get a string from the string table.
+        /// </summary>
+        /// <param name="index">The index of the string in the table.</param>
+        /// <returns>The string at that index.</returns>
         public string GetString(ushort index)
         {
             return Strings[index];

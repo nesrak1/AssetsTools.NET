@@ -12,6 +12,10 @@ namespace AssetsTools.NET
         public uint MetaFlag { get; set; }
         public List<ClassDatabaseTypeNode> Children { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassDatabaseTypeNode"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             TypeName = reader.ReadUInt16();
@@ -31,6 +35,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassDatabaseTypeNode"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.Write(TypeName);

@@ -18,6 +18,9 @@ namespace AssetsTools.NET
             typeTreeLookup = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
         }
 
+        /// <summary>
+        /// Clear the ref type lookup dictionaries.
+        /// </summary>
         public void Clear()
         {
             typeTreeLookup.Clear();
@@ -27,6 +30,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Load the lookup from the type tree ref types of a serialized file.
+        /// </summary>
+        /// <param name="metadata">The metadata to load from.</param>
         public void FromTypeTree(AssetsFileMetadata metadata)
         {
             if (!metadata.TypeTreeEnabled || metadata.RefTypes == null)
@@ -41,8 +48,8 @@ namespace AssetsTools.NET
 
                 AssetTypeTemplateField templateField = new AssetTypeTemplateField();
                 templateField.FromTypeTree(type);
-                //If RefType has fields with [SerializeReference] it will contain its own registry,
-                //but it shouldn't be there, as the registry is only available at the root type
+                // if ref type has fields with [SerializeReference] it can contain its own registry,
+                // but it shouldn't be there, as the registry is only available at the root type
                 if (templateField.Children.Count > 0 && templateField.Children[templateField.Children.Count - 1].ValueType == AssetValueType.ManagedReferencesRegistry)
                 {
                     templateField.Children.RemoveAt(templateField.Children.Count - 1);
@@ -52,6 +59,12 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Initialize a lookup for MonoBehaviours.
+        /// </summary>
+        /// <param name="metadata">The metadata to load from.</param>
+        /// <param name="monoTemplateGenerator">The mono template generator to use.</param>
+        /// <param name="monoTemplateFieldCache">The cache to use.</param>
         public void WithMonoTemplateGenerator(AssetsFileMetadata metadata, IMonoBehaviourTemplateGenerator monoTemplateGenerator, Dictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = null)
         {
             this.monoTemplateGenerator = monoTemplateGenerator;
@@ -60,6 +73,11 @@ namespace AssetsTools.NET
             isSharedMonoLookup = monoTemplateLookup != null;
         }
 
+        /// <summary>
+        /// Gets the template field from a reference.
+        /// </summary>
+        /// <param name="type">The type reference to use.</param>
+        /// <returns>A template field for this reference.</returns>
         public AssetTypeTemplateField GetTemplateField(AssetTypeReference type)
         {
             if (type == null || (string.IsNullOrEmpty(type.ClassName) && string.IsNullOrEmpty(type.Namespace) && string.IsNullOrEmpty(type.AsmName)) || type.Equals(AssetTypeReference.TERMINUS))

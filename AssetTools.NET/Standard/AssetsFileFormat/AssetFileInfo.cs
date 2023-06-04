@@ -21,20 +21,22 @@ namespace AssetsTools.NET
         /// </summary>
         public uint ByteSize { get; set; }
         /// <summary>
-        /// Before version 16 this is the type ID of the asset. In version 16 and later this is the index into the type tree list.
-        /// In versions 15 and below, this is the same as TypeId except in MonoBehaviours where this acts similar to ScriptTypeIndex (negative).
+        /// Before version 16 this is the type ID of the asset. In version 16 and later this is the
+        /// index into the type tree list. In versions 15 and below, this is the same as TypeId
+        /// except in MonoBehaviours where this acts similar to ScriptTypeIndex (negative).
         /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
         public int TypeIdOrIndex { get; set; }
         /// <summary>
-        /// Class ID of the asset. This field is only used in versions 15 and below and is the same as TypeId, except when the
-        /// Class ID is negative, in which case the TypeId will be a MonoBehaviour and the Class ID will be the negative number.
-        /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
+        /// Class ID of the asset. This field is only used in versions 15 and below and is the same
+        /// as TypeId, except when the Class ID is negative, in which case the TypeId will be a
+        /// MonoBehaviour and the Class ID will be the negative number. You should use TypeId for the
+        /// type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
         public ushort ClassId { get; set; }
         /// <summary>
-        /// Script type index of the asset. Assets other than MonoBehaviours will have 0xffff for this field.
-        /// This value is stored in the type tree starting at version 17.
+        /// Script type index of the asset. Assets other than MonoBehaviours will have 0xffff for
+        /// this field. This value is stored in the type tree starting at version 17.
         /// </summary>
         public ushort ScriptTypeIndex { get; set; }
         /// <summary>
@@ -43,14 +45,15 @@ namespace AssetsTools.NET
         public byte Stripped { get; set; }
 
         /// <summary>
-        /// The type ID of the asset. This field works in both versions. This field is only for convenience; modifying the type
-        /// ID in the type tree in later versions will not update the ID here, and modifying this field will not update the
-        /// type ID in previous versions.
+        /// The type ID of the asset. This field works in both versions. This field is only for
+        /// convenience; modifying the type ID in the type tree in later versions will not update the
+        /// ID here, and modifying this field will not update the type ID in previous versions.
         /// </summary>
         public int TypeId { get; set; }
         /// <summary>
-        /// The absolute file position of the asset from the file opened. This field is only for convenience; if you want to
-        /// change where this asset is read from, set the ByteStart property instead.
+        /// The absolute file position of the asset from the file opened. This field is only for
+        /// convenience; if you want to change where this asset is read from, set the ByteStart
+        /// property instead (although this is not recommended).
         /// </summary>
         public long AbsoluteByteStart { get; set; }
 

@@ -9,10 +9,14 @@ namespace AssetsTools.NET
         public string Magic { get; set; }
         public byte FileVersion { get; set; }
         public ClassFileCompressionType CompressionType { get; set; }
-        public byte DataType { get; set; } //todo enum
+        public byte DataType { get; set; } // todo enum
         public uint CompressedSize { get; set; }
         public uint DecompressedSize { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassPackageHeader"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             reader.BigEndian = false;
@@ -38,14 +42,18 @@ namespace AssetsTools.NET
             CompressedSize = reader.ReadUInt32();
             DecompressedSize = reader.ReadUInt32();
         }
-        
+
+        /// <summary>
+        /// Write the <see cref="ClassPackageHeader"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.BigEndian = false;
             writer.Write(Encoding.ASCII.GetBytes(Magic));
             writer.Write(FileVersion);
             writer.Write((byte)CompressionType);
-            writer.Write((byte)DataType);
+            writer.Write(DataType);
             writer.Write((byte)0);
             writer.Write(0);
             writer.Write(CompressedSize);

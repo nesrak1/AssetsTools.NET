@@ -28,6 +28,10 @@ namespace AssetsTools.NET
         /// </summary>
         public bool Endianness { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="AssetsFileHeader"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             reader.BigEndian = true;
@@ -49,6 +53,10 @@ namespace AssetsTools.NET
             reader.BigEndian = Endianness;
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetsFileHeader"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.BigEndian = true;

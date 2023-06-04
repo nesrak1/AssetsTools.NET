@@ -16,14 +16,23 @@ namespace AssetsTools.NET
         /// Contains metadata about the file (TypeTree, engine version, dependencies, etc.)
         /// </summary>
         public AssetsFileMetadata Metadata { get; set; }
-
+        /// <summary>
+        /// The <see cref="AssetsFileReader"/> that reads the file.
+        /// </summary>
         public AssetsFileReader Reader { get; set; }
 
+        /// <summary>
+        /// Closes the reader.
+        /// </summary>
         public void Close()
         {
             Reader.Close();
         }
 
+        /// <summary>
+        /// Read the <see cref="AssetsFile"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             Reader = reader;
@@ -35,11 +44,22 @@ namespace AssetsTools.NET
             Metadata.Read(reader, Header);
         }
 
+        /// <summary>
+        /// Read the <see cref="AssetsFile"/> with the provided stream.
+        /// </summary>
+        /// <param name="stream">The stream to use.</param>
         public void Read(Stream stream)
         {
             Read(new AssetsFileReader(stream));
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetsFile"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
+        /// <param name="filePos">Where in the stream to start writing. Use -1 to start writing at the current stream position.</param>
+        /// <param name="replacers">The list of asset replacers to use. Do not use null if you want no replacers, instead use an empty list.</param>
+        /// <param name="typeMeta">The class database to use if any new asset types are used. Do not rely on this for MonoBehaviours.</param>
         public void Write(AssetsFileWriter writer, long filePos, List<AssetsReplacer> replacers, ClassDatabaseFile typeMeta = null)
         {
             long writeStart = filePos;
@@ -243,6 +263,12 @@ namespace AssetsTools.NET
             writer.Position = writeStart + newFileSize;
         }
 
+        /// <summary>
+        /// Get the script index for an <see cref="AssetFileInfo"/>.
+        /// Always use this method instead of ScriptTypeIndex, as it handles all versions.
+        /// </summary>
+        /// <param name="info">The file info to check.</param>
+        /// <returns>The script index of the asset.</returns>
         public ushort GetScriptIndex(AssetFileInfo info)
         {
             if (Header.Version < 0x10)
@@ -251,12 +277,24 @@ namespace AssetsTools.NET
                 return Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
         }
 
+        /// <summary>
+        /// Check if a file at a path is an <see cref="AssetsFile"/> or not.
+        /// </summary>
+        /// <param name="filePath">The file path to read from and check.</param>
+        /// <returns>True if the file is an assets file, otherwise false.</returns>
         public static bool IsAssetsFile(string filePath)
         {
             using AssetsFileReader reader = new AssetsFileReader(filePath);
             return IsAssetsFile(reader, 0, reader.BaseStream.Length);
         }
 
+        /// <summary>
+        /// Check if a file at a position in a stream is an <see cref="AssetsFile"/> or not.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="offset">The offset to start at (this value cannot be -1).</param>
+        /// <param name="length">The length of the file. You can use <c>reader.BaseStream.Length</c> for this.</param>
+        /// <returns></returns>
         public static bool IsAssetsFile(AssetsFileReader reader, long offset, long length)
         {
             reader.BigEndian = true;
@@ -299,13 +337,50 @@ namespace AssetsTools.NET
         }
 
         // for convenience
+
+        /// <summary>
+        /// Get an <see cref="AssetFileInfo"/> from a path ID.
+        /// </summary>
+        /// <param name="pathId">The path ID to search for.</param>
+        /// <returns>An info for that path ID.</returns>
         public AssetFileInfo GetAssetInfo(long pathId) => Metadata.GetAssetInfo(pathId);
-        public void GenerateQuickLookupTree() => Metadata.GenerateQuickLookupTree();
+        /// <summary>
+        /// Generate a dictionary lookup for assets instead of a brute force search.
+        /// Takes a little bit more memory but results in quicker lookups.
+        /// </summary>
+        public void GenerateQuickLookup() => Metadata.GenerateQuickLookup();
+        /// <summary>
+        /// Get all assets of a specific type ID.
+        /// </summary>
+        /// <param name="typeId">The type ID to search for.</param>
+        /// <returns>A list of infos for that type ID.</returns>
         public List<AssetFileInfo> GetAssetsOfType(int typeId) => Metadata.GetAssetsOfType(typeId);
+        /// <summary>
+        /// Get all assets of a specific type ID.
+        /// </summary>
+        /// <param name="typeId">The type ID to search for.</param>
+        /// <returns>A list of infos for that type ID.</returns>
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId) => Metadata.GetAssetsOfType(typeId);
+        /// <summary>
+        /// Get all assets of a specific type ID and script index. The script index of an asset can be
+        /// found from <see cref="GetScriptIndex(AssetFileInfo)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
+        /// </summary>
+        /// <param name="typeId">The type ID to search for.</param>
+        /// <param name="scriptIndex">The script index to search for.</param>
+        /// <returns>A list of infos for that type ID and script index.</returns>
         public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex) => Metadata.GetAssetsOfType(typeId, scriptIndex);
+        /// <summary>
+        /// Get all assets of a specific type ID and script index. The script index of an asset can be
+        /// found from <see cref="GetScriptIndex(AssetFileInfo)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
+        /// </summary>
+        /// <param name="typeId">The type ID to search for.</param>
+        /// <param name="scriptIndex">The script index to search for.</param>
+        /// <returns>A list of infos for that type ID and script index.</returns>
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId, ushort scriptIndex) => Metadata.GetAssetsOfType(typeId, scriptIndex);
 
+        /// <summary>
+        /// A list of all asset infos in this file.
+        /// </summary>
         public List<AssetFileInfo> AssetInfos => Metadata.AssetInfos;
     }
 }

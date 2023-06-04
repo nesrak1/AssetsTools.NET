@@ -22,6 +22,9 @@ namespace AssetsTools.NET
 
         public bool IsDummy { get; set; }
 
+        /// <summary>
+        /// The field which indicates that a field that was accessed does not exist.
+        /// </summary>
         public static readonly AssetTypeValueField DUMMY_FIELD = new AssetTypeValueField()
         {
             TemplateField = new AssetTypeTemplateField
@@ -39,6 +42,12 @@ namespace AssetsTools.NET
             Children = new List<AssetTypeValueField>(0)
         };
 
+        /// <summary>
+        /// Read the <see cref="AssetTypeValueField"/> from a value, template field, and children.
+        /// </summary>
+        /// <param name="value">The value to use.</param>
+        /// <param name="templateField">The template field to use.</param>
+        /// <param name="children">The children to use.</param>
         public void Read(AssetTypeValue value, AssetTypeTemplateField templateField, List<AssetTypeValueField> children)
         {
             Value = value;
@@ -160,7 +169,11 @@ namespace AssetsTools.NET
             }
         }
 
-        public void Write(AssetsFileWriter writer, int depth = 0)
+        /// <summary>
+        /// Write the <see cref="AssetTypeValueField"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
+        public void Write(AssetsFileWriter writer)
         {
             if (TemplateField.IsArray)
             {
@@ -183,7 +196,7 @@ namespace AssetsTools.NET
                     writer.Write(arraySize);
                     for (int i = 0; i < arraySize; i++)
                     {
-                        this[i].Write(writer, depth + 1);
+                        this[i].Write(writer);
                     }
 
                     if (TemplateField.IsAligned)
@@ -286,7 +299,7 @@ namespace AssetsTools.NET
                 {
                     for (int i = 0; i < Children.Count; i++)
                     {
-                        this[i].Write(writer, depth + 1);
+                        this[i].Write(writer);
                     }
 
                     if (TemplateField.IsAligned)
@@ -297,6 +310,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="AssetTypeValueField"/> with a new writer to a byte array.
+        /// </summary>
+        /// <param name="bigEndian">Write in big endian?</param>
         public byte[] WriteToByteArray(bool bigEndian = false)
         {
             byte[] data;

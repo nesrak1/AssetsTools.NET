@@ -13,6 +13,10 @@ namespace AssetsTools.NET
         public ClassDatabaseTypeNode EditorRootNode { get; set; }
         public ClassDatabaseTypeNode ReleaseRootNode { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassDatabaseType"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             ClassId = reader.ReadInt32();
@@ -37,6 +41,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassDatabaseType"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.Write(ClassId);
@@ -56,7 +64,13 @@ namespace AssetsTools.NET
                 ReleaseRootNode.Write(writer);
             }
         }
-
+        /// <summary>
+        /// Get either the release root node or the editor root node. If only release
+        /// or only editor is available, that one will be selected regardless of
+        /// <paramref name="preferEditor"/>, otherwise it will select editor or release.
+        /// </summary>
+        /// <param name="preferEditor">Read from the editor version of this type if available?</param>
+        /// <returns>The class database type root node.</returns>
         public ClassDatabaseTypeNode GetPreferredNode(bool preferEditor = false)
         {
             if (EditorRootNode != null && ReleaseRootNode != null)

@@ -14,6 +14,11 @@ namespace AssetsTools.NET
         public ushort EditorRootNode { get; set; }
         public ushort ReleaseRootNode { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassPackageType"/> with the provided reader and class ID.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
+        /// <param name="classId">The class ID to assign.</param>
         public void Read(AssetsFileReader reader, int classId)
         {
             ClassId = classId;
@@ -32,6 +37,10 @@ namespace AssetsTools.NET
                 ReleaseRootNode = reader.ReadUInt16();
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassPackageType"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.Write(Name);

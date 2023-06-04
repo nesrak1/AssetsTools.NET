@@ -7,6 +7,16 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
+        /// <summary>
+        /// Load a <see cref="BundleFileInstance"/> from a stream with a path.
+        /// Use the <see cref="FileStream"/> version of this method to skip the path argument.
+        /// If the bundle is large, you may want to set <paramref name="unpackIfPacked"/> to false
+        /// so you can manually decompress to file.
+        /// </summary>
+        /// <param name="stream">The stream to read from.</param>
+        /// <param name="path">The path to set on the <see cref="AssetsFileInstance"/>.</param>
+        /// <param name="unpackIfPacked">Unpack the bundle if it's compressed?</param>
+        /// <returns>The loaded <see cref="BundleFileInstance"/>.</returns>
         public BundleFileInstance LoadBundleFile(Stream stream, string path, bool unpackIfPacked = true)
         {
             BundleFileInstance bunInst;
@@ -21,16 +31,38 @@ namespace AssetsTools.NET.Extra
             return bunInst;
         }
 
+        /// <summary>
+        /// Load a <see cref="BundleFileInstance"/> from a stream.
+        /// Assigns the <see cref="BundleFileInstance"/>'s path from the stream's file path.
+        /// If the bundle is large, you may want to set <paramref name="unpackIfPacked"/> to false
+        /// so you can manually decompress to file.
+        /// </summary>
+        /// <param name="stream">The stream to read from.</param>
+        /// <param name="unpackIfPacked">Unpack the bundle if it's compressed?</param>
+        /// <returns>The loaded <see cref="BundleFileInstance"/>.</returns>
         public BundleFileInstance LoadBundleFile(FileStream stream, bool unpackIfPacked = true)
         {
             return LoadBundleFile(stream, Path.GetFullPath(stream.Name), unpackIfPacked);
         }
 
+        /// <summary>
+        /// Load a <see cref="BundleFileInstance"/> from a path.
+        /// If the bundle is large, you may want to set <paramref name="unpackIfPacked"/> to false
+        /// so you can manually decompress to file.
+        /// </summary>
+        /// <param name="path">The path of the file to read from.</param>
+        /// <param name="unpackIfPacked">Unpack the bundle if it's compressed?</param>
+        /// <returns>The loaded <see cref="BundleFileInstance"/>.</returns>
         public BundleFileInstance LoadBundleFile(string path, bool unpackIfPacked = true)
         {
             return LoadBundleFile(File.OpenRead(path), unpackIfPacked);
         }
 
+        /// <summary>
+        /// Unload an <see cref="BundleFileInstance"/> by path.
+        /// </summary>
+        /// <param name="path">The path of the <see cref="BundleFileInstance"/> to unload.</param>
+        /// <returns>True if the file was found and closed, and false if it wasn't found.</returns>
         public bool UnloadBundleFile(string path)
         {
             string lookupKey = GetFileLookupKey(path);
@@ -50,6 +82,11 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
+        /// <summary>
+        /// Unload an <see cref="BundleFileInstance"/>.
+        /// </summary>
+        /// <param name="bunInst">The <see cref="BundleFileInstance"/> to unload.</param>
+        /// <returns>True if the file was found and closed, and false if it wasn't found.</returns>
         public bool UnloadBundleFile(BundleFileInstance bunInst)
         {
             bunInst.file.Close();
@@ -72,6 +109,10 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
+        /// <summary>
+        /// Unload all <see cref="AssetsFileInstance"/>s.
+        /// </summary>
+        /// <returns>True if there are files that can be cleared, and false if no files are loaded.</returns>
         public bool UnloadAllBundleFiles()
         {
             if (Bundles.Count != 0)
@@ -94,6 +135,13 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
+        /// <summary>
+        /// Load an <see cref="AssetsFileInstance"/> from a <see cref="BundleFileInstance"/> by index.
+        /// </summary>
+        /// <param name="bunInst">The bundle to load from.</param>
+        /// <param name="index">The index of the file in the bundle to load from.</param>
+        /// <param name="loadDeps">Load all dependencies immediately?</param>
+        /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
         public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, int index, bool loadDeps = false)
         {
             string assetMemPath = Path.Combine(bunInst.path, bunInst.file.GetFileName(index));
@@ -117,6 +165,13 @@ namespace AssetsTools.NET.Extra
             }
         }
 
+        /// <summary>
+        /// Load an <see cref="AssetsFileInstance"/> from a <see cref="BundleFileInstance"/> by name.
+        /// </summary>
+        /// <param name="bunInst">The bundle to load from.</param>
+        /// <param name="name">The name of the file in the bundle to load from.</param>
+        /// <param name="loadDeps">Load all dependencies immediately?</param>
+        /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
         public AssetsFileInstance LoadAssetsFileFromBundle(BundleFileInstance bunInst, string name, bool loadDeps = false)
         {
             int index = bunInst.file.GetFileIndex(name);

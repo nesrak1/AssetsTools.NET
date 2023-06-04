@@ -65,7 +65,7 @@ namespace AssetsView.Winforms
             foreach (string fileName in fileNames)
             {
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                inst.file.GenerateQuickLookupTree();
+                inst.file.GenerateQuickLookup();
                 am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
                 foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
@@ -107,7 +107,7 @@ namespace AssetsView.Winforms
             foreach (string fileName in fileNames)
             {
                 AssetsFileInstance inst = am.LoadAssetsFile(fileName, true);
-                inst.file.GenerateQuickLookupTree();
+                inst.file.GenerateQuickLookup();
                 am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
                 foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {

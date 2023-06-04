@@ -10,6 +10,10 @@ namespace AssetsTools.NET
         public List<KeyValuePair<UnityVersion, byte>> VersionInformation { get; set; }
         public List<ushort> StringBufferIndices { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassPackageCommonString"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             int versionCount = reader.ReadInt32();
@@ -29,6 +33,10 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassPackageCommonString"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.Write(VersionInformation.Count);
@@ -45,6 +53,14 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Get the length of the common string for a version. <br/>
+        /// Since the common string is only appended in new versions, never edited, only the
+        /// length of the string for each version needs to be stored rather than the string
+        /// in its entirety.
+        /// </summary>
+        /// <param name="version"></param>
+        /// <returns>The length of the common string.</returns>
         public byte GetCommonStringLengthForVersion(UnityVersion version)
         {
             if (VersionInformation.Count == 0)

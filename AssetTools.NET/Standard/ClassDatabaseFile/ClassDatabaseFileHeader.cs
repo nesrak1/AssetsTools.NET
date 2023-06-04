@@ -13,6 +13,11 @@ namespace AssetsTools.NET
         public int CompressedSize { get; set; }
         public int DecompressedSize { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassDatabaseFileHeader"/> with the provided reader.
+        /// Note only new CLDB files are supported. Original UABE cldb files are no longer supported.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             Magic = reader.ReadStringLength(4);
@@ -36,6 +41,10 @@ namespace AssetsTools.NET
             DecompressedSize = reader.ReadInt32();
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassDatabaseFileHeader"/> with the provided writer.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
         public void Write(AssetsFileWriter writer)
         {
             writer.Write(Encoding.ASCII.GetBytes(Magic));

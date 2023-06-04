@@ -15,6 +15,10 @@ namespace AssetsTools.NET
         public ClassPackageHeader Header { get; set; }
         public ClassPackageTypeTree TpkTypeTree { get; set; }
 
+        /// <summary>
+        /// Read the <see cref="ClassPackageFile"/> with the provided reader.
+        /// </summary>
+        /// <param name="reader">The reader to use.</param>
         public void Read(AssetsFileReader reader)
         {
             Header = new ClassPackageHeader();
@@ -52,8 +56,17 @@ namespace AssetsTools.NET
             TpkTypeTree.Read(newReader);
         }
 
+        /// <summary>
+        /// Read the <see cref="ClassPackageFile"/> at the given path.
+        /// </summary>
+        /// <param name="path">The path to read from.</param>
         public void Read(string path) => Read(new AssetsFileReader(File.OpenRead(path)));
 
+        /// <summary>
+        /// Write the <see cref="ClassPackageFile"/> with the provided writer and compression type.
+        /// </summary>
+        /// <param name="writer">The writer to use.</param>
+        /// <param name="compressionType">The compression type to use.</param>
         public void Write(AssetsFileWriter writer, ClassFileCompressionType compressionType)
         {
             Header.CompressionType = compressionType;
@@ -97,14 +110,29 @@ namespace AssetsTools.NET
             }
         }
 
+        /// <summary>
+        /// Write the <see cref="ClassPackageFile"/> at the given path and compression type.
+        /// </summary>
+        /// <param name="path">The path to write to.</param>
+        /// <param name="compressionType">The compression type to use.</param>
         public void Write(string path, ClassFileCompressionType compressionType)
             => Write(new AssetsFileWriter(File.OpenWrite(path)), compressionType);
 
+        /// <summary>
+        /// Make a class database for a version.
+        /// </summary>
+        /// <param name="version">The version to make the class database for.</param>
+        /// <returns>A class database for that version.</returns>
         public ClassDatabaseFile GetClassDatabase(string version)
         {
             return GetClassDatabase(new UnityVersion(version));
         }
 
+        /// <summary>
+        /// Make a class database for a version.
+        /// </summary>
+        /// <param name="version">The version to make the class database for.</param>
+        /// <returns>A class database for that version.</returns>
         public ClassDatabaseFile GetClassDatabase(UnityVersion version)
         {
             if (Header == null)
