@@ -11,14 +11,16 @@ namespace AssetsTools.NET
         private readonly int bundleListIndex;
         private AssetsFile assetsFile;
         private readonly List<AssetsReplacer> assetReplacers;
+        private ClassDatabaseFile typeMeta;
 
-        public BundleReplacerFromAssets(string oldName, string newName, AssetsFile assetsFile, List<AssetsReplacer> assetReplacers, uint fileId = 0, int bundleListIndex = -1)
+        public BundleReplacerFromAssets(string oldName, string newName, AssetsFile assetsFile, List<AssetsReplacer> assetReplacers, int bundleListIndex = -1, ClassDatabaseFile typeMeta = null)
         {
             this.oldName = oldName;
             this.newName = newName ?? oldName;
             this.assetsFile = assetsFile;
             this.assetReplacers = assetReplacers;
             this.bundleListIndex = bundleListIndex;
+            this.typeMeta = typeMeta;
         }
 
         public override BundleReplacementType GetReplacementType()
@@ -44,6 +46,11 @@ namespace AssetsTools.NET
         public override bool Init(AssetsFileReader entryReader, long entryPos, long entrySize, ClassDatabaseFile typeMeta = null)
         {
             if (assetsFile != null)
+                return true;
+
+            this.typeMeta = typeMeta;
+
+            if (entryReader == null)
                 return false;
 
             SegmentStream stream = new SegmentStream(entryReader.BaseStream, entryPos, entrySize);
@@ -67,7 +74,7 @@ namespace AssetsTools.NET
             // which will make it look like the start of the new assets file is at position 0
             SegmentStream alignedStream = new SegmentStream(writer.BaseStream, writer.Position);
             AssetsFileWriter alignedWriter = new AssetsFileWriter(alignedStream);
-            assetsFile.Write(alignedWriter, -1, assetReplacers);
+            assetsFile.Write(alignedWriter, -1, assetReplacers, typeMeta);
             writer.Position = writer.BaseStream.Length;
             return writer.Position;
         }

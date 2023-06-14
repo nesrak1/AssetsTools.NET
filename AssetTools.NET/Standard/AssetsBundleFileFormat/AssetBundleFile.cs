@@ -100,14 +100,14 @@ namespace AssetsTools.NET
                 Flags = 0x40
             };
 
-            AssetBundleBlockAndDirInfo newBundleInf6 = new AssetBundleBlockAndDirInfo()
+            AssetBundleBlockAndDirInfo newBundleInf = new AssetBundleBlockAndDirInfo()
             {
                 Hash = new Hash128(),
                 BlockInfos = new AssetBundleBlockInfo[] { newBlockInfo }
             };
 
             // Assets that did not have their data modified but need
-            // The original info to read from the original file
+            // the original info to read from the original file
             var newToOriginalDirInfoLookup = new Dictionary<AssetBundleDirectoryInfo, AssetBundleDirectoryInfo>();
             List<AssetBundleDirectoryInfo> originalDirInfos = new List<AssetBundleDirectoryInfo>();
             List<AssetBundleDirectoryInfo> dirInfos = new List<AssetBundleDirectoryInfo>();
@@ -131,6 +131,11 @@ namespace AssetsTools.NET
                 BundleReplacer replacer = currentReplacers.FirstOrDefault(rep => rep.GetOriginalEntryName() == newInfo.Name);
                 if (replacer != null)
                 {
+                    if (!replacer.Init(DataReader, info.Offset, info.DecompressedSize, typeMeta))
+                    {
+                        throw new Exception("Something went wrong initializing a replacer!");
+                    }
+
                     currentReplacers.Remove(replacer);
                     if (replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
                     {
@@ -188,8 +193,8 @@ namespace AssetsTools.NET
             // Write the listings
             long bundleInfPos = writer.Position;
             // This is only here to allocate enough space so it's fine if it's inaccurate
-            newBundleInf6.DirectoryInfos = dirInfos.ToArray();
-            newBundleInf6.Write(writer);
+            newBundleInf.DirectoryInfos = dirInfos.ToArray();
+            newBundleInf.Write(writer);
             
             if ((Header.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
@@ -241,13 +246,13 @@ namespace AssetsTools.NET
             writer.Position = bundleInfPos;
             newBlockInfo.DecompressedSize = assetSize;
             newBlockInfo.CompressedSize = assetSize;
-            newBundleInf6.DirectoryInfos = dirInfos.ToArray();
-            newBundleInf6.Write(writer);
+            newBundleInf.DirectoryInfos = dirInfos.ToArray();
+            newBundleInf.Write(writer);
 
             uint infoSize = (uint)(assetDataPos - bundleInfPos);
 
             writer.Position = 0;
-            AssetBundleHeader newBundleHeader6 = new AssetBundleHeader
+            AssetBundleHeader newBundleHeader = new AssetBundleHeader
             {
                 Signature = Header.Signature,
                 Version = Header.Version,
@@ -262,7 +267,7 @@ namespace AssetsTools.NET
                     Flags = Header.FileStreamHeader.Flags & ~AssetBundleFSHeaderFlags.BlockAndDirAtEnd & ~AssetBundleFSHeaderFlags.CompressionMask
                 }
             };
-            newBundleHeader6.Write(writer);
+            newBundleHeader.Write(writer);
         }
 
         public void Unpack(AssetsFileWriter writer)
@@ -279,7 +284,7 @@ namespace AssetsTools.NET
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
             AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
 
-            AssetBundleHeader newBundleHeader6 = new AssetBundleHeader()
+            AssetBundleHeader newBundleHeader = new AssetBundleHeader()
             {
                 Signature = Header.Signature,
                 Version = Header.Version,
@@ -299,14 +304,14 @@ namespace AssetsTools.NET
                 }
             };
 
-            long fileSize = newBundleHeader6.GetFileDataOffset();
+            long fileSize = newBundleHeader.GetFileDataOffset();
             for (int i = 0; i < blockInfos.Length; i++)
             {
                 fileSize += blockInfos[i].DecompressedSize;
             }
-            newBundleHeader6.FileStreamHeader.TotalFileSize = fileSize;
+            newBundleHeader.FileStreamHeader.TotalFileSize = fileSize;
 
-            AssetBundleBlockAndDirInfo newBundleInf6 = new AssetBundleBlockAndDirInfo()
+            AssetBundleBlockAndDirInfo newBundleInf = new AssetBundleBlockAndDirInfo()
             {
                 Hash = new Hash128(),
                 BlockInfos = new AssetBundleBlockInfo[blockInfos.Length],
@@ -314,9 +319,9 @@ namespace AssetsTools.NET
             };
 
             // todo: we should just use one block here
-            for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
+            for (int i = 0; i < newBundleInf.BlockInfos.Length; i++)
             {
-                newBundleInf6.BlockInfos[i] = new AssetBundleBlockInfo()
+                newBundleInf.BlockInfos[i] = new AssetBundleBlockInfo()
                 {
                     CompressedSize = blockInfos[i].DecompressedSize,
                     DecompressedSize = blockInfos[i].DecompressedSize,
@@ -325,9 +330,9 @@ namespace AssetsTools.NET
                 };
             }
 
-            for (int i = 0; i < newBundleInf6.DirectoryInfos.Length; i++)
+            for (int i = 0; i < newBundleInf.DirectoryInfos.Length; i++)
             {
-                newBundleInf6.DirectoryInfos[i] = new AssetBundleDirectoryInfo()
+                newBundleInf.DirectoryInfos[i] = new AssetBundleDirectoryInfo()
                 {
                     Offset = directoryInfos[i].Offset,
                     DecompressedSize = directoryInfos[i].DecompressedSize,
@@ -336,13 +341,13 @@ namespace AssetsTools.NET
                 };
             }
 
-            newBundleHeader6.Write(writer);
-            if (newBundleHeader6.Version >= 7)
+            newBundleHeader.Write(writer);
+            if (newBundleHeader.Version >= 7)
             {
                 writer.Align16();
             }
-            newBundleInf6.Write(writer);
-            if ((newBundleHeader6.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
+            newBundleInf.Write(writer);
+            if ((newBundleHeader.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
             }
@@ -351,7 +356,7 @@ namespace AssetsTools.NET
 
             if (DataIsCompressed)
             {
-                for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
+                for (int i = 0; i < newBundleInf.BlockInfos.Length; i++)
                 {
                     AssetBundleBlockInfo info = blockInfos[i];
                     switch (info.GetCompressionType())
@@ -386,7 +391,7 @@ namespace AssetsTools.NET
             }
             else
             {
-                for (int i = 0; i < newBundleInf6.BlockInfos.Length; i++)
+                for (int i = 0; i < newBundleInf.BlockInfos.Length; i++)
                 {
                     AssetBundleBlockInfo info = blockInfos[i];
                     reader.BaseStream.CopyToCompat(writer.BaseStream, info.DecompressedSize);
@@ -449,13 +454,13 @@ namespace AssetsTools.NET
             Stream bundleDataStream = DataReader.BaseStream;
             bundleDataStream.Position = 0;
 
-            long fileDataOffset = Header.GetFileDataOffset();
-            int fileDataLength = (int)bundleDataStream.Length;//(int)(Header.FileStreamHeader.TotalFileSize - fileDataOffset);
+            int fileDataLength = (int)bundleDataStream.Length;
 
             switch (compType)
             {
                 case AssetBundleCompressionType.LZMA:
                 {
+                    // write to one large lzma block
                     Stream writeStream;
                     if (blockDirAtEnd)
                         writeStream = writer.BaseStream;
@@ -701,7 +706,7 @@ namespace AssetsTools.NET
 
         }
 
-        private AssetBundleCompressionType GetCompressionType(AssetBundleBlockInfo[] blockInfos)
+        public AssetBundleCompressionType GetCompressionType(AssetBundleBlockInfo[] blockInfos)
         {
             for (int i = 0; i < blockInfos.Length; i++)
             {
