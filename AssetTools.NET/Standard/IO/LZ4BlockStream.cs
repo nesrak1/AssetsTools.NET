@@ -12,14 +12,19 @@ namespace AssetsTools.NET
         private readonly long length;
         private readonly long blockSize;
 
-        private AssetBundleBlockInfo[] blockInfos;
-        private long[] blockPoses;
+        private readonly AssetBundleBlockInfo[] blockInfos;
+        private readonly long[] blockPoses;
 
-        private Dictionary<int, MemoryStream> decompressedBlockMap;
-        private Queue<int> decompressedBlockQueue;
-        private const int MAX_BLOCK_MAP_SIZE = 10;
+        private readonly Dictionary<int, MemoryStream> decompressedBlockMap;
+        private readonly Queue<int> decompressedBlockQueue;
 
-        public LZ4BlockStream(Stream baseStream, long baseOffset, AssetBundleBlockInfo[] blockInfos)
+        public int maxBlockMapSize;
+        public const int DEFAULT_MAX_BLOCK_MAP_SIZE = 382; // roughly 50mb of cache
+
+        public LZ4BlockStream(
+            Stream baseStream, long baseOffset, AssetBundleBlockInfo[] blockInfos,
+            int maxBlockMapSize = DEFAULT_MAX_BLOCK_MAP_SIZE
+        )
         {
             if (baseOffset < 0 || baseOffset > baseStream.Length)
                 throw new ArgumentOutOfRangeException(nameof(baseOffset));
@@ -74,6 +79,7 @@ namespace AssetsTools.NET
             }
 
             this.blockInfos = blockInfos;
+            this.maxBlockMapSize = maxBlockMapSize;
 
             BaseStream = baseStream;
             BaseOffset = baseOffset;
@@ -116,7 +122,7 @@ namespace AssetsTools.NET
                 int blockIndex = (int)(Position / blockSize);
                 if (!decompressedBlockMap.ContainsKey(blockIndex))
                 {
-                    if (decompressedBlockMap.Count >= MAX_BLOCK_MAP_SIZE)
+                    if (decompressedBlockMap.Count >= maxBlockMapSize)
                     {
                         int frontItem = decompressedBlockQueue.Dequeue();
                         decompressedBlockMap[frontItem].Close();
