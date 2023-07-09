@@ -433,7 +433,7 @@ namespace AssetsView.Winforms
                     ushort monoId = currentFile.file.GetScriptIndex(info);
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.TypeId,
-                        info.AbsoluteByteStart,
+                        info.GetAbsoluteByteStart(currentFile.file),
                         info.ByteSize,
                         info.PathId,
                         monoId,

@@ -14,10 +14,11 @@ namespace AssetsTools.NET
         public long PathId { get; set; }
         /// <summary>
         /// Address of the asset's data from the header's DataOffset. Use GetAbsoluteByteStart for the real file position.
+        /// If the asset has a replacer, this field is ignored.
         /// </summary>
         public long ByteStart { get; set; }
         /// <summary>
-        /// Byte size of the asset data.
+        /// Byte size of the asset data. If the asset has a replacer, this field is ignored.
         /// </summary>
         public uint ByteSize { get; set; }
         /// <summary>
@@ -28,15 +29,16 @@ namespace AssetsTools.NET
         /// </summary>
         public int TypeIdOrIndex { get; set; }
         /// <summary>
-        /// Class ID of the asset. This field is only used in versions 15 and below and is the same
-        /// as TypeId, except when the Class ID is negative, in which case the TypeId will be a
-        /// MonoBehaviour and the Class ID will be the negative number. You should use TypeId for the
-        /// type ID in either version. <see cref="AssetClassID"/>
+        /// Old Type ID of the asset (officially called class ID). This field is only used in versions
+        /// 15 and below and is the same as TypeId, except when TypeId is negative, in which case
+        /// the old type ID will be a MonoBehaviour (0x72) and TypeId will be the same as TypeIdOrIndex.
+        /// You should use TypeId for the type ID in either version. <see cref="AssetClassID"/>
         /// </summary>
-        public ushort ClassId { get; set; }
+        public ushort OldTypeId { get; set; }
         /// <summary>
         /// Script type index of the asset. Assets other than MonoBehaviours will have 0xffff for
-        /// this field. This value is stored in the type tree starting at version 17.
+        /// this field. This value is stored in the type tree starting at version 17. Note this is
+        /// not the same as taking
         /// </summary>
         public ushort ScriptTypeIndex { get; set; }
         /// <summary>
@@ -47,28 +49,23 @@ namespace AssetsTools.NET
         /// <summary>
         /// The type ID of the asset. This field works in both versions. This field is only for
         /// convenience; modifying the type ID in the type tree in later versions will not update the
-        /// ID here, and modifying this field will not update the type ID in previous versions.
+        /// ID here, and modifying this field will not update the type ID when saved.
         /// </summary>
         public int TypeId { get; set; }
         /// <summary>
-        /// The absolute file position of the asset from the file opened. This field is only for
-        /// convenience; if you want to change where this asset is read from, set the ByteStart
-        /// property instead (although this is not recommended).
+        /// Replacer which can be set by the user.
+        /// You can use <see cref="SetNewData(byte[])"/> or <see cref="SetNewData(AssetTypeValueField)"/>
+        /// for convenience.
         /// </summary>
-        public long AbsoluteByteStart { get; set; }
-
-        public static int GetSize(uint version)
-        {
-            int size = 0;
-            size += 4;
-            if (version >= 14) size += 4;
-            size += 12;
-            if (version >= 22) size += 4;
-            if (version <= 15) size += 2;
-            if (version <= 16) size += 2;
-            if (15 <= version && version <= 16) size += 1;
-            return size;
-        }
+        public IContentReplacer Replacer { get; set; }
+        /// <summary>
+        /// Replacer type such as modified or removed.
+        /// </summary>
+        public ContentReplacerType ReplacerType => Replacer != null ? Replacer.GetReplacerType() : ContentReplacerType.None;
+        /// <summary>
+        /// Is the replacer non-null and does the replacer has a preview?
+        /// </summary>
+        public bool IsReplacerPreviewable => Replacer != null && Replacer.HasPreview();
 
         public void Read(AssetsFileReader reader, uint version)
         {
@@ -93,7 +90,7 @@ namespace AssetsTools.NET
             TypeIdOrIndex = reader.ReadInt32();
             if (version <= 15)
             {
-                ClassId = reader.ReadUInt16();
+                OldTypeId = reader.ReadUInt16();
             }
             if (version <= 16)
             {
@@ -103,6 +100,7 @@ namespace AssetsTools.NET
             {
                 Stripped = reader.ReadByte();
             }
+            Replacer = null;
         }
 
         public void Write(AssetsFileWriter writer, uint version)
@@ -128,7 +126,7 @@ namespace AssetsTools.NET
             writer.Write(TypeIdOrIndex);
             if (version <= 15)
             {
-                writer.Write(ClassId);
+                writer.Write(OldTypeId);
             }
             if (version <= 16)
             {
@@ -194,6 +192,152 @@ namespace AssetsTools.NET
         public long GetAbsoluteByteStart(long dataOffset)
         {
             return dataOffset + ByteStart;
+        }
+
+        /// <summary>
+        /// Sets the bytes used when the AssetsFile is written.
+        /// </summary>
+        public void SetNewData(byte[] newBytes)
+        {
+            Replacer = new ContentReplacerFromBuffer(newBytes);
+        }
+
+        /// <summary>
+        /// Sets the bytes to the base field's data used when the AssetsFile is written.
+        /// </summary>
+        public void SetNewData(AssetTypeValueField baseField)
+        {
+            Replacer = new ContentReplacerFromBuffer(baseField.WriteToByteArray());
+        }
+        
+        /// <summary>
+        /// Set the asset to be removed when the AssetsFile is written.
+        /// </summary>
+        public void SetRemoved()
+        {
+            Replacer = new ContentRemover();
+        }
+
+        /// <summary>
+        /// Creates a new asset info. If the type has not appeared in this file yet, pass
+        /// <paramref name="classDatabase"/> to pull new type info from.
+        /// </summary>
+        /// <param name="assetsFile">The assets file this info will belong to.</param>
+        /// <param name="pathId">The path ID to use.</param>
+        /// <param name="typeId">The type ID to use.</param>
+        /// <param name="classDatabase">The class database to use if the type does not appear in the assets file yet.</param>
+        /// <param name="preferEditor">Read from the editor version of this type if available?</param>
+        /// <returns>The new asset info, or null if the type can't be found in the type tree or class database.</returns>
+        public static AssetFileInfo Create(
+            AssetsFile assetsFile, long pathId, int typeId,
+            ClassDatabaseFile classDatabase = null, bool preferEditor = false)
+        {
+            return Create(assetsFile, pathId, typeId, 0xffff, classDatabase, preferEditor);
+        }
+
+        /// <summary>
+        /// Creates a new asset info. If the type has not appeared in this file yet, pass
+        /// <paramref name="classDatabase"/> to pull new type info from. If the asset is
+        /// a MonoBehaviour, add the type manually to <see cref="AssetsFileMetadata.TypeTreeTypes"/>
+        /// and if version 16 or later, set <paramref name="scriptIndex"/> to the script type index
+        /// or if ealier than version 16, set the negative type id.
+        /// </summary>
+        /// <param name="assetsFile">The assets file this info will belong to.</param>
+        /// <param name="pathId">The path ID to use.</param>
+        /// <param name="typeId">The type ID to use.</param>
+        /// <param name="scriptIndex">The script type index to use.</param>
+        /// <param name="classDatabase">The class database to use if the type does not appear in the assets file yet.</param>
+        /// <param name="preferEditor">Read from the editor version of this type if available?</param>
+        /// <returns>The new asset info, or null if the type can't be found in the type tree or class database.</returns>
+        public static AssetFileInfo Create(
+            AssetsFile assetsFile, long pathId, int typeId, ushort scriptIndex = 0xffff,
+            ClassDatabaseFile classDatabase = null, bool preferEditor = false)
+        {
+            uint version = assetsFile.Header.Version;
+
+            int typeIdOrIndex;
+            ushort oldTypeId;
+            ushort scriptTypeIndex;
+
+            if (version >= 16)
+            {
+                int typeIndex = assetsFile.Metadata.FindTypeTreeTypeIndexByID(typeId, scriptIndex);
+                if (typeIndex == -1)
+                {
+                    if (classDatabase == null)
+                    {
+                        return null;
+                    }
+
+                    TypeTreeType newType;
+                    if (assetsFile.Metadata.TypeTreeEnabled)
+                    {
+                        newType = ClassDatabaseToTypeTree.Convert(classDatabase, typeId, preferEditor);
+                        if (newType == null)
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        newType = new TypeTreeType
+                        {
+                            TypeId = typeId,
+                            IsStrippedType = false,
+                            ScriptTypeIndex = scriptIndex,
+                            ScriptIdHash = Hash128.NewBlankHash(),
+                            TypeHash = Hash128.NewBlankHash(),
+                            Nodes = new List<TypeTreeNode>(),
+                            StringBufferBytes = new byte[0],
+                            TypeDependencies = new int[0],
+                            IsRefType = false,
+                            TypeReference = null,
+                        };
+                    }
+
+                    typeIdOrIndex = assetsFile.Metadata.TypeTreeTypes.Count;
+                    assetsFile.Metadata.TypeTreeTypes.Add(newType);
+                }
+                else
+                {
+                    typeIdOrIndex = typeIndex;
+                }
+                oldTypeId = 0;
+            }
+            else
+            {
+                typeIdOrIndex = typeId;
+                if (typeId < 0)
+                {
+                    oldTypeId = 0x72;
+                }
+                else
+                {
+                    oldTypeId = (ushort)typeId;
+                }
+            }
+
+            if (version < 17)
+            {
+                scriptTypeIndex = scriptIndex;
+            }
+            else
+            {
+                scriptTypeIndex = 0;
+            }
+            
+            return new AssetFileInfo()
+            {
+                PathId = pathId,
+                ByteStart = -1,
+                ByteSize = 0,
+                TypeIdOrIndex = typeIdOrIndex,
+                OldTypeId = oldTypeId,
+                ScriptTypeIndex = scriptTypeIndex,
+                Stripped = 0,
+                TypeId = typeId,
+                Replacer = null,
+            };
         }
     }
 }

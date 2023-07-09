@@ -71,7 +71,7 @@ namespace AssetsTools.NET
             }
         }
 
-        public void Write(AssetsFileWriter writer, List<BundleReplacer> replacers, ClassDatabaseFile typeMeta = null)
+        public void Write(AssetsFileWriter writer, long filePos = 0)
         {
             if (Header == null)
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
@@ -82,9 +82,13 @@ namespace AssetsTools.NET
             if (DataIsCompressed)
                 throw new Exception("Bundles must be decompressed before writing.");
 
-            writer.Position = 0;
+            long writeStart = filePos;
+            if (filePos == -1)
+                writeStart = writer.Position;
+            else
+                writer.Position = filePos;
 
-            AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
+            List<AssetBundleDirectoryInfo> directoryInfos = BlockAndDirInfo.DirectoryInfos;
 
             Header.Write(writer);
 
@@ -106,96 +110,43 @@ namespace AssetsTools.NET
                 BlockInfos = new AssetBundleBlockInfo[] { newBlockInfo }
             };
 
-            // Assets that did not have their data modified but need
-            // the original info to read from the original file
-            var newToOriginalDirInfoLookup = new Dictionary<AssetBundleDirectoryInfo, AssetBundleDirectoryInfo>();
-            List<AssetBundleDirectoryInfo> originalDirInfos = new List<AssetBundleDirectoryInfo>();
             List<AssetBundleDirectoryInfo> dirInfos = new List<AssetBundleDirectoryInfo>();
-            List<BundleReplacer> currentReplacers = replacers.ToList();
 
-            // Write all original file infos and skip those to be removed
-            for (int i = 0; i < directoryInfos.Length; i++)
+            // write all original file infos and skip those to be removed
+            int dirCount = directoryInfos.Count;
+            for (int i = 0; i < dirCount; i++)
             {
-                AssetBundleDirectoryInfo info = directoryInfos[i];
-                originalDirInfos.Add(info);
+                AssetBundleDirectoryInfo dirInfo = directoryInfos[i];
+                ContentReplacerType replacerType = dirInfo.ReplacerType;
 
-                AssetBundleDirectoryInfo newInfo = new AssetBundleDirectoryInfo()
+                if (replacerType == ContentReplacerType.Remove)
+                    continue;
+
+                if (replacerType == ContentReplacerType.AddOrModify)
                 {
-                    // Offset and size to be replaced later
-                    Offset = 0,
-                    DecompressedSize = 0,
-                    Flags = info.Flags,
-                    Name = info.Name
-                };
-
-                BundleReplacer replacer = currentReplacers.FirstOrDefault(rep => rep.GetOriginalEntryName() == newInfo.Name);
-                if (replacer != null)
-                {
-                    if (!replacer.Init(DataReader, info.Offset, info.DecompressedSize, typeMeta))
+                    if (dirInfo.Replacer == null)
                     {
-                        throw new Exception("Something went wrong initializing a replacer!");
-                    }
-
-                    currentReplacers.Remove(replacer);
-                    if (replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
-                    {
-                        newInfo = new AssetBundleDirectoryInfo()
-                        {
-                            Offset = 0,
-                            DecompressedSize = 0,
-                            Flags = info.Flags,
-                            Name = replacer.GetEntryName()
-                        };
-                    }
-                    else if (replacer.GetReplacementType() == BundleReplacementType.Rename)
-                    {
-                        newInfo = new AssetBundleDirectoryInfo()
-                        {
-                            Offset = 0,
-                            DecompressedSize = 0,
-                            Flags = info.Flags,
-                            Name = replacer.GetEntryName()
-                        };
-                        newToOriginalDirInfoLookup[newInfo] = info;
-                    }
-                    else if (replacer.GetReplacementType() == BundleReplacementType.Remove)
-                    {
-                        continue;
+                        throw new Exception($"{nameof(dirInfo.Replacer)} must be non-null when status is Modified!");
                     }
                 }
-                else
+
+                dirInfos.Add(new AssetBundleDirectoryInfo()
                 {
-                    newToOriginalDirInfoLookup[newInfo] = info;
-                }
-            
-                dirInfos.Add(newInfo);
+                    // offset and size to be edited later
+                    Offset = dirInfo.Offset,
+                    DecompressedSize = dirInfo.DecompressedSize,
+                    Flags = dirInfo.Flags,
+                    Name = dirInfo.Name,
+                    Replacer = dirInfo.Replacer,
+                });
             }
 
-            // Add new file infos
-            while (currentReplacers.Count > 0)
-            {
-                BundleReplacer replacer = currentReplacers[0];
-                if (replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
-                {
-                    AssetBundleDirectoryInfo info = new AssetBundleDirectoryInfo()
-                    {
-                        Offset = 0,
-                        DecompressedSize = 0,
-                        Flags = (uint)(replacer.HasSerializedData() ? 0x04 : 0x00),
-                        Name = replacer.GetEntryName()
-                    };
-
-                    dirInfos.Add(info);
-                }
-                currentReplacers.Remove(replacer);
-            }
-
-            // Write the listings
+            // write the listings
             long bundleInfPos = writer.Position;
-            // This is only here to allocate enough space so it's fine if it's inaccurate
-            newBundleInf.DirectoryInfos = dirInfos.ToArray();
+            // this is only here to allocate enough space so it's fine if it's inaccurate
+            newBundleInf.DirectoryInfos = dirInfos;
             newBundleInf.Write(writer);
-            
+
             if ((Header.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
@@ -203,55 +154,48 @@ namespace AssetsTools.NET
 
             long assetDataPos = writer.Position;
 
-            // Write the updated directory infos
+            // write the updated directory infos
             for (int i = 0; i < dirInfos.Count; i++)
             {
-                AssetBundleDirectoryInfo info = dirInfos[i];
-                BundleReplacer replacer = replacers.FirstOrDefault(n => n.GetEntryName() == info.Name);
-                if (replacer != null)
-                {
-                    if (replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
-                    {
-                        long startPos = writer.Position;
-                        long endPos = replacer.Write(writer);
-                        long size = endPos - startPos;
+                AssetBundleDirectoryInfo dirInfo = dirInfos[i];
+                long startPosition = writer.Position;
+                long newOffset = startPosition - assetDataPos;
 
-                        dirInfos[i].DecompressedSize = size;
-                        dirInfos[i].Offset = startPos - assetDataPos;
-                    }
-                    else if (replacer.GetReplacementType() == BundleReplacementType.Remove)
-                    {
-                        continue;
-                    }
+                ContentReplacerType replacerType = dirInfo.ReplacerType;
+                if (replacerType == ContentReplacerType.AddOrModify)
+                {
+                    dirInfo.Replacer.Write(writer);
                 }
                 else
                 {
-                    if (newToOriginalDirInfoLookup.TryGetValue(info, out AssetBundleDirectoryInfo originalInfo))
-                    {
-                        long startPos = writer.Position;
-
-                        DataReader.Position = originalInfo.Offset;
-                        DataReader.BaseStream.CopyToCompat(writer.BaseStream, originalInfo.DecompressedSize);
-
-                        dirInfos[i].DecompressedSize = originalInfo.DecompressedSize;
-                        dirInfos[i].Offset = startPos - assetDataPos;
-                    }
+                    DataReader.Position = dirInfo.Offset;
+                    Reader.BaseStream.CopyToCompat(writer.BaseStream, dirInfo.DecompressedSize);
                 }
+
+                dirInfo.Offset = newOffset;
+                dirInfo.DecompressedSize = writer.Position - startPosition;
             }
 
-            // Now that we know what the sizes are of the written files, let's go back and fix them
+            // now that we know what the sizes are of the written files, let's go back and fix them
             long finalSize = writer.Position;
+            
+            // this would suck :|
+            if (finalSize - assetDataPos > uint.MaxValue)
+            {
+                throw new NotImplementedException("Data larger than max uint not supported yet.");
+            }
+
             uint assetSize = (uint)(finalSize - assetDataPos);
 
             writer.Position = bundleInfPos;
             newBlockInfo.DecompressedSize = assetSize;
             newBlockInfo.CompressedSize = assetSize;
-            newBundleInf.DirectoryInfos = dirInfos.ToArray();
+            newBundleInf.DirectoryInfos = dirInfos;
             newBundleInf.Write(writer);
 
             uint infoSize = (uint)(assetDataPos - bundleInfPos);
 
-            writer.Position = 0;
+            writer.Position = writeStart;
             AssetBundleHeader newBundleHeader = new AssetBundleHeader
             {
                 Signature = Header.Signature,
@@ -263,10 +207,11 @@ namespace AssetsTools.NET
                     TotalFileSize = finalSize,
                     CompressedSize = infoSize,
                     DecompressedSize = infoSize,
-                    // Unset "info at end" flag and compression value
+                    // unset "info at end" flag and compression value
                     Flags = Header.FileStreamHeader.Flags & ~AssetBundleFSHeaderFlags.BlockAndDirAtEnd & ~AssetBundleFSHeaderFlags.CompressionMask
                 }
             };
+
             newBundleHeader.Write(writer);
         }
 
@@ -282,7 +227,7 @@ namespace AssetsTools.NET
             AssetsFileReader reader = DataReader;
 
             AssetBundleBlockInfo[] blockInfos = BlockAndDirInfo.BlockInfos;
-            AssetBundleDirectoryInfo[] directoryInfos = BlockAndDirInfo.DirectoryInfos;
+            List<AssetBundleDirectoryInfo> directoryInfos = BlockAndDirInfo.DirectoryInfos;
 
             AssetBundleHeader newBundleHeader = new AssetBundleHeader()
             {
@@ -315,7 +260,7 @@ namespace AssetsTools.NET
             {
                 Hash = new Hash128(),
                 BlockInfos = new AssetBundleBlockInfo[blockInfos.Length],
-                DirectoryInfos = new AssetBundleDirectoryInfo[directoryInfos.Length]
+                DirectoryInfos = new List<AssetBundleDirectoryInfo>(directoryInfos.Count)
             };
 
             // todo: we should just use one block here
@@ -330,7 +275,7 @@ namespace AssetsTools.NET
                 };
             }
 
-            for (int i = 0; i < newBundleInf.DirectoryInfos.Length; i++)
+            for (int i = 0; i < newBundleInf.DirectoryInfos.Count; i++)
             {
                 newBundleInf.DirectoryInfos[i] = new AssetBundleDirectoryInfo()
                 {
@@ -399,7 +344,8 @@ namespace AssetsTools.NET
             }
         }
 
-        public void Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType, bool blockDirAtEnd = true, IAssetBundleCompressProgress progress = null)
+        public void Pack(AssetsFileReader reader, AssetsFileWriter writer, AssetBundleCompressionType compType,
+            bool blockDirAtEnd = true, IAssetBundleCompressProgress progress = null)
         {
             if (Header == null)
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
@@ -735,7 +681,7 @@ namespace AssetsTools.NET
             if (Header == null)
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
 
-            for (int i = 0; i < BlockAndDirInfo.DirectoryInfos.Length; i++)
+            for (int i = 0; i < BlockAndDirInfo.DirectoryInfos.Count; i++)
             {
                 if (BlockAndDirInfo.DirectoryInfos[i].Name == name)
                     return i;
@@ -764,8 +710,11 @@ namespace AssetsTools.NET
 
         public List<string> GetAllFileNames()
         {
+            if (Header == null)
+                throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
+            
             List<string> names = new List<string>();
-            AssetBundleDirectoryInfo[] dirInfos = BlockAndDirInfo.DirectoryInfos;
+            List<AssetBundleDirectoryInfo> dirInfos = BlockAndDirInfo.DirectoryInfos;
             foreach (AssetBundleDirectoryInfo dirInfo in dirInfos)
             {
                 names.Add(dirInfo.Name);

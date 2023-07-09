@@ -2,6 +2,7 @@
 using AssetsTools.NET.Extra;
 using AssetsTools.NET.Texture;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -45,9 +46,9 @@ namespace AssetsView.Winforms
                 AssetBundleFile bundle = inst.parentBundle.file;
 
                 AssetsFileReader reader = bundle.DataReader;
-                AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
+                List<AssetBundleDirectoryInfo> dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
                 bool foundFile = false;
-                for (int i = 0; i < dirInf.Length; i++)
+                for (int i = 0; i < dirInf.Count; i++)
                 {
                     AssetBundleDirectoryInfo info = dirInf[i];
                     if (info.Name == searchPath)

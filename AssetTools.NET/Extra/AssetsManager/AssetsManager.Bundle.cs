@@ -135,6 +135,20 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
+        private bool IsAssetsFilePreviewSafe(BundleFileInstance bunInst, int index)
+        {
+            AssetBundleDirectoryInfo dirInfo = BundleHelper.GetDirInfo(bunInst.file, index);
+            if (dirInfo.IsReplacerPreviewable)
+            {
+                Stream previewStream = dirInfo.Replacer.GetPreviewStream();
+                return AssetsFile.IsAssetsFile(new AssetsFileReader(previewStream), 0, previewStream.Length);
+            }
+            else
+            {
+                return bunInst.file.IsAssetsFile(index);
+            }
+        }
+
         /// <summary>
         /// Load an <see cref="AssetsFileInstance"/> from a <see cref="BundleFileInstance"/> by index.
         /// </summary>
@@ -149,7 +163,7 @@ namespace AssetsTools.NET.Extra
 
             if (!FileLookup.TryGetValue(assetLookupKey, out AssetsFileInstance fileInst))
             {
-                if (bunInst.file.IsAssetsFile(index))
+                if (IsAssetsFilePreviewSafe(bunInst, index))
                 {
                     bunInst.file.GetFileRange(index, out long offset, out long length);
                     SegmentStream stream = new SegmentStream(bunInst.DataStream, offset, length);

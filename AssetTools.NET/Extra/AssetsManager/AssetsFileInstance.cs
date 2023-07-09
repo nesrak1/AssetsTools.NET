@@ -10,7 +10,7 @@ namespace AssetsTools.NET.Extra
     public class AssetsFileInstance
     {
         /// <summary>
-        /// The full path to the file. This path can be fake it is not from disk.
+        /// The full path to the file. This path can be fake if it is not from disk.
         /// </summary>
         public string path;
         /// <summary>
@@ -22,7 +22,7 @@ namespace AssetsTools.NET.Extra
         /// </summary>
         public AssetsFile file;
         /// <summary>
-        /// The bundle this <see cref="AssetsFile"/> is a part of, if there is one.
+        /// The bundle this file is a part of, if there is one.
         /// </summary>
         public BundleFileInstance parentBundle = null;
 

@@ -30,7 +30,7 @@ namespace AssetsTools.NET.Extra
         /// <param name="loadDeps">Load all dependencies immediately?</param>
         /// <param name="bunInst">The parent bundle, if one exists.</param>
         /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
-        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
+        public AssetsFileInstance LoadAssetsFile(Stream stream, string path, bool loadDeps = false, BundleFileInstance bunInst = null)
         {
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
@@ -70,7 +70,7 @@ namespace AssetsTools.NET.Extra
         /// <param name="stream">The stream to read from.</param>
         /// <param name="loadDeps">Load all dependencies immediately?</param>
         /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
-        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps)
+        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps = false)
         {
             return LoadAssetsFileCacheless(stream, stream.Name, loadDeps);
         }
@@ -81,7 +81,7 @@ namespace AssetsTools.NET.Extra
         /// <param name="path">The path of the file to read from.</param>
         /// <param name="loadDeps">Load all dependencies immediately?</param>
         /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
-        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps)
+        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps = false)
         {
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))

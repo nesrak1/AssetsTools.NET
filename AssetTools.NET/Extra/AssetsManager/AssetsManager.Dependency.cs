@@ -43,7 +43,7 @@ namespace AssetsTools.NET.Extra
                 if (Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
                 {
                     string bunPath = Path.GetFileName(depPath);
-                    int bunIndex = Array.FindIndex(ofBundle.file.BlockAndDirInfo.DirectoryInfos, d => Path.GetFileName(d.Name) == bunPath);
+                    int bunIndex = ofBundle.file.BlockAndDirInfo.DirectoryInfos.FindIndex(d => Path.GetFileName(d.Name) == bunPath);
 
                     // todo: use bundle's path, not assets file's
 

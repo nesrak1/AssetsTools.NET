@@ -23,8 +23,7 @@ namespace AssetsTools.NET
         /// </summary>
         public List<TypeTreeType> TypeTreeTypes { get; set; }
         /// <summary>
-        /// List of asset infos. Do not modify this directly. Instead, use
-        /// <see cref="AssetsFile.Write(AssetsFileWriter, long, List{AssetsReplacer}, ClassDatabaseFile)"/>.
+        /// List of asset infos.
         /// </summary>
         public List<AssetFileInfo> AssetInfos { get; set; }
         /// <summary>
@@ -54,28 +53,15 @@ namespace AssetsTools.NET
         /// <param name="header">The header to use.</param>
         public void Read(AssetsFileReader reader, AssetsFileHeader header)
         {
-            Read(reader, header.Version, header.DataOffset);
+            Read(reader, header.Version);
         }
 
         /// <summary>
         /// Read the <see cref="AssetsFileMetadata"/> with the provided reader and format version.
-        /// This version is not recommended since no data offset is provided, so
-        /// <see cref="AssetFileInfo.AbsoluteByteStart"/> is not set.
         /// </summary>
         /// <param name="reader">The reader to use.</param>
         /// <param name="version">The version of the file.</param>
         public void Read(AssetsFileReader reader, uint version)
-        {
-            Read(reader, version, -1);
-        }
-
-        /// <summary>
-        /// Read the <see cref="AssetsFileMetadata"/> with the provided reader and format version.
-        /// </summary>
-        /// <param name="reader">The reader to use.</param>
-        /// <param name="version">The version of the file.</param>
-        /// <param name="dataOffset">The version of the file.</param>
-        public void Read(AssetsFileReader reader, uint version, long dataOffset)
         {
             _quickLookup = null;
 
@@ -105,10 +91,6 @@ namespace AssetsTools.NET
 
                 // todo, check correct version
                 fileInfo.TypeId = fileInfo.GetTypeId(this, version);
-                if (dataOffset != -1)
-                {
-                    fileInfo.AbsoluteByteStart = fileInfo.GetAbsoluteByteStart(dataOffset);
-                }
 
                 AssetInfos.Add(fileInfo);
             }
@@ -380,6 +362,35 @@ namespace AssetsTools.NET
         }
 
         /// <summary>
+        /// Get the type tree type index by type ID and script index. The script index of an asset can be
+        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// For games before 5.5, <paramref name="scriptIndex"/> is ignored since this data is read
+        /// from the negative value of <paramref name="id"/>. In 5.5 and later, MonoBehaviours are always
+        /// 0x72, so <paramref name="scriptIndex"/> is used instead.
+        /// </summary>
+        /// <param name="id">The type ID to search for.</param>
+        /// <param name="scriptIndex">The script index to search for.</param>
+        /// <returns>The type tree type index with this ID and script index, or -1 if not found.</returns>
+        public int FindTypeTreeTypeIndexByID(int id, ushort scriptIndex)
+        {
+            int typeCount = TypeTreeTypes.Count;
+            for (int i = 0; i < typeCount; i++)
+            {
+                TypeTreeType type = TypeTreeTypes[i];
+                if (type.TypeId == id)
+                {
+                    // 5.5+ monobehaviours and 5.4- any other asset
+                    if (type.ScriptTypeIndex == scriptIndex)
+                        return i;
+                    // 5.4- monobehaviours (script index cannot be trusted in this version, so ignore it)
+                    if (id < 0 && type.ScriptTypeIndex == 0xffff)
+                        return i;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// Get the type tree type by script index. The script index of an asset can be
         /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
@@ -404,6 +415,9 @@ namespace AssetsTools.NET
         {
             foreach (TypeTreeType type in TypeTreeTypes)
             {
+                if (type.Nodes.Count == 0)
+                    continue;
+
                 if (type.Nodes[0].GetTypeString(type.StringBuffer) == name)
                     return type;
             }

@@ -15,12 +15,22 @@ namespace AssetsTools.NET.Extra
         public static TypeTreeType Convert(ClassDatabaseFile classes, string name, bool preferEditor = false)
         {
             ClassDatabaseType type = classes.FindAssetClassByName(name);
+            if (type == null)
+            {
+                return null;
+            }
+
             return Convert(classes, type, preferEditor);
         }
 
         public static TypeTreeType Convert(ClassDatabaseFile classes, int id, bool preferEditor = false)
         {
             ClassDatabaseType type = classes.FindAssetClassByID(id);
+            if (type == null)
+            {
+                return null;
+            }
+
             return Convert(classes, type, preferEditor);
         }
 
@@ -32,7 +42,7 @@ namespace AssetsTools.NET.Extra
 
         private TypeTreeType ConvertInternal(ClassDatabaseFile classes, ClassDatabaseType type, bool preferEditor = false)
         {
-            TypeTreeType type0d = new TypeTreeType()
+            TypeTreeType typeTreeType = new TypeTreeType()
             {
                 TypeId = type.ClassId,
                 ScriptTypeIndex = 0xffff,
@@ -60,9 +70,9 @@ namespace AssetsTools.NET.Extra
                 stringTableBuilder.Append(entry.Key + '\0');
             }
 
-            type0d.StringBuffer = stringTableBuilder.ToString();
-            type0d.Nodes = typeTreeNodes;
-            return type0d;
+            typeTreeType.StringBuffer = stringTableBuilder.ToString();
+            typeTreeType.Nodes = typeTreeNodes;
+            return typeTreeType;
         }
 
         private void InitializeDefaultStringTableIndices()

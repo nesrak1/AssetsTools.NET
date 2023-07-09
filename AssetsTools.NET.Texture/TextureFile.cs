@@ -260,25 +260,20 @@ namespace AssetsTools.NET.Texture
             searchPath = Path.GetFileName(searchPath);
 
             AssetBundleFile bundle = inst.file;
-
             AssetsFileReader reader = bundle.DataReader;
-            AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
-            bool foundFile = false;
-            for (int i = 0; i < dirInf.Length; i++)
+            AssetBundleDirectoryInfo info = BundleHelper.GetDirInfo(inst.file, searchPath);
+            if (info == null)
             {
-                AssetBundleDirectoryInfo info = dirInf[i];
-                if (info.Name == searchPath)
-                {
-                    reader.Position = info.Offset + (long)streamInfo.offset;
-                    pictureData = reader.ReadBytes((int)streamInfo.size);
-                    m_StreamData.offset = 0;
-                    m_StreamData.size = 0;
-                    m_StreamData.path = "";
-                    foundFile = true;
-                    break;
-                }
+                return false;
             }
-            return foundFile;
+
+            reader.Position = info.Offset + (long)streamInfo.offset;
+            pictureData = reader.ReadBytes((int)streamInfo.size);
+            m_StreamData.offset = 0;
+            m_StreamData.size = 0;
+            m_StreamData.path = "";
+
+            return true;
         }
 
         public byte[] GetTextureData(AssetsFileInstance inst)

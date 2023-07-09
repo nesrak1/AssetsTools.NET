@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsTools.NET.Tests", "As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsTools.NET.Texture", "AssetsTools.NET.Texture\AssetsTools.NET.Texture.csproj", "{5BF2E24D-C5EB-4AB8-94CD-D83BD9CDB4AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssetsTools.NET.MonoCecil", "AssetsTools.NET.MonoCecil\AssetsTools.NET.MonoCecil.csproj", "{811C1198-2652-49F1-99A6-AF83A4C2AFE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AssetsTools.NET.MonoCecil", "AssetsTools.NET.MonoCecil\AssetsTools.NET.MonoCecil.csproj", "{811C1198-2652-49F1-99A6-AF83A4C2AFE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -21,5 +21,44 @@
         /// Name of this entry.
         /// </summary>
         public string Name;
+
+        /// <summary>
+        /// Replacer which can be set by the user.
+        /// You can use <see cref="SetNewData(byte[])"/> or <see cref="SetNewData(AssetsFile)"/>
+        /// for convenience.
+        /// </summary>
+        public IContentReplacer Replacer { get; set; }
+        /// <summary>
+        /// Replacer type such as modified or removed.
+        /// </summary>
+        public ContentReplacerType ReplacerType => Replacer != null ? Replacer.GetReplacerType() : ContentReplacerType.None;
+        /// <summary>
+        /// Is the replacer non-null and does the replacer has a preview?
+        /// </summary>
+        public bool IsReplacerPreviewable => Replacer != null && Replacer.HasPreview();
+
+        /// <summary>
+        /// Sets the bytes used when the AssetsFile is written.
+        /// </summary>
+        public void SetNewData(byte[] newBytes)
+        {
+            Replacer = new ContentReplacerFromBuffer(newBytes);
+        }
+
+        /// <summary>
+        /// Sets the assets file to use when the AssetsFile is written.
+        /// </summary>
+        public void SetNewData(AssetsFile assetsFile)
+        {
+            Replacer = new ContentReplacerFromAssets(assetsFile);
+        }
+
+        /// <summary>
+        /// Set the asset to be removed when the AssetsFile is written.
+        /// </summary>
+        public void SetRemoved()
+        {
+            Replacer = new ContentRemover();
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace AssetsTools.NET.Extra
@@ -33,9 +34,25 @@ namespace AssetsTools.NET.Extra
             AssetsFileInstance inst, AssetFileInfo info,
             AssetReadFlags readFlags = AssetReadFlags.None)
         {
-            long absFilePos = info.AbsoluteByteStart;
             ushort scriptIndex = inst.file.GetScriptIndex(info);
-            return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, readFlags);
+            if (info.ReplacerType != ContentReplacerType.AddOrModify)
+            {
+                long absFilePos = info.GetAbsoluteByteStart(inst.file);
+                return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, readFlags);
+            }
+            else
+            {
+                if (info.Replacer.HasPreview())
+                {
+                    Stream stream = info.Replacer.GetPreviewStream();
+                    AssetsFileReader reader = new AssetsFileReader(stream);
+                    return GetTemplateBaseField(inst, reader, 0, info.TypeId, scriptIndex, readFlags);
+                }
+                else
+                {
+                    return GetTemplateBaseField(inst, null, 0, info.TypeId, scriptIndex, readFlags);
+                }
+            }
         }
 
         public AssetTypeTemplateField GetTemplateBaseField(
@@ -121,7 +138,7 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
-            if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields)
+            if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields && reader != null)
             {
                 AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
                 AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
@@ -150,7 +167,7 @@ namespace AssetsTools.NET.Extra
                     }
 
                     AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
-                    long monoScriptAbsFilePos = monoScriptInfo.AbsoluteByteStart;
+                    long monoScriptAbsFilePos = monoScriptInfo.GetAbsoluteByteStart(monoScriptFile.file);
                     int monoScriptTypeId = monoScriptInfo.TypeId;
                     ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
@@ -273,7 +290,17 @@ namespace AssetsTools.NET.Extra
         {
             AssetTypeTemplateField tempField = GetTemplateBaseField(inst, info, readFlags);
             RefTypeManager refMan = GetRefTypeManager(inst);
-            AssetTypeValueField valueField = tempField.MakeValue(inst.file.Reader, info.AbsoluteByteStart, refMan);
+
+            AssetTypeValueField valueField;
+            if (info.IsReplacerPreviewable)
+            {
+                Stream previewStream = info.Replacer.GetPreviewStream();
+                valueField = tempField.MakeValue(new AssetsFileReader(previewStream), 0, refMan);
+            }
+            else
+            {
+                valueField = tempField.MakeValue(inst.file.Reader, info.GetAbsoluteByteStart(inst.file), refMan);
+            }
             return valueField;
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetsTools.NET
 {
@@ -10,12 +11,15 @@ namespace AssetsTools.NET
         public Hash128 Hash { get; set; }
         /// <summary>
         /// List of blocks in this bundle.
+        /// Do not modify this array, it's needed to read the existing file correctly.
         /// </summary>
         public AssetBundleBlockInfo[] BlockInfos { get; set; }
         /// <summary>
         /// List of file infos in this bundle.
+        /// You can add new infos or make changes to existing ones and they will be
+        /// updated on write.
         /// </summary>
-        public AssetBundleDirectoryInfo[] DirectoryInfos { get; set; }
+        public List<AssetBundleDirectoryInfo> DirectoryInfos { get; set; }
 
         public void Read(AssetsFileReader reader)
         {
@@ -32,14 +36,17 @@ namespace AssetsTools.NET
             }
 
             int directoryCount = reader.ReadInt32();
-            DirectoryInfos = new AssetBundleDirectoryInfo[directoryCount];
+            DirectoryInfos = new List<AssetBundleDirectoryInfo>(directoryCount);
             for (int i = 0; i < directoryCount; i++)
             {
-                DirectoryInfos[i] = new AssetBundleDirectoryInfo();
-                DirectoryInfos[i].Offset = reader.ReadInt64();
-                DirectoryInfos[i].DecompressedSize = reader.ReadInt64();
-                DirectoryInfos[i].Flags = reader.ReadUInt32();
-                DirectoryInfos[i].Name = reader.ReadNullTerminated();
+                AssetBundleDirectoryInfo dirInfo = new AssetBundleDirectoryInfo
+                {
+                    Offset = reader.ReadInt64(),
+                    DecompressedSize = reader.ReadInt64(),
+                    Flags = reader.ReadUInt32(),
+                    Name = reader.ReadNullTerminated()
+                };
+                DirectoryInfos.Add(dirInfo);
             }
         }
 
@@ -64,7 +71,7 @@ namespace AssetsTools.NET
                 writer.Write(BlockInfos[i].Flags);
             }
 
-            int directoryCount = DirectoryInfos.Length;
+            int directoryCount = DirectoryInfos.Count;
             writer.Write(directoryCount);
             for (int i = 0; i < directoryCount; i++)
             {

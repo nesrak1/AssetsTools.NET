@@ -73,13 +73,13 @@ namespace AssetsTools.NET.Extra
                 if (ttType.Nodes.Count == 0) return cldb.GetString(type.Name); // fallback to cldb
                 if (ttType.Nodes.Count > 1 && ttType.Nodes[1].GetNameString(ttType.StringBuffer) == "m_Name")
                 {
-                    reader.Position = info.AbsoluteByteStart;
+                    reader.Position = info.GetAbsoluteByteStart(file);
                     return reader.ReadCountStringInt32();
                 }
                 // todo, use the typetree since we have it already, there could be extra fields
                 else if (ttTypeName == "GameObject")
                 {
-                    reader.Position = info.AbsoluteByteStart;
+                    reader.Position = info.GetAbsoluteByteStart(file);
                     int size = reader.ReadInt32();
                     int componentSize = file.Header.Version > 0x10 ? 0x0c : 0x10;
                     reader.Position += size * componentSize;
@@ -88,7 +88,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (ttTypeName == "MonoBehaviour")
                 {
-                    reader.Position = info.AbsoluteByteStart;
+                    reader.Position = info.GetAbsoluteByteStart(file);
                     reader.Position += 0x1c;
                     string name = reader.ReadCountStringInt32();
                     if (name != "")
@@ -103,12 +103,12 @@ namespace AssetsTools.NET.Extra
             if (type.ReleaseRootNode.Children.Count == 0) return typeName;
             if (type.ReleaseRootNode.Children.Count > 1 && cldb.GetString(type.ReleaseRootNode.Children[0].FieldName) == "m_Name")
             {
-                reader.Position = info.AbsoluteByteStart;
+                reader.Position = info.GetAbsoluteByteStart(file);
                 return reader.ReadCountStringInt32();
             }
             else if (typeName == "GameObject")
             {
-                reader.Position = info.AbsoluteByteStart;
+                reader.Position = info.GetAbsoluteByteStart(file);
                 int size = reader.ReadInt32();
                 int componentSize = file.Header.Version > 0x10 ? 0x0c : 0x10;
                 reader.Position += size * componentSize;
@@ -117,7 +117,7 @@ namespace AssetsTools.NET.Extra
             }
             else if (typeName == "MonoBehaviour")
             {
-                reader.Position = info.AbsoluteByteStart;
+                reader.Position = info.GetAbsoluteByteStart(file);
                 reader.Position += 0x1c;
                 string name = reader.ReadCountStringInt32();
                 if (name != "")

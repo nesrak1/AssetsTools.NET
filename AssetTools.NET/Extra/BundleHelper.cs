@@ -54,7 +54,7 @@ namespace AssetsTools.NET.Extra
         public static List<byte[]> LoadAllAssetsDataFromBundle(AssetBundleFile bundle)
         {
             List<byte[]> files = new List<byte[]>();
-            int numFiles = bundle.BlockAndDirInfo.DirectoryInfos.Length;
+            int numFiles = bundle.BlockAndDirInfo.DirectoryInfos.Count;
             for (int i = 0; i < numFiles; i++)
             {
                 if (bundle.IsAssetsFile(i))
@@ -68,7 +68,7 @@ namespace AssetsTools.NET.Extra
         public static List<AssetsFile> LoadAllAssetsFromBundle(AssetBundleFile bundle)
         {
             List<AssetsFile> files = new List<AssetsFile>();
-            int numFiles = bundle.BlockAndDirInfo.DirectoryInfos.Length;
+            int numFiles = bundle.BlockAndDirInfo.DirectoryInfos.Count;
             for (int i = 0; i < numFiles; i++)
             {
                 if (bundle.IsAssetsFile(i))
@@ -114,14 +114,14 @@ namespace AssetsTools.NET.Extra
 
         public static AssetBundleDirectoryInfo GetDirInfo(AssetBundleFile bundle, int index)
         {
-            AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
+            List<AssetBundleDirectoryInfo> dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
             return dirInf[index];
         }
 
         public static AssetBundleDirectoryInfo GetDirInfo(AssetBundleFile bundle, string name)
         {
-            AssetBundleDirectoryInfo[] dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
-            for (int i = 0; i < dirInf.Length; i++)
+            List<AssetBundleDirectoryInfo> dirInf = bundle.BlockAndDirInfo.DirectoryInfos;
+            for (int i = 0; i < dirInf.Count; i++)
             {
                 AssetBundleDirectoryInfo info = dirInf[i];
                 if (info.Name == name)
