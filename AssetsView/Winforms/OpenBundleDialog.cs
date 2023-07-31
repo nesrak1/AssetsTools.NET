@@ -162,7 +162,7 @@ namespace AssetsView.Winforms
                 try
                 {
                     file.Reader.Position = 0;
-                    file.Pack(file.Reader, new AssetsFileWriter(stream), comp);
+                    file.Pack(new AssetsFileWriter(stream), comp);
                     stream.Position = 0;
                     file = new AssetBundleFile();
                     file.Read(new AssetsFileReader(stream));

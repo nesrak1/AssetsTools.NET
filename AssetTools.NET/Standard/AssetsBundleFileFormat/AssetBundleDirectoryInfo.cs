@@ -38,7 +38,7 @@
         public bool IsReplacerPreviewable => Replacer != null && Replacer.HasPreview();
 
         /// <summary>
-        /// Sets the bytes used when the AssetsFile is written.
+        /// Sets the bytes used when the AssetBundleFile is written.
         /// </summary>
         public void SetNewData(byte[] newBytes)
         {
@@ -46,7 +46,7 @@
         }
 
         /// <summary>
-        /// Sets the assets file to use when the AssetsFile is written.
+        /// Sets the assets file to use when the AssetBundleFile is written.
         /// </summary>
         public void SetNewData(AssetsFile assetsFile)
         {
@@ -54,7 +54,7 @@
         }
 
         /// <summary>
-        /// Set the asset to be removed when the AssetsFile is written.
+        /// Set the asset to be removed when the AssetBundleFile is written.
         /// </summary>
         public void SetRemoved()
         {

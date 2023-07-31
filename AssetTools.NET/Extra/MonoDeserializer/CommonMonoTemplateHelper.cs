@@ -9,10 +9,10 @@ namespace AssetsTools.NET.Extra
     {
         #region Collections
 
-        //Unity definitly excludes some assemblies from being serialized
-        //but I couldn't find the definitive list, plus it changes from version-to-version
-        //Those should be enough for most cases
-        //but need more research when it will cause problems for some games
+        // Unity definitely excludes some assemblies from being serialized
+        // but I couldn't find the definitive list, plus it changes from version-to-version
+        // Those should be enough for most cases
+        // but need more research when it will cause problems for some games
         private static readonly string[] blacklistedAssemblies = new[]
         {
             "mscorlib",
@@ -24,9 +24,9 @@ namespace AssetsTools.NET.Extra
             "System",
             "System.dll",
 
-            //Got these when testing assembly directly from Library\ScriptAssemblies
-            //Discovered from dotnet by cecil because it couldn't find system libs in the same folder as assembly
-            //Should be safe to also exclude them
+            // Got these when testing assembly directly from Library\ScriptAssemblies
+            // Discovered from dotnet by cecil because it couldn't find system libs in the same folder as assembly
+            // Should be safe to also exclude them
             "System.Private.CoreLib",
             "System.Private.CoreLib.dll",
             "System.Collections",

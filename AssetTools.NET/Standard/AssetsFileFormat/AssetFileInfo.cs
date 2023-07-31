@@ -13,10 +13,11 @@ namespace AssetsTools.NET
         /// </summary>
         public long PathId { get; set; }
         /// <summary>
-        /// Address of the asset's data from the header's DataOffset. Use GetAbsoluteByteStart for the real file position.
+        /// Address of the asset's data from the header's DataOffset.
+        /// Use <see cref="GetAbsoluteByteOffset(AssetsFile)"/> for the real file position.
         /// If the asset has a replacer, this field is ignored.
         /// </summary>
-        public long ByteStart { get; set; }
+        public long ByteOffset { get; set; }
         /// <summary>
         /// Byte size of the asset data. If the asset has a replacer, this field is ignored.
         /// </summary>
@@ -80,11 +81,11 @@ namespace AssetsTools.NET
             }
             if (version >= 22)
             {
-                ByteStart = reader.ReadInt64();
+                ByteOffset = reader.ReadInt64();
             }
             else
             {
-                ByteStart = reader.ReadUInt32();
+                ByteOffset = reader.ReadUInt32();
             }
             ByteSize = reader.ReadUInt32();
             TypeIdOrIndex = reader.ReadInt32();
@@ -116,11 +117,11 @@ namespace AssetsTools.NET
             }
             if (version >= 22)
             {
-                writer.Write(ByteStart);
+                writer.Write(ByteOffset);
             }
             else
             {
-                writer.Write((uint)ByteStart);
+                writer.Write((uint)ByteOffset);
             }
             writer.Write(ByteSize);
             writer.Write(TypeIdOrIndex);
@@ -175,23 +176,23 @@ namespace AssetsTools.NET
         /// <summary>
         /// Address of the asset's data from the start of the file.
         /// </summary>
-        public long GetAbsoluteByteStart(AssetsFile assetsFile)
+        public long GetAbsoluteByteOffset(AssetsFile assetsFile)
         {
-            return assetsFile.Header.DataOffset + ByteStart;
+            return assetsFile.Header.DataOffset + ByteOffset;
         }
         /// <summary>
         /// Address of the asset's data from the start of the file.
         /// </summary>
-        public long GetAbsoluteByteStart(AssetsFileHeader header)
+        public long GetAbsoluteByteOffset(AssetsFileHeader header)
         {
-            return header.DataOffset + ByteStart;
+            return header.DataOffset + ByteOffset;
         }
         /// <summary>
         /// Address of the asset's data from the start of the file.
         /// </summary>
-        public long GetAbsoluteByteStart(long dataOffset)
+        public long GetAbsoluteByteOffset(long dataOffset)
         {
-            return dataOffset + ByteStart;
+            return dataOffset + ByteOffset;
         }
 
         /// <summary>
@@ -329,7 +330,7 @@ namespace AssetsTools.NET
             return new AssetFileInfo()
             {
                 PathId = pathId,
-                ByteStart = -1,
+                ByteOffset = -1,
                 ByteSize = 0,
                 TypeIdOrIndex = typeIdOrIndex,
                 OldTypeId = oldTypeId,

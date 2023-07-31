@@ -101,7 +101,7 @@ namespace AssetsView.Winforms
                 {
                     AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                     fr.BigEndian = false;
-                    fr.Position = inf.GetAbsoluteByteStart(inst.file);
+                    fr.Position = inf.GetAbsoluteByteOffset(inst.file);
                     fr.ReadCountStringInt32(); fr.Align();
                     fr.Position += 20;
                     string m_ClassName = fr.ReadCountStringInt32(); fr.Align();
@@ -125,7 +125,7 @@ namespace AssetsView.Winforms
                     {
                         AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                         fr.BigEndian = false;
-                        fr.Position = inf.GetAbsoluteByteStart(inst.file);
+                        fr.Position = inf.GetAbsoluteByteOffset(inst.file);
                         fr.Position += 16;
                         int m_FileID = fr.ReadInt32();
                         long m_PathID = fr.ReadInt64();

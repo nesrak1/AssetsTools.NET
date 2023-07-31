@@ -61,6 +61,11 @@ namespace AssetsTools.NET.Extra
                     return null;
                 }
 
+                if (depPath.StartsWith("archive:/"))
+                {
+                    depPath = depPath.Substring(depPath.IndexOf('/', "archive:/".Length) + 1);
+                }
+
                 if (!am.FileLookup.TryGetValue(am.GetFileLookupKey(depPath), out AssetsFileInstance inst))
                 {
                     string pathDir = Path.GetDirectoryName(path);

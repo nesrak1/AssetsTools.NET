@@ -13,6 +13,7 @@ namespace AssetsTools.NET.Extra
         public bool UseTemplateFieldCache { get; set; } = false;
         public bool UseMonoTemplateFieldCache { get; set; } = false;
         public bool UseRefTypeManagerCache { get; set; } = false;
+        public bool UseQuickLookup { get; set; } = false;
 
         public ClassDatabaseFile ClassDatabase { get; private set; }
         public ClassPackageFile ClassPackage { get; private set; }

@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AssetsTools.NET.MonoCecil\AssetsTools.NET.MonoCecil.csproj" />
     <ProjectReference Include="..\AssetTools.NET\AssetsTools.NET.csproj" />
   </ItemGroup>
 

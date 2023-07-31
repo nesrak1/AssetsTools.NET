@@ -94,7 +94,7 @@ namespace AssetsTools.NET
                 newAssetInfos.Add(new AssetFileInfo()
                 {
                     PathId = assetInfo.PathId,
-                    ByteStart = assetInfo.ByteStart,
+                    ByteOffset = assetInfo.ByteOffset,
                     ByteSize = assetInfo.ByteSize,
                     TypeIdOrIndex = assetInfo.TypeIdOrIndex,
                     OldTypeId = assetInfo.OldTypeId,
@@ -158,11 +158,11 @@ namespace AssetsTools.NET
                 }
                 else
                 {
-                    Reader.Position = assetInfo.GetAbsoluteByteStart(this);
+                    Reader.Position = assetInfo.GetAbsoluteByteOffset(this);
                     Reader.BaseStream.CopyToCompat(writer.BaseStream, assetInfo.ByteSize);
                 }
 
-                assetInfo.ByteStart = newByteStart;
+                assetInfo.ByteOffset = newByteStart;
                 assetInfo.ByteSize = (uint)(writer.Position - startPosition);
 
                 if (i != newAssetInfos.Count - 1)
@@ -309,6 +309,6 @@ namespace AssetsTools.NET
         /// <summary>
         /// A list of all asset infos in this file.
         /// </summary>
-        public List<AssetFileInfo> AssetInfos => Metadata.AssetInfos;
+        public IList<AssetFileInfo> AssetInfos => Metadata.AssetInfos;
     }
 }

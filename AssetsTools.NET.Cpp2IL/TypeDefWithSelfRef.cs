@@ -44,13 +44,19 @@ namespace AssetsTools.NET.Cpp2IL
             {
                 for (int i = 0; i < typeRef.genericParams.Length; i++)
                 {
-                    Il2CppTypeReflectionData genTypeRef = typeRef.genericParams[i];
-                    if (!string.IsNullOrEmpty(genTypeRef.variableGenericParamName))
+                    TypeDefWithSelfRef genTypeRef = new TypeDefWithSelfRef(typeRef.genericParams[i]);
+                    if (!string.IsNullOrEmpty(genTypeRef.typeRef.variableGenericParamName))
                     {
-                        if (parentTypeDef.typeParamToArg.TryGetValue(genTypeRef.variableGenericParamName, out TypeDefWithSelfRef mappedType))
+                        if (parentTypeDef.typeParamToArg.TryGetValue(genTypeRef.typeRef.variableGenericParamName, out TypeDefWithSelfRef mappedType))
                         {
                             typeParamToArg[paramNames[i]] = mappedType;
                         }
+                    }
+                    else
+                    {
+                        // nested generic, AssignTypeParams should get it
+                        genTypeRef.AssignTypeParams(parentTypeDef);
+                        typeParamToArg[paramNames[i]] = genTypeRef;
                     }
                 }
             }
@@ -58,17 +64,11 @@ namespace AssetsTools.NET.Cpp2IL
 
         public TypeDefWithSelfRef SolidifyType(TypeDefWithSelfRef typeDef)
         {
-
-            if (typeDef.typeRef.ToString() == "T")
-            {
-
-            }
-
+            typeDef.AssignTypeParams(this);
             if (typeParamToArg.TryGetValue(typeDef.typeRef.ToString(), out TypeDefWithSelfRef retType))
             {
                 return retType;
             }
-
 
             return typeDef;
         }

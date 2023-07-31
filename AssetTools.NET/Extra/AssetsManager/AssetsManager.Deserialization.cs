@@ -37,7 +37,7 @@ namespace AssetsTools.NET.Extra
             ushort scriptIndex = inst.file.GetScriptIndex(info);
             if (info.ReplacerType != ContentReplacerType.AddOrModify)
             {
-                long absFilePos = info.GetAbsoluteByteStart(inst.file);
+                long absFilePos = info.GetAbsoluteByteOffset(inst.file);
                 return GetTemplateBaseField(inst, inst.file.Reader, absFilePos, info.TypeId, scriptIndex, readFlags);
             }
             else
@@ -167,7 +167,7 @@ namespace AssetsTools.NET.Extra
                     }
 
                     AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
-                    long monoScriptAbsFilePos = monoScriptInfo.GetAbsoluteByteStart(monoScriptFile.file);
+                    long monoScriptAbsFilePos = monoScriptInfo.GetAbsoluteByteOffset(monoScriptFile.file);
                     int monoScriptTypeId = monoScriptInfo.TypeId;
                     ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
 
@@ -299,7 +299,7 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                valueField = tempField.MakeValue(inst.file.Reader, info.GetAbsoluteByteStart(inst.file), refMan);
+                valueField = tempField.MakeValue(inst.file.Reader, info.GetAbsoluteByteOffset(inst.file), refMan);
             }
             return valueField;
         }

@@ -43,13 +43,19 @@ namespace AssetsTools.NET.Extra
             {
                 for (int i = 0; i < genType.GenericArguments.Count; i++)
                 {
-                    TypeReference genTypeRef = genType.GenericArguments[i];
-                    if (genTypeRef.IsGenericParameter)
+                    TypeDefWithSelfRef genTypeRef = new TypeDefWithSelfRef(genType.GenericArguments[i]);
+                    if (genTypeRef.typeRef.IsGenericParameter)
                     {
-                        if (parentTypeDef.typeParamToArg.TryGetValue(genTypeRef.Name, out TypeDefWithSelfRef mappedType))
+                        if (parentTypeDef.typeParamToArg.TryGetValue(genTypeRef.typeRef.Name, out TypeDefWithSelfRef mappedType))
                         {
                             typeParamToArg[typeDef.GenericParameters[i].Name] = mappedType;
                         }
+                    }
+                    else
+                    {
+                        // nested generic, AssignTypeParams should get it
+                        genTypeRef.AssignTypeParams(parentTypeDef);
+                        typeParamToArg[typeDef.GenericParameters[i].Name] = genTypeRef;
                     }
                 }
             }
@@ -57,6 +63,7 @@ namespace AssetsTools.NET.Extra
 
         public TypeDefWithSelfRef SolidifyType(TypeDefWithSelfRef typeDef)
         {
+            typeDef.AssignTypeParams(this);
             if (typeParamToArg.TryGetValue(typeDef.typeRef.Name, out TypeDefWithSelfRef retType))
             {
                 return retType;

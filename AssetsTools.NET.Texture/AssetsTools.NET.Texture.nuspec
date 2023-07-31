@@ -17,7 +17,11 @@
     <dependencies>
       <group targetFramework=".NETStandard2.0">
         <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
-        <dependency id="AssetRipper.TextureDecoder" version="1.2.0" />
+        <dependency id="AssetRipper.TextureDecoder" version="1.3.0" />
+      </group>
+      <group targetFramework=".NET6.0">
+        <dependency id="AssetsTools.NET" version="3.0.0-preview3" />
+        <dependency id="AssetRipper.TextureDecoder" version="1.3.0" />
       </group>
     </dependencies>
   </metadata>
@@ -26,5 +30,7 @@
 	
     <file src="bin\Release\netstandard2.0\AssetsTools.NET.Texture.dll" target="lib/netstandard2.0" />
     <file src="bin\Release\netstandard2.0\AssetsTools.NET.Texture.pdb" target="lib/netstandard2.0" />
+    <file src="bin\Release\net6.0\AssetsTools.NET.Texture.dll" target="lib/net6.0" />
+    <file src="bin\Release\net6.0\AssetsTools.NET.Texture.pdb" target="lib/net6.0" />
   </files>
 </package>

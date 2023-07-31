@@ -182,6 +182,8 @@ namespace AssetsView.Winforms
                     LoadGeneric(inst, false);
                 }
 
+                helper.MonoTempGenerator = new MonoCecilTempGenerator(Path.Combine(Path.GetDirectoryName(inst.path), "Managed"));
+
                 string corVer = helper.ClassDatabase.Header.Version.ToString();
                 Text = "AssetsView .NET - ver " + inst.file.Metadata.UnityVersion + " / db " + corVer;
             }
@@ -433,7 +435,7 @@ namespace AssetsView.Winforms
                     ushort monoId = currentFile.file.GetScriptIndex(info);
                     AssetInfoViewer viewer = new AssetInfoViewer(
                         info.TypeId,
-                        info.GetAbsoluteByteStart(currentFile.file),
+                        info.GetAbsoluteByteOffset(currentFile.file),
                         info.ByteSize,
                         info.PathId,
                         monoId,

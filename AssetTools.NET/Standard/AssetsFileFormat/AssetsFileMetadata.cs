@@ -23,9 +23,10 @@ namespace AssetsTools.NET
         /// </summary>
         public List<TypeTreeType> TypeTreeTypes { get; set; }
         /// <summary>
-        /// List of asset infos.
+        /// List of asset infos. Do not add or remove from this list directly, instead use the
+        /// <see cref="AddAssetInfo(AssetFileInfo)"/> or <see cref="RemoveAssetInfo(AssetFileInfo)"/> methods.
         /// </summary>
-        public List<AssetFileInfo> AssetInfos { get; set; }
+        public IList<AssetFileInfo> AssetInfos { get; set; }
         /// <summary>
         /// List of script type pointers. This list should match up with ScriptTypeIndex in the type
         /// tree types list.
@@ -216,6 +217,36 @@ namespace AssetsTools.NET
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Adds an <see cref="AssetFileInfo"/> to the info list.
+        /// </summary>
+        /// <param name="info">The info to add</param>
+        public void AddAssetInfo(AssetFileInfo info)
+        {
+            if (_quickLookup != null)
+            {
+                _quickLookup[info.PathId] = AssetInfos.Count;
+            }
+            AssetInfos.Add(info);
+        }
+
+        /// <summary>
+        /// Removes an <see cref="AssetFileInfo"/> from the info list.
+        /// </summary>
+        /// <remarks>
+        /// It is suggested to set <see cref="AssetFileInfo.Replacer"/> to
+        /// <see cref="ContentRemover"/> if you want to keep the info in the list but save without it.
+        /// </remarks>
+        /// <param name="info">The info to add</param>
+        public bool RemoveAssetInfo(AssetFileInfo info)
+        {
+            if (_quickLookup != null)
+            {
+                _quickLookup.Remove(info.PathId);
+            }
+            return AssetInfos.Remove(info);
         }
 
         /// <summary>

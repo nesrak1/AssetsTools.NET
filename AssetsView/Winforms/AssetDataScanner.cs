@@ -71,7 +71,7 @@ namespace AssetsView.Winforms
                 {
                     AssetsFileReader fr = new AssetsFileReader(inst.file.Reader.BaseStream);
                     fr.BigEndian = false;
-                    fr.Position = inf.GetAbsoluteByteStart(inst.file);
+                    fr.Position = inf.GetAbsoluteByteOffset(inst.file);
                     byte[] data = fr.ReadBytes((int)inf.ByteSize);
                     int location = SearchBytes(data, searchQuery);
                     if (location != -1)
@@ -111,7 +111,7 @@ namespace AssetsView.Winforms
                 am.LoadClassDatabaseFromPackage(inst.file.Metadata.UnityVersion);
                 foreach (AssetFileInfo inf in inst.file.Metadata.AssetInfos)
                 {
-                    long absoluteByteStart = inf.GetAbsoluteByteStart(inst.file);
+                    long absoluteByteStart = inf.GetAbsoluteByteOffset(inst.file);
                     if (absoluteByteStart >= searchPosition && searchPosition < (absoluteByteStart + inf.ByteSize))
                     {
                         if (fileMatches.ContainsKey(fileName))
