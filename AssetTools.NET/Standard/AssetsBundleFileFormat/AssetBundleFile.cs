@@ -173,7 +173,7 @@ namespace AssetsTools.NET
                 else
                 {
                     DataReader.Position = dirInfo.Offset;
-                    Reader.BaseStream.CopyToCompat(writer.BaseStream, dirInfo.DecompressedSize);
+                    DataReader.BaseStream.CopyToCompat(writer.BaseStream, dirInfo.DecompressedSize);
                 }
 
                 dirInfo.Offset = newOffset;
