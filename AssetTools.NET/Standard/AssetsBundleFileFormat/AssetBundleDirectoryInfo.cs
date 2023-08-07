@@ -60,5 +60,22 @@
         {
             Replacer = new ContentRemover();
         }
+
+        /// <summary>
+        /// Creates a new directory info.
+        /// </summary>
+        /// <param name="name">Name of the file.</param>
+        /// <param name="isSerialized">Is the file serialized (i.e. is it an assets file)?</param>
+        /// <returns>The new directory info</returns>
+        public static AssetBundleDirectoryInfo Create(string name, bool isSerialized)
+        {
+            return new AssetBundleDirectoryInfo()
+            {
+                Offset = -1,
+                DecompressedSize = 0,
+                Flags = isSerialized ? 0x04u : 0x00u,
+                Name = name
+            };
+        }
     }
 }
