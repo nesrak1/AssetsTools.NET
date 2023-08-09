@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AssetsTools.NET
 {
@@ -19,7 +18,7 @@ namespace AssetsTools.NET
         /// You can add new infos or make changes to existing ones and they will be
         /// updated on write.
         /// </summary>
-        public List<AssetBundleDirectoryInfo> DirectoryInfos { get; set; }
+        public IList<AssetBundleDirectoryInfo> DirectoryInfos { get; set; }
 
         public void Read(AssetsFileReader reader)
         {
