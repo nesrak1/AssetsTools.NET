@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET</id>
-    <version>3.0.0-preview3</version>
+    <version>3.0.0-preview4</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>	
@@ -10,8 +10,8 @@
     <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
     <icon>icon.png</icon>
     <summary>A port and remake of UABE's AssetsTools to C#</summary>
-    <description>A port and remake of UABE's AssetsTools to C#. Read and write assets and bundle files from any Unity 5 and later. For most cases, you'll need the class data file which you can in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
-    <releaseNotes>v3.0.0-preview3 - preview of the complete overhaul of assetstools.net. bug fixes, reworking the api, and serializereference for monobehaviours.</releaseNotes>
+    <description>A port and remake of UABE's AssetsTools to C#. Read and write assets and bundle files from any Unity 5 and later. For most cases, you'll need the class data file which you can find in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
+    <releaseNotes>v3.0.0-preview4 - preview of the complete overhaul of assetstools.net. bug fixes, new replacers, and more.</releaseNotes>
     <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
@@ -28,9 +28,12 @@
 	
     <file src="bin\Release\net35\AssetsTools.NET.dll" target="lib/net35" />
     <file src="bin\Release\net35\AssetsTools.NET.pdb" target="lib/net35" />
+    <file src="bin\Release\net35\AssetsTools.NET.xml" target="lib/net35" />
     <file src="bin\Release\net40\AssetsTools.NET.dll" target="lib/net40" />
     <file src="bin\Release\net40\AssetsTools.NET.pdb" target="lib/net40" />
+    <file src="bin\Release\net40\AssetsTools.NET.xml" target="lib/net40" />
     <file src="bin\Release\netstandard2.0\AssetsTools.NET.dll" target="lib/netstandard2.0" />
     <file src="bin\Release\netstandard2.0\AssetsTools.NET.pdb" target="lib/netstandard2.0" />
+    <file src="bin\Release\netstandard2.0\AssetsTools.NET.xml" target="lib/netstandard2.0" />
   </files>
 </package>

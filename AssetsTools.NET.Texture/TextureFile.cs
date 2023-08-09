@@ -372,12 +372,12 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.BGRA32 => data.Length,
                 TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RHalf => RgbConverter.Convert<ColorRHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RGHalf => RgbConverter.Convert<ColorRGHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBAHalf, Half, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RFloat => RgbConverter.Convert<ColorRSingle, float, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RGFloat => RgbConverter.Convert<ColorRGSingle, float, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBASingle, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RHalf => RgbConverter.Convert<ColorR16Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGHalf => RgbConverter.Convert<ColorRG32Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA64Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RFloat => RgbConverter.Convert<ColorR32Single, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGFloat => RgbConverter.Convert<ColorRG64Single, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA128Single, float, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorBGRA32, byte>(data, width, height, out output),
@@ -386,10 +386,10 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
                 TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),
                 TextureFormat.DXT5 => DxtDecoder.DecompressDXT5(data, width, height, out output),
-                TextureFormat.BC4 => BcDecoder.DecompressBC4(data, width, height, out output),
-                TextureFormat.BC5 => BcDecoder.DecompressBC5(data, width, height, out output),
-                TextureFormat.BC6H => BcDecoder.DecompressBC6H(data, width, height, false, out output),
-                TextureFormat.BC7 => BcDecoder.DecompressBC7(data, width, height, out output),
+                TextureFormat.BC4 => Bc4.Decompress(data, width, height, out output),
+                TextureFormat.BC5 => Bc5.Decompress(data, width, height, out output),
+                TextureFormat.BC6H => Bc6h.Decompress(data, width, height, false, out output),
+                TextureFormat.BC7 => Bc7.Decompress(data, width, height, out output),
 
                 TextureFormat.ETC_RGB4 => EtcDecoder.DecompressETC(data, width, height, out output),
                 TextureFormat.ETC2_RGB4 => EtcDecoder.DecompressETC2(data, width, height, out output),
@@ -422,10 +422,10 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.PVRTC_RGBA4 => PvrtcDecoder.DecompressPVRTC(data, width, height, false, out output),
 
                 TextureFormat.YUY2 => Yuy2Decoder.DecompressYUY2(data, width, height, out output),
-                
+
                 _ => 0
             };
-            
+
             if (size == 0)
                 return null;
 
