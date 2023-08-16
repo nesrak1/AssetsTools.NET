@@ -97,6 +97,10 @@ namespace AssetsTools.NET.Extra
                             {
                                 dependencyCache[depIdx] = am.LoadAssetsFile(bundleLocalAbsPath, true);
                             }
+                            else
+                            {
+                                return null;
+                            }
                         }
                     }
                     else
