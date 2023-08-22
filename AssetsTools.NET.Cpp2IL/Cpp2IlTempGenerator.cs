@@ -172,8 +172,8 @@ namespace AssetsTools.NET.Cpp2IL
                 Il2CppFieldDefinition fieldDef = acceptableFields[i];
                 TypeDefWithSelfRef fieldTypeDef = type.SolidifyType(fieldDef.FieldType);
 
+                bool isPrimitive;
                 bool isArrayOrList = false;
-                bool isPrimitive = false;
                 bool derivesFromUEObject = false;
                 bool isManagedReference = false;
 
@@ -252,7 +252,7 @@ namespace AssetsTools.NET.Cpp2IL
                 field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
                 field.IsAligned = CommonMonoTemplateHelper.TypeAligns(field.ValueType);
                 field.HasValue = field.ValueType != AssetValueType.None;
-                
+
                 if (isArrayOrList)
                 {
                     if (isPrimitive || derivesFromUEObject)
@@ -276,49 +276,50 @@ namespace AssetsTools.NET.Cpp2IL
             return localChildren;
         }
 
-        private List<Il2CppFieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, int availableDepth)
+        private List<Il2CppFieldDefinition> GetAcceptableFields(TypeDefWithSelfRef parentType, int availableDepth)
         {
             List<Il2CppFieldDefinition> validFields = new List<Il2CppFieldDefinition>();
-            for (int i = 0; i < typeDef.typeDef.field_count; i++)
+            for (int i = 0; i < parentType.typeDef.field_count; i++)
             {
-                Il2CppFieldDefinition f = typeDef.typeDef.Fields[i];
-                FieldAttributes attr = typeDef.typeDef.FieldAttributes[i];
+                Il2CppFieldDefinition f = parentType.typeDef.Fields[i];
+                FieldAttributes attr = parentType.typeDef.FieldAttributes[i];
 
-                List<string> attributeNames = GetAttributeNamesOnField(typeDef.typeDef.DeclaringAssembly, f);
+                List<string> attributeNames = GetAttributeNamesOnField(parentType.typeDef.DeclaringAssembly, f);
 
                 if (attr.HasFlag(FieldAttributes.Public) ||
                     attributeNames.Contains("UnityEngine.SerializeField") ||
-                    attributeNames.Contains("UnityEngine.SerializeReference")) //field is public or has exception attribute
+                    attributeNames.Contains("UnityEngine.SerializeReference")) // field is public or has exception attribute
                 {
                     if (!attr.HasFlag(FieldAttributes.Static) &&
                         !attr.HasFlag(FieldAttributes.NotSerialized) &&
                         !attr.HasFlag(FieldAttributes.InitOnly) &&
-                        !attr.HasFlag(FieldAttributes.Literal)) //field is not public, has exception attribute, readonly, or const
+                        !attr.HasFlag(FieldAttributes.Literal)) // field is not public, has exception attribute, readonly, or const
                     {
-                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+                        TypeDefWithSelfRef solidifiedFieldType = parentType.SolidifyType(f.FieldType);
 
-                        if (TryGetListOrArrayElement(ft, out Il2CppTypeReflectionData elemType))
+                        if (TryGetListOrArrayElement(solidifiedFieldType, out Il2CppTypeReflectionData elemType))
                         {
-                            //Array are not serialized at and past the serialization limit
+                            // arrays are not serialized at and past the serialization limit
                             if (availableDepth < 0)
                             {
                                 continue;
                             }
-                            //Unity can't serialize collection of collections, ignoring it
+
+                            // unity can't serialize collection of collections, ignore it
                             if (TryGetListOrArrayElement(elemType, out _))
                             {
                                 continue;
                             }
-                            ft = elemType;
+                            solidifiedFieldType = elemType;
                         }
-                        //Unity doesn't serialize a field of the same type as declaring type
-                        //unless it inherits from UnityEngine.Object
-                        else if (typeDef.typeDef.FullName == ft.typeDef.FullName && !DerivesFromUEObject(typeDef))
+                        // unity doesn't serialize a field of the same type as declaring type
+                        // unless it inherits from UnityEngine.Object
+                        else if (parentType.typeDef.FullName == solidifiedFieldType.typeDef.FullName && !DerivesFromUEObject(parentType))
                         {
                             continue;
                         }
 
-                        if (IsValidDef(attributeNames, ft, availableDepth))
+                        if (IsValidDef(attributeNames, solidifiedFieldType, availableDepth))
                         {
                             validFields.Add(f);
                         }
@@ -346,8 +347,8 @@ namespace AssetsTools.NET.Cpp2IL
 
             bool IsValidDef(List<string> attributeNames, TypeDefWithSelfRef typeDef, int availableDepth)
             {
-                //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
-                //https://unity.com/releases/editor/whats-new/2020.1.0
+                // before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                // https://unity.com/releases/editor/whats-new/2020.1.0
                 if (typeDef.typeDef.GenericContainer != null && _unityVersion.major < 2020)
                 {
                     return false;
@@ -359,7 +360,7 @@ namespace AssetsTools.NET.Cpp2IL
                     return true;
                 }
 
-                //Unity doesn't support long enums
+                // unity doesn't support long enums
                 if (typeDef.typeDef.IsEnumType)
                 {
                     var enumType = typeDef.typeDef.GetEnumUnderlyingType().baseType.FullName;
@@ -368,7 +369,7 @@ namespace AssetsTools.NET.Cpp2IL
 
 
                 TypeAttributes typeAttrs = (TypeAttributes)typeDef.typeDef.flags;
-                //Value types are not affected by the serialization limit
+                // value types are not affected by the serialization limit
                 if (availableDepth < 0)
                 {
                     return typeDef.typeDef.IsValueType && (typeAttrs.HasFlag(TypeAttributes.Serializable) || CommonMonoTemplateHelper.IsSpecialUnityType(typeDef.typeDef.FullName));

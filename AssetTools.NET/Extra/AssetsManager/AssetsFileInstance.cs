@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace AssetsTools.NET.Extra
 {
@@ -77,7 +78,21 @@ namespace AssetsTools.NET.Extra
                     }
                     else if (parentBundle != null)
                     {
-                        dependencyCache[depIdx] = am.LoadAssetsFileFromBundle(parentBundle, depPath, true);
+                        AssetBundleFile bundle = parentBundle.file;
+                        bool depInBundle = bundle.BlockAndDirInfo.DirectoryInfos.Any(di => di.Name == depPath);
+                        if (depInBundle)
+                        {
+                            dependencyCache[depIdx] = am.LoadAssetsFileFromBundle(parentBundle, depPath, true);
+                        }
+                        else
+                        {
+                            string bundlePathDir = Path.GetDirectoryName(pathDir);
+                            string bundleLocalAbsPath = Path.Combine(bundlePathDir, Path.GetFileName(depPath));
+                            if (File.Exists(bundleLocalAbsPath))
+                            {
+                                dependencyCache[depIdx] = am.LoadAssetsFile(bundleLocalAbsPath, true);
+                            }
+                        }
                     }
                     else
                     {

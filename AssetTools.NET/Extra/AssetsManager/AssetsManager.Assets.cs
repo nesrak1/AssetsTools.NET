@@ -21,9 +21,30 @@ namespace AssetsTools.NET.Extra
                 LoadBundleDependencies(fileInst, bunInst, Path.GetDirectoryName(path));
         }
 
+        private AssetsFileInstance LoadAssetsFileCacheless(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
+        {
+            AssetsFileInstance fileInst = new AssetsFileInstance(stream, path);
+            fileInst.parentBundle = bunInst;
+
+            string lookupKey = GetFileLookupKey(path);
+            FileLookup[lookupKey] = fileInst;
+            Files.Add(fileInst);
+
+            if (loadDeps)
+            {
+                LoadAssetsFileDependencies(fileInst, path, bunInst);
+            }
+            if (UseQuickLookup)
+            {
+                fileInst.file.GenerateQuickLookup();
+            }
+            return fileInst;
+        }
+
         /// <summary>
         /// Load an <see cref="AssetsFileInstance"/> from a stream with a path.
         /// Use the <see cref="FileStream"/> version of this method to skip the path argument.
+        /// If a file with that name is already loaded, it will be returned instead.
         /// </summary>
         /// <param name="stream">The stream to read from.</param>
         /// <param name="path">The path to set on the <see cref="AssetsFileInstance"/>.</param>
@@ -47,22 +68,6 @@ namespace AssetsTools.NET.Extra
             }
         }
 
-        private AssetsFileInstance LoadAssetsFileCacheless(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
-        {
-            AssetsFileInstance fileInst = new AssetsFileInstance(stream, path);
-            fileInst.parentBundle = bunInst;
-
-            string lookupKey = GetFileLookupKey(path);
-            FileLookup[lookupKey] = fileInst;
-            Files.Add(fileInst);
-
-            if (loadDeps)
-            {
-                LoadAssetsFileDependencies(fileInst, path, bunInst);
-            }
-            return fileInst;
-        }
-
         /// <summary>
         /// Load an <see cref="AssetsFileInstance"/> from a stream.
         /// Assigns the <see cref="AssetsFileInstance"/>'s path from the stream's file path.
@@ -70,18 +75,19 @@ namespace AssetsTools.NET.Extra
         /// <param name="stream">The stream to read from.</param>
         /// <param name="loadDeps">Load all dependencies immediately?</param>
         /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
-        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps)
+        public AssetsFileInstance LoadAssetsFile(FileStream stream, bool loadDeps = false)
         {
             return LoadAssetsFileCacheless(stream, stream.Name, loadDeps);
         }
 
         /// <summary>
         /// Load an <see cref="AssetsFileInstance"/> from a path.
+        /// If a file with that name is already loaded, it will be returned instead.
         /// </summary>
         /// <param name="path">The path of the file to read from.</param>
         /// <param name="loadDeps">Load all dependencies immediately?</param>
         /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
-        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps)
+        public AssetsFileInstance LoadAssetsFile(string path, bool loadDeps = false)
         {
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))

@@ -208,7 +208,7 @@ namespace AssetsTools.NET
             {
                 AssetBundleDirectoryInfo info = dirInfos[i];
                 BundleReplacer replacer = replacers.FirstOrDefault(n => n.GetEntryName() == info.Name);
-                if (replacer != null)
+                if (replacer != null && replacer.GetReplacementType() != BundleReplacementType.Rename)
                 {
                     if (replacer.GetReplacementType() == BundleReplacementType.AddOrModify)
                     {

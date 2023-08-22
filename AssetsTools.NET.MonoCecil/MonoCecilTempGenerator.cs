@@ -94,7 +94,7 @@ namespace AssetsTools.NET.Extra
         {
             // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
             TypeReference typeRef;
-            TypeDefinition type = null;
+            TypeDefinition type;
 
             if (typeName.Contains('/'))
             {
@@ -188,7 +188,7 @@ namespace AssetsTools.NET.Extra
                     anyFieldIsManagedReference = true;
                     field.Type = "managedReference";
                 }
-                else 
+                else
                 {
                     field.Type = fieldTypeDef.typeDef.Name;
                 }
@@ -244,45 +244,46 @@ namespace AssetsTools.NET.Extra
             return localChildren;
         }
 
-        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef typeDef, int availableDepth)
+        private List<FieldDefinition> GetAcceptableFields(TypeDefWithSelfRef parentType, int availableDepth)
         {
             List<FieldDefinition> validFields = new List<FieldDefinition>();
-            foreach (FieldDefinition f in typeDef.typeDef.Fields)
+            foreach (FieldDefinition f in parentType.typeDef.Fields)
             {
                 if (Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Public) ||
-                    f.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeField") ||
-                    f.CustomAttributes.Any(a => a.AttributeType.FullName == "UnityEngine.SerializeReference")) //field is public or has exception attribute
+                    f.CustomAttributes.Any(a =>
+                        a.AttributeType.FullName == "UnityEngine.SerializeField" ||
+                        a.AttributeType.FullName == "UnityEngine.SerializeReference")) // field is public or has exception attribute
                 {
                     if (!Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.Static) &&
                         !Net35Polyfill.HasFlag(f.Attributes, FieldAttributes.NotSerialized) &&
                         !f.IsInitOnly &&
-                        !f.HasConstant) //field is not public, has exception attribute, readonly, or const
+                        !f.HasConstant) // field is not public, has exception attribute, readonly, or const
                     {
-                        TypeDefWithSelfRef ft = typeDef.SolidifyType(f.FieldType);
+                        TypeDefWithSelfRef solidifiedFieldType = parentType.SolidifyType(f.FieldType);
 
-                        if (TryGetListOrArrayElement(ft.typeRef, out TypeDefWithSelfRef elemType))
+                        if (TryGetListOrArrayElement(solidifiedFieldType, out TypeDefWithSelfRef elemType))
                         {
-                            //Array are not serialized at and past the serialization limit
+                            // arrays are not serialized at and past the serialization limit
                             if (availableDepth < 0)
                             {
                                 continue;
                             }
 
-                            //Unity can't serialize collection of collections, ignoring it
+                            // unity can't serialize collection of collections, ignore it
                             if (TryGetListOrArrayElement(elemType, out _))
                             {
                                 continue;
                             }
-                            ft = elemType;
+                            solidifiedFieldType = elemType;
                         }
-                        //Unity doesn't serialize a field of the same type as declaring type
-                        //unless it inherits from UnityEngine.Object
-                        else if (typeDef.typeDef.FullName == ft.typeDef.FullName && !DerivesFromUEObject(typeDef))
+                        // unity doesn't serialize a field of the same type as declaring type
+                        // unless it inherits from UnityEngine.Object
+                        else if (parentType.typeDef.FullName == solidifiedFieldType.typeDef.FullName && !DerivesFromUEObject(parentType))
                         {
                             continue;
                         }
 
-                        TypeDefinition ftd = ft.typeDef;
+                        TypeDefinition ftd = solidifiedFieldType.typeDef;
                         if (ftd != null && IsValidDef(f, ftd, availableDepth))
                         {
                             validFields.Add(f);
@@ -308,11 +309,11 @@ namespace AssetsTools.NET.Extra
                 elemType = default;
                 return false;
             }
-            
+
             bool IsValidDef(FieldDefinition fieldDef, TypeDefinition typeDef, int availableDepth)
             {
-                //Before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
-                //https://unity.com/releases/editor/whats-new/2020.1.0
+                // before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                // https://unity.com/releases/editor/whats-new/2020.1.0
                 if (typeDef.HasGenericParameters && unityVersion.major < 2020)
                 {
                     return false;
@@ -324,14 +325,14 @@ namespace AssetsTools.NET.Extra
                     return true;
                 }
 
-                //Unity doesn't support long enums
+                // unity doesn't support long enums
                 if (typeDef.IsEnum)
                 {
                     var enumType = typeDef.GetEnumUnderlyingType().FullName;
                     return enumType != "System.Int64" && enumType != "System.UInt64";
                 }
 
-                //Value types are not affected by the serialization limit
+                // value types are not affected by the serialization limit
                 if (availableDepth < 0)
                 {
                     return typeDef.IsValueType && (typeDef.IsSerializable || CommonMonoTemplateHelper.IsSpecialUnityType(typeDef.FullName));
@@ -342,7 +343,7 @@ namespace AssetsTools.NET.Extra
                 {
                     return true;
                 }
-                
+
                 if (fieldDef.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeReference"))
                 {
                     if (unityVersion.major == 2019 && unityVersion.minor == 3 && unityVersion.patch < 8 && typeDef.FullName == "System.Object")

@@ -355,7 +355,7 @@ namespace AssetsTools.NET.Texture
         {
             m_Width = width;
             m_Height = height;
-            m_StreamData.path = null;
+            m_StreamData.path = "";
             m_StreamData.offset = 0;
             m_StreamData.size = 0;
             pictureData = encodedData;
