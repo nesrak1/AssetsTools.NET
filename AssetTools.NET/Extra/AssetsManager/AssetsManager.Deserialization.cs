@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
@@ -15,7 +14,7 @@ namespace AssetsTools.NET.Extra
 
             refMan = new RefTypeManager();
             refMan.FromTypeTree(inst.file.Metadata);
-            
+
             if (MonoTempGenerator != null)
             {
                 refMan.WithMonoTemplateGenerator(inst.file.Metadata, MonoTempGenerator, UseMonoTemplateFieldCache ? monoTemplateFieldCache : null);
@@ -132,6 +131,11 @@ namespace AssetsTools.NET.Extra
                         monoScriptFile = inst;
                     else
                         monoScriptFile = inst.GetDependency(this, msPtr.FileId - 1);
+
+                    if (monoScriptFile == null)
+                    {
+                        return baseField;
+                    }
 
                     Dictionary<long, AssetTypeTemplateField> templates = null;
                     if (UseMonoTemplateFieldCache)
