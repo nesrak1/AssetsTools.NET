@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
+﻿using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
@@ -10,7 +6,7 @@ namespace AssetsTools.NET.Extra
     {
         internal string GetFileLookupKey(string path)
         {
-            return Path.GetFullPath(path).ToLower();
+            return Path.GetFileName(path).ToLower();
         }
 
         private void LoadAssetsFileDependencies(AssetsFileInstance fileInst, string path, BundleFileInstance bunInst)
