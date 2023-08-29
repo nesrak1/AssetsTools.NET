@@ -149,6 +149,11 @@ namespace AssetsTools.NET.Extra
                     else
                         monoScriptFile = inst.GetDependency(this, msPtr.FileId - 1);
 
+                    if (monoScriptFile == null)
+                    {
+                        return baseField;
+                    }
+
                     Dictionary<long, AssetTypeTemplateField> templates = null;
                     if (UseMonoTemplateFieldCache)
                     {
@@ -163,11 +168,6 @@ namespace AssetsTools.NET.Extra
                         {
                             monoCldbTemplateFieldCache[monoScriptFile] = templates = new Dictionary<long, AssetTypeTemplateField>();
                         }
-                    }
-
-                    if (monoScriptFile == null)
-                    {
-                        return baseField;
                     }
 
                     AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
