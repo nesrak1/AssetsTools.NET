@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -72,6 +73,7 @@ namespace AssetsTools.NET.Extra
 
             typeTreeType.StringBuffer = stringTableBuilder.ToString();
             typeTreeType.Nodes = typeTreeNodes;
+            typeTreeType.TypeHash = ComputeHash(typeTreeType);
             return typeTreeType;
         }
 
@@ -142,6 +144,28 @@ namespace AssetsTools.NET.Extra
             foreach (ClassDatabaseTypeNode child in node.Children)
             {
                 ConvertFields(child, depth + 1);
+            }
+        }
+
+        private static Hash128 ComputeHash(TypeTreeType typeTree)
+        {
+            var md4 = new MD4();
+            Update(typeTree, md4);
+            return new Hash128(md4.Digest());
+        }
+
+        private static void Update(TypeTreeType typeTree, MD4 md4)
+        {
+            var nodes = typeTree.Nodes.GetEnumerator();
+            while (nodes.MoveNext())
+            {
+                var node = nodes.Current;
+                md4.Update(Encoding.UTF8.GetBytes(node.GetTypeString(typeTree.StringBuffer)));
+                md4.Update(Encoding.UTF8.GetBytes(node.GetNameString(typeTree.StringBuffer)));
+                md4.Update(BitConverter.GetBytes(node.ByteSize));
+                md4.Update(BitConverter.GetBytes(System.Convert.ToInt32(node.TypeFlags)));
+                md4.Update(BitConverter.GetBytes(System.Convert.ToInt32(node.Version)));
+                md4.Update(BitConverter.GetBytes(System.Convert.ToInt32(node.MetaFlags & 0x4000)));
             }
         }
     }
