@@ -2,16 +2,16 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET</id>
-    <version>3.0.0-preview4</version>
+    <version>3.0.0</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>	
     <license type="expression">MIT</license>
     <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
     <icon>icon.png</icon>
-    <summary>A port and remake of UABE's AssetsTools to C#</summary>
-    <description>A port and remake of UABE's AssetsTools to C#. Read and write assets and bundle files from any Unity 5 and later. For most cases, you'll need the class data file which you can find in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
-    <releaseNotes>v3.0.0-preview4 - preview of the complete overhaul of assetstools.net. bug fixes, new replacers, and more.</releaseNotes>
+    <summary>An assets/bundle library, inspired by UABE's AssetsTools</summary>
+    <description>An assets/bundle library, inspired by UABE's AssetsTools. Read and write assets and bundle files from engine versions 5.x and later. For most cases, you'll need the class data file which you can find in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
+    <releaseNotes>v3.0.0 - the complete overhaul of assetstools.net. bug fixes, new replacers, and more.</releaseNotes>
     <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
