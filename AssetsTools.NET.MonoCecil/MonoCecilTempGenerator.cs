@@ -1,9 +1,8 @@
-﻿using Mono.Cecil;
+﻿using System.Collections.Generic;
 using Mono.Cecil.Rocks;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
+using Mono.Cecil;
+using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
@@ -68,7 +67,7 @@ namespace AssetsTools.NET.Extra
             return children;
         }
 
-        private AssemblyDefinition GetAssemblyWithDependencies(string path)
+        public AssemblyDefinition GetAssemblyWithDependencies(string path)
         {
             string assemblyName = Path.GetFileName(path);
             if (loadedAssemblies.ContainsKey(assemblyName))
@@ -114,17 +113,18 @@ namespace AssetsTools.NET.Extra
                 typeRef = new TypeReference(nameSpace, typeName, module, module);
                 type = typeRef.Resolve();
             }
-
+            
+            if (type is null) { return; }
+            
             RecursiveTypeLoad(type, attf, availableDepth, true);
         }
 
         private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth, bool isRecursiveCall = false)
         {
-            if (!isRecursiveCall)
-            {
-                availableDepth--;
-            }
+            if (!isRecursiveCall) { availableDepth--; }
 
+            if (type.typeDef.BaseType is null) { return; }
+            
             string baseName = type.typeDef.BaseType.FullName;
             if (baseName != "System.Object" &&
                 baseName != "UnityEngine.Object" &&
@@ -151,6 +151,7 @@ namespace AssetsTools.NET.Extra
 
                 bool isArrayOrList = false;
                 bool isPrimitive = false;
+                bool isString = false;
                 bool derivesFromUEObject = false;
                 bool isManagedReference = false;
 
@@ -172,51 +173,42 @@ namespace AssetsTools.NET.Extra
                     field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(enumType);
                 }
                 else if (isPrimitive = fieldTypeDef.typeDef.IsPrimitive)
-                {
                     field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(fieldTypeDef.typeDef.FullName);
-                }
+                
                 else if (fieldTypeDef.typeDef.FullName == "System.String")
                 {
+                    isString = true;
                     field.Type = "string";
                 }
+                
                 else if (derivesFromUEObject = DerivesFromUEObject(fieldTypeDef))
-                {
                     field.Type = $"PPtr<${fieldTypeDef.typeDef.Name}>";
-                }
+                
                 else if (isManagedReference = fieldDef.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeReference"))
                 {
                     anyFieldIsManagedReference = true;
                     field.Type = "managedReference";
                 }
                 else 
-                {
                     field.Type = fieldTypeDef.typeDef.Name;
-                }
 
                 if (isPrimitive)
-                {
                     field.Children = new List<AssetTypeTemplateField>();
-                }
+                
                 else if (fieldTypeDef.typeDef.FullName == "System.String")
-                {
                     field.Children = CommonMonoTemplateHelper.String();
-                }
+                
                 else if (CommonMonoTemplateHelper.IsSpecialUnityType(fieldTypeDef.typeDef.FullName))
-                {
                     field.Children = SpecialUnity(fieldTypeDef, availableDepth);
-                }
+                
                 else if (derivesFromUEObject)
-                {
                     field.Children = CommonMonoTemplateHelper.PPtr(unityVersion);
-                }
+                
                 else if (isManagedReference)
-                {
                     field.Children = CommonMonoTemplateHelper.ManagedReference(unityVersion);
-                }
+                    
                 else if (fieldTypeDef.typeDef.IsSerializable)
-                {
                     field.Children = Serialized(fieldTypeDef, availableDepth);
-                }
 
                 field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
                 field.IsAligned = CommonMonoTemplateHelper.TypeAligns(field.ValueType);
@@ -224,22 +216,17 @@ namespace AssetsTools.NET.Extra
 
                 if (isArrayOrList)
                 {
-                    if (isPrimitive || derivesFromUEObject)
-                    {
+                    if (isString || isPrimitive || derivesFromUEObject)
                         field = CommonMonoTemplateHelper.Vector(field);
-                    }
+                    
                     else
-                    {
                         field = CommonMonoTemplateHelper.VectorWithType(field);
-                    }
                 }
                 localChildren.Add(field);
             }
 
             if (anyFieldIsManagedReference && DerivesFromUEObject(type))
-            {
                 localChildren.Add(CommonMonoTemplateHelper.ManagedReferencesRegistry("references", unityVersion));
-            }
 
             return localChildren;
         }
@@ -278,7 +265,7 @@ namespace AssetsTools.NET.Extra
                         }
                         // unity doesn't serialize a field of the same type as declaring type
                         // unless it inherits from UnityEngine.Object
-                        else if (parentType.typeDef.FullName == solidifiedFieldType.typeDef.FullName && !DerivesFromUEObject(parentType))
+                        else if (solidifiedFieldType.typeDef != null && parentType.typeDef.FullName == solidifiedFieldType.typeDef.FullName && !DerivesFromUEObject(parentType))
                         {
                             continue;
                         }
