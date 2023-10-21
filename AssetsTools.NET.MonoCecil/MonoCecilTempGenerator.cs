@@ -1,6 +1,5 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Rocks;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -188,7 +187,7 @@ namespace AssetsTools.NET.Extra
                     anyFieldIsManagedReference = true;
                     field.Type = "managedReference";
                 }
-                else 
+                else
                 {
                     field.Type = fieldTypeDef.typeDef.Name;
                 }
@@ -309,7 +308,7 @@ namespace AssetsTools.NET.Extra
                 elemType = default;
                 return false;
             }
-            
+
             bool IsValidDef(FieldDefinition fieldDef, TypeDefinition typeDef, int availableDepth)
             {
                 // before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
@@ -343,7 +342,7 @@ namespace AssetsTools.NET.Extra
                 {
                     return true;
                 }
-                
+
                 if (fieldDef.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeReference"))
                 {
                     if (unityVersion.major == 2019 && unityVersion.minor == 3 && unityVersion.patch < 8 && typeDef.FullName == "System.Object")
@@ -399,6 +398,7 @@ namespace AssetsTools.NET.Extra
                 "GUIStyle" => CommonMonoTemplateHelper.GUIStyle(unityVersion),
                 "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
                 "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
+                "PropertyName" => CommonMonoTemplateHelper.PropertyName(),
                 _ => Serialized(type, availableDepth)
             };
         }

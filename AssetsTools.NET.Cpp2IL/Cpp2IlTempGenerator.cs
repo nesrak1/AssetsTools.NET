@@ -252,7 +252,7 @@ namespace AssetsTools.NET.Cpp2IL
                 field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
                 field.IsAligned = CommonMonoTemplateHelper.TypeAligns(field.ValueType);
                 field.HasValue = field.ValueType != AssetValueType.None;
-                
+
                 if (isArrayOrList)
                 {
                     if (isPrimitive || derivesFromUEObject)
@@ -438,6 +438,7 @@ namespace AssetsTools.NET.Cpp2IL
                 "GUIStyle" => CommonMonoTemplateHelper.GUIStyle(_unityVersion),
                 "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
                 "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
+                "PropertyName" => CommonMonoTemplateHelper.PropertyName(),
                 _ => Serialized(type, availableDepth)
             };
         }

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace AssetsTools.NET.Extra
 {
@@ -53,6 +51,7 @@ namespace AssetsTools.NET.Extra
             "UnityEngine.GUIStyle",
             "UnityEngine.Vector2Int",
             "UnityEngine.Vector3Int",
+            "UnityEngine.PropertyName",
             "UnityEngine.BoundsInt"
         };
 
@@ -184,7 +183,7 @@ namespace AssetsTools.NET.Extra
         public static AssetTypeTemplateField ULong(string name) => CreateTemplateField(name, "UInt64", AssetValueType.UInt64);
         public static AssetTypeTemplateField Float(string name) => CreateTemplateField(name, "float", AssetValueType.Float);
         public static AssetTypeTemplateField Double(string name) => CreateTemplateField(name, "double", AssetValueType.Double);
-        
+
         public static AssetTypeTemplateField String(string name)
         {
             return CreateTemplateField(name, "string", AssetValueType.String, String());
@@ -411,6 +410,13 @@ namespace AssetsTools.NET.Extra
             }
 
             return new List<AssetTypeTemplateField> { Int("m_FileID"), Int("m_PathID") };
+        }
+
+        // yes, there is a double string here
+        public static AssetTypeTemplateField PropertyName(string name) => CreateTemplateField(name, "string", PropertyName());
+        public static List<AssetTypeTemplateField> PropertyName()
+        {
+            return new List<AssetTypeTemplateField> { String("id") };
         }
 
         #endregion
