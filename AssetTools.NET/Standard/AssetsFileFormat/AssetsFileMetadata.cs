@@ -1,5 +1,4 @@
 ﻿using AssetsTools.NET.Extra;
-using System;
 using System.Collections.Generic;
 
 namespace AssetsTools.NET
@@ -154,14 +153,14 @@ namespace AssetsTools.NET
             {
                 TypeTreeTypes[i].Write(writer, version, TypeTreeEnabled);
             }
-            
+
             writer.Write(AssetInfos.Count);
             writer.Align();
             for (int i = 0; i < AssetInfos.Count; i++)
             {
                 AssetInfos[i].Write(writer, version);
             }
-            
+
             writer.Write(ScriptTypes.Count);
             for (int i = 0; i < ScriptTypes.Count; i++)
             {
@@ -169,7 +168,7 @@ namespace AssetsTools.NET
                 writer.Align(); // only align after fileId
                 writer.Write(ScriptTypes[i].PathId);
             }
-            
+
             writer.Write(Externals.Count);
             for (int i = 0; i < Externals.Count; i++)
             {
@@ -239,9 +238,10 @@ namespace AssetsTools.NET
         /// It is suggested to set <see cref="AssetFileInfo.Replacer"/> to
         /// <see cref="ContentRemover"/> if you want to keep the info in the list but save without it.
         /// </remarks>
-        /// <param name="info">The info to add</param>
+        /// <param name="info">The info to remove</param>
         public bool RemoveAssetInfo(AssetFileInfo info)
         {
+            // todo: THIS ISN'T GOING TO WORK
             if (_quickLookup != null)
             {
                 _quickLookup.Remove(info.PathId);
@@ -326,7 +326,7 @@ namespace AssetsTools.NET
             }
             return infos;
         }
-        
+
         /// <summary>
         /// Get all assets of a specific type ID.
         /// </summary>
@@ -449,7 +449,7 @@ namespace AssetsTools.NET
                 if (type.Nodes.Count == 0)
                     continue;
 
-                if (type.Nodes[0].GetTypeString(type.StringBuffer) == name)
+                if (type.Nodes[0].GetTypeString(type.StringBufferBytes) == name)
                     return type;
             }
             return null;

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 
 namespace AssetsTools.NET.Extra
 {
@@ -69,9 +68,9 @@ namespace AssetsTools.NET.Extra
 
                 TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(info.TypeId, scriptId);
 
-                string ttTypeName = ttType.Nodes[0].GetTypeString(ttType.StringBuffer);
+                string ttTypeName = ttType.Nodes[0].GetTypeString(ttType.StringBufferBytes);
                 if (ttType.Nodes.Count == 0) return cldb.GetString(type.Name); // fallback to cldb
-                if (ttType.Nodes.Count > 1 && ttType.Nodes[1].GetNameString(ttType.StringBuffer) == "m_Name")
+                if (ttType.Nodes.Count > 1 && ttType.Nodes[1].GetNameString(ttType.StringBufferBytes) == "m_Name")
                 {
                     reader.Position = info.GetAbsoluteByteOffset(file);
                     return reader.ReadCountStringInt32();

@@ -2,8 +2,6 @@
 using AssetsTools.NET.Extra;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
 
 namespace AssetsView.Winforms
@@ -51,7 +49,7 @@ namespace AssetsView.Winforms
                 else
                 {
                     TypeTreeNode baseField = type.Nodes[0];
-                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBuffer)} (0x{type.TypeId.ToString("x")})");
+                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBufferBytes)} (0x{type.TypeId.ToString("x")})");
                 }
             }
             foreach (TypeTreeType type in metadata.RefTypes)
@@ -64,7 +62,7 @@ namespace AssetsView.Winforms
                 else
                 {
                     TypeTreeNode baseField = type.Nodes[0];
-                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBuffer)} (0x{type.TypeId.ToString("x")}) REF");
+                    ttr_list.Items.Add($"{baseField.GetTypeString(type.StringBufferBytes)} (0x{type.TypeId.ToString("x")}) REF");
                 }
             }
             //preload list
@@ -112,7 +110,7 @@ namespace AssetsView.Winforms
             else
             {
                 TypeTreeNode baseField = type.Nodes[0];
-                ttr_type.Text = baseField.GetTypeString(type.StringBuffer);
+                ttr_type.Text = baseField.GetTypeString(type.StringBufferBytes);
             }
             ttr_typeid.Text = type.TypeId.ToString();
             ttr_scriptid.Text = type.ScriptTypeIndex.ToString();
@@ -154,7 +152,7 @@ namespace AssetsView.Winforms
 
         private string TypeFieldToString(TypeTreeNode node, TypeTreeType type)
         {
-            string stringTable = type.StringBuffer;
+            byte[] stringTable = type.StringBufferBytes;
             return $"{node.GetTypeString(stringTable)} {node.GetNameString(stringTable)}";
         }
 

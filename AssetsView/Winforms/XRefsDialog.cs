@@ -3,13 +3,7 @@ using AssetsTools.NET.Extra;
 using AssetsView.Structs;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AssetsView.Winforms
@@ -57,7 +51,7 @@ namespace AssetsView.Winforms
                         if (hasTypeTree)
                         {
                             TypeTreeType xrefType = xrefFile.Metadata.FindTypeTreeTypeByID(typeId);
-                            typeName = xrefType.Nodes[0].GetTypeString(xrefType.StringBuffer);
+                            typeName = xrefType.Nodes[0].GetTypeString(xrefType.StringBufferBytes);
                         }
                         else
                         {

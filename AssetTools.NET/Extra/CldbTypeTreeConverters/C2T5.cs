@@ -160,8 +160,8 @@ namespace AssetsTools.NET.Extra
             while (nodes.MoveNext())
             {
                 var node = nodes.Current;
-                md4.Update(Encoding.UTF8.GetBytes(node.GetTypeString(typeTree.StringBuffer)));
-                md4.Update(Encoding.UTF8.GetBytes(node.GetNameString(typeTree.StringBuffer)));
+                md4.Update(Encoding.UTF8.GetBytes(node.GetTypeString(typeTree.StringBufferBytes)));
+                md4.Update(Encoding.UTF8.GetBytes(node.GetNameString(typeTree.StringBufferBytes)));
                 md4.Update(BitConverter.GetBytes(node.ByteSize));
                 md4.Update(BitConverter.GetBytes(System.Convert.ToInt32(node.TypeFlags)));
                 md4.Update(BitConverter.GetBytes(System.Convert.ToInt32(node.Version)));

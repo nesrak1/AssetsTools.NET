@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.IO;
 using System.Text;
 
 namespace AssetsTools.NET
@@ -95,7 +95,7 @@ namespace AssetsTools.NET
         /// See <see cref="ClassDatabaseFile.CommonStringBufferIndices"/>.
         /// </param>
         /// <returns>The node type name.</returns>
-        public string GetTypeString(string stringTable, string commonStringTable = null)
+        public string GetTypeString(byte[] stringTable, byte[] commonStringTable = null)
         {
             return ReadStringTableString(stringTable, commonStringTable ?? TypeTreeType.COMMON_STRING_TABLE, TypeStrOffset);
         }
@@ -109,29 +109,29 @@ namespace AssetsTools.NET
         /// See <see cref="ClassDatabaseFile.CommonStringBufferIndices"/>.
         /// </param>
         /// <returns>The node name.</returns>
-        public string GetNameString(string stringTable, string commonStringTable = null)
+        public string GetNameString(byte[] stringTable, byte[] commonStringTable = null)
         {
             return ReadStringTableString(stringTable, commonStringTable ?? TypeTreeType.COMMON_STRING_TABLE, NameStrOffset);
         }
 
-        private string ReadStringTableString(string stringTable, string commonStringTable, uint offset)
+        private string ReadStringTableString(byte[] stringTable, byte[] commonStringTable, uint offset)
         {
-            if (offset >= 0x80000000)
+            if ((offset & 0x80000000) != 0)
             {
                 offset &= ~0x80000000;
                 stringTable = commonStringTable;
             }
 
-            StringBuilder str = new StringBuilder();
+            using MemoryStream data = new MemoryStream();
             int pos = (int)offset;
-            char c;
-            while ((c = stringTable[pos]) != 0x00)
+            byte b;
+            while ((b = stringTable[pos]) != 0x00)
             {
-                str.Append(c);
+                data.WriteByte(b);
                 pos++;
             }
 
-            return str.ToString();
+            return Encoding.UTF8.GetString(data.ToArray());
         }
     }
 }

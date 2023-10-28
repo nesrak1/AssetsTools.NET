@@ -1,9 +1,7 @@
 ﻿using AssetsTools.NET.Extra;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography;
 
 namespace AssetsTools.NET
 {
@@ -51,8 +49,8 @@ namespace AssetsTools.NET
         private void FromTypeTree(TypeTreeType typeTreeType, ref int fieldIndex)
         {
             TypeTreeNode field = typeTreeType.Nodes[fieldIndex];
-            Name = field.GetNameString(typeTreeType.StringBuffer);
-            Type = field.GetTypeString(typeTreeType.StringBuffer);
+            Name = field.GetNameString(typeTreeType.StringBufferBytes);
+            Type = field.GetTypeString(typeTreeType.StringBufferBytes);
             ValueType = AssetTypeValueField.GetValueTypeByTypeName(Type);
             IsArray = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array);
             IsAligned = (field.MetaFlags & 0x4000) != 0;
