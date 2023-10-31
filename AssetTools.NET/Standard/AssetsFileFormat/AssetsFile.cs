@@ -259,8 +259,8 @@ namespace AssetsTools.NET
                 }
             }
 
-            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.\\n]", "");
-            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.\\n]", "");
+            string emptyVersion = Regex.Replace(possibleVersion, "[a-zA-Z0-9\\.\\n\\-]", "");
+            string fullVersion = Regex.Replace(possibleVersion, "[^a-zA-Z0-9\\.\\n\\-]", "");
             return emptyVersion == "" && fullVersion.Length > 0;
         }
 
