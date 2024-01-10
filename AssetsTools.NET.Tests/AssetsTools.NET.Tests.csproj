@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AssetsTools.NET.Texture\AssetsTools.NET.Texture.csproj" />
     <ProjectReference Include="..\AssetTools.NET\AssetsTools.NET.csproj" />
   </ItemGroup>
 

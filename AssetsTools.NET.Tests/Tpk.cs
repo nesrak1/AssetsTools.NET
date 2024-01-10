@@ -3,7 +3,7 @@ using System.IO;
 
 namespace AssetsTools.NET.Tests
 {
-    public class Tests
+    public class TpkTests
     {
         [SetUp]
         public void Setup()

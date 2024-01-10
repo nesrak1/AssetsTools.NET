@@ -12,7 +12,7 @@ namespace AssetsTools.NET
             : base(File.OpenRead(filePath))
         {
         }
-        
+
         public AssetsFileReader(Stream stream)
             : base(stream)
         {
