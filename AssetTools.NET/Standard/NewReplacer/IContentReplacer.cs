@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 namespace AssetsTools.NET
 {
@@ -18,7 +15,8 @@ namespace AssetsTools.NET
         /// </summary>
         bool HasPreview();
         /// <summary>
-        /// Returns the preview stream.
+        /// Returns the preview stream. The position is not guaranteed to be at
+        /// the beginning of the stream.
         /// </summary>
         Stream GetPreviewStream();
         /// <summary>

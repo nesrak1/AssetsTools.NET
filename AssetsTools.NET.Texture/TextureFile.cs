@@ -453,34 +453,35 @@ namespace AssetsTools.NET.Texture
 
         public static byte[] DecodeManaged(byte[] data, TextureFormat format, int width, int height, bool useBgra = true)
         {
-            if (useBgra && format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)
-                return data;
-            else if (format == TextureFormat.RGBA32)
-                return data;
+            if ((useBgra && (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)) || format == TextureFormat.RGBA32)
+            {
+                byte[] newData = new byte[width * height * 4];
+                Array.Copy(data, newData, width * height * 4);
+            }
 
             byte[] output = Array.Empty<byte>();
             int size = format switch
             {
-                TextureFormat.Alpha8 => RgbConverter.Convert<ColorA8, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB24, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA32, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.R16 => RgbConverter.Convert<ColorR16, ushort, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.BGRA32 => data.Length,
-                TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RHalf => RgbConverter.Convert<ColorR16Half, Half, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGHalf => RgbConverter.Convert<ColorRG32Half, Half, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA64Half, Half, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RFloat => RgbConverter.Convert<ColorR32Single, float, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGFloat => RgbConverter.Convert<ColorRG64Single, float, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA128Single, float, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorRGBA32, byte>(data, width, height, out output),
-                TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorRGBA32, byte>(data, width, height, out output),
+                TextureFormat.Alpha8 => RgbConverter.Convert<ColorA8, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB24, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R16 => RgbConverter.Convert<ColorR16, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.BGRA32 => width * height * 4,
+                TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RHalf => RgbConverter.Convert<ColorR16Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGHalf => RgbConverter.Convert<ColorRG32Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA64Half, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RFloat => RgbConverter.Convert<ColorR32Single, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGFloat => RgbConverter.Convert<ColorRG64Single, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA128Single, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorBGRA32, byte>(data, width, height, out output),
 
                 TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
                 TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),

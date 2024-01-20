@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
+using System.Linq;
 
 namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
+        private bool DependencyNotLoaded(string depPath)
+        {
+            lock (Files)
+            {
+                return !Files.Any(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower());
+            }
+        }
+
         public void LoadDependencies(AssetsFileInstance ofFile)
         {
             string fileDir = Path.GetDirectoryName(ofFile.path);
@@ -19,7 +25,7 @@ namespace AssetsTools.NET.Extra
                     continue;
                 }
 
-                if (Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
+                if (DependencyNotLoaded(depPath))
                 {
                     string absPath = Path.Combine(fileDir, depPath);
                     string localAbsPath = Path.Combine(fileDir, Path.GetFileName(depPath));
@@ -40,7 +46,7 @@ namespace AssetsTools.NET.Extra
             for (int i = 0; i < ofFile.file.Metadata.Externals.Count; i++)
             {
                 string depPath = ofFile.file.Metadata.Externals[i].PathName;
-                if (Files.FindIndex(f => Path.GetFileName(f.path).ToLower() == Path.GetFileName(depPath).ToLower()) == -1)
+                if (DependencyNotLoaded(depPath))
                 {
                     string bunPath = Path.GetFileName(depPath);
                     int bunIndex = ofBundle.file.BlockAndDirInfo.DirectoryInfos.FindIndex(d => Path.GetFileName(d.Name) == bunPath);

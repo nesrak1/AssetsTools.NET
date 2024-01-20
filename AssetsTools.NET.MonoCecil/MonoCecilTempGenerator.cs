@@ -21,12 +21,15 @@ namespace AssetsTools.NET.Extra
 
         public void Dispose()
         {
-            foreach (AssemblyDefinition assembly in loadedAssemblies.Values)
+            lock (loadedAssemblies)
             {
-                assembly.Dispose();
-            }
+                foreach (AssemblyDefinition assembly in loadedAssemblies.Values)
+                {
+                    assembly.Dispose();
+                }
 
-            loadedAssemblies.Clear();
+                loadedAssemblies.Clear();
+            }
         }
 
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
@@ -70,9 +73,14 @@ namespace AssetsTools.NET.Extra
         private AssemblyDefinition GetAssemblyWithDependencies(string path)
         {
             string assemblyName = Path.GetFileName(path);
-            if (loadedAssemblies.ContainsKey(assemblyName))
+            lock (loadedAssemblies)
             {
-                return loadedAssemblies[assemblyName];
+                if (loadedAssemblies.ContainsKey(assemblyName))
+                {
+                    return loadedAssemblies[assemblyName];
+                }
+
+                loadedAssemblies[assemblyName] = null;
             }
 
             DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
@@ -84,7 +92,10 @@ namespace AssetsTools.NET.Extra
             };
 
             AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(path, readerParameters);
-            loadedAssemblies[assemblyName] = asmDef;
+            lock (loadedAssemblies)
+            {
+                loadedAssemblies[assemblyName] = asmDef;
+            }
 
             return asmDef;
         }

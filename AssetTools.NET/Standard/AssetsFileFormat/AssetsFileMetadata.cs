@@ -44,7 +44,7 @@ namespace AssetsTools.NET
         /// </summary>
         public string UserInformation { get; set; }
 
-        private Dictionary<long, int> _quickLookup = null;
+        private Dictionary<long, AssetFileInfo> _quickLookup = null;
 
         /// <summary>
         /// Read the <see cref="AssetsFileMetadata"/> with the provided reader and file header.
@@ -201,7 +201,7 @@ namespace AssetsTools.NET
             {
                 if (_quickLookup.ContainsKey(pathId))
                 {
-                    return AssetInfos[_quickLookup[pathId]];
+                    return _quickLookup[pathId];
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace AssetsTools.NET
         {
             if (_quickLookup != null)
             {
-                _quickLookup[info.PathId] = AssetInfos.Count;
+                _quickLookup[info.PathId] = info;
             }
             AssetInfos.Add(info);
         }
@@ -241,7 +241,6 @@ namespace AssetsTools.NET
         /// <param name="info">The info to remove</param>
         public bool RemoveAssetInfo(AssetFileInfo info)
         {
-            // todo: THIS ISN'T GOING TO WORK
             if (_quickLookup != null)
             {
                 _quickLookup.Remove(info.PathId);
@@ -255,11 +254,11 @@ namespace AssetsTools.NET
         /// </summary>
         public void GenerateQuickLookup()
         {
-            _quickLookup = new Dictionary<long, int>();
+            _quickLookup = new Dictionary<long, AssetFileInfo>();
             for (int i = 0; i < AssetInfos.Count; i++)
             {
                 AssetFileInfo info = AssetInfos[i];
-                _quickLookup[info.PathId] = i;
+                _quickLookup[info.PathId] = info;
             }
         }
 

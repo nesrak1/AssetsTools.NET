@@ -1,10 +1,5 @@
-﻿using AssetsTools.NET;
-using AssetsTools.NET.Extra;
-using System;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET.Extra
 {
@@ -26,11 +21,11 @@ namespace AssetsTools.NET.Extra
 
         public IMonoBehaviourTemplateGenerator MonoTempGenerator { get; set; } = null;
 
-        private readonly Dictionary<int, AssetTypeTemplateField> templateFieldCache = new Dictionary<int, AssetTypeTemplateField>();
-        private readonly Dictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
-        private readonly Dictionary<AssetsFileInstance, Dictionary<ushort, AssetTypeTemplateField>> monoTypeTreeTemplateFieldCache = new Dictionary<AssetsFileInstance, Dictionary<ushort, AssetTypeTemplateField>>();
-        private readonly Dictionary<AssetsFileInstance, Dictionary<long, AssetTypeTemplateField>> monoCldbTemplateFieldCache = new Dictionary<AssetsFileInstance, Dictionary<long, AssetTypeTemplateField>>();
-        private readonly Dictionary<AssetsFileInstance, RefTypeManager> refTypeManagerCache = new Dictionary<AssetsFileInstance, RefTypeManager>();
+        private readonly ConcurrentDictionary<int, AssetTypeTemplateField> templateFieldCache = new ConcurrentDictionary<int, AssetTypeTemplateField>();
+        private readonly ConcurrentDictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = new ConcurrentDictionary<AssetTypeReference, AssetTypeTemplateField>();
+        private readonly ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<ushort, AssetTypeTemplateField>> monoTypeTreeTemplateFieldCache = new ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<ushort, AssetTypeTemplateField>>();
+        private readonly ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<long, AssetTypeTemplateField>> monoCldbTemplateFieldCache = new ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<long, AssetTypeTemplateField>>();
+        private readonly ConcurrentDictionary<AssetsFileInstance, RefTypeManager> refTypeManagerCache = new ConcurrentDictionary<AssetsFileInstance, RefTypeManager>();
 
         public void UnloadAll(bool unloadClassData = false)
         {

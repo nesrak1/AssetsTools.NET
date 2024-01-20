@@ -1,7 +1,5 @@
 ﻿using AssetsTools.NET.Extra;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -65,11 +63,15 @@ namespace AssetsTools.NET
         /// <param name="metadata">The metadata to load from.</param>
         /// <param name="monoTemplateGenerator">The mono template generator to use.</param>
         /// <param name="monoTemplateFieldCache">The cache to use.</param>
-        public void WithMonoTemplateGenerator(AssetsFileMetadata metadata, IMonoBehaviourTemplateGenerator monoTemplateGenerator, Dictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = null)
+        public void WithMonoTemplateGenerator(
+            AssetsFileMetadata metadata, IMonoBehaviourTemplateGenerator monoTemplateGenerator,
+            IDictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = null)
         {
             this.monoTemplateGenerator = monoTemplateGenerator;
             unityVersion = new UnityVersion(metadata.UnityVersion);
-            monoTemplateLookup = monoTemplateFieldCache ?? new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
+            monoTemplateLookup = monoTemplateFieldCache != null
+                ? new Dictionary<AssetTypeReference, AssetTypeTemplateField>(monoTemplateFieldCache)
+                : new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
             isSharedMonoLookup = monoTemplateLookup != null;
         }
 

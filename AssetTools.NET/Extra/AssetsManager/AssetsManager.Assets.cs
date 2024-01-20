@@ -23,13 +23,20 @@ namespace AssetsTools.NET.Extra
             fileInst.parentBundle = bunInst;
 
             string lookupKey = GetFileLookupKey(path);
-            FileLookup[lookupKey] = fileInst;
-            Files.Add(fileInst);
+            lock (FileLookup)
+            {
+                lock (Files)
+                {
+                    FileLookup[lookupKey] = fileInst;
+                    Files.Add(fileInst);
+                }
+            }
 
             if (loadDeps)
             {
                 LoadAssetsFileDependencies(fileInst, path, bunInst);
             }
+            // not thread safe
             if (UseQuickLookup)
             {
                 fileInst.file.GenerateQuickLookup();
@@ -104,12 +111,18 @@ namespace AssetsTools.NET.Extra
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
             {
-                monoTypeTreeTemplateFieldCache.Remove(fileInst);
-                monoCldbTemplateFieldCache.Remove(fileInst);
-                refTypeManagerCache.Remove(fileInst);
+                monoTypeTreeTemplateFieldCache.TryRemove(fileInst, out _);
+                monoCldbTemplateFieldCache.TryRemove(fileInst, out _);
+                refTypeManagerCache.TryRemove(fileInst, out _);
 
-                Files.Remove(fileInst);
-                FileLookup.Remove(lookupKey);
+                lock (FileLookup)
+                {
+                    lock (Files)
+                    {
+                        Files.Remove(fileInst);
+                        FileLookup.Remove(lookupKey);
+                    }
+                }
                 fileInst.file.Close();
                 return true;
             }
@@ -127,13 +140,19 @@ namespace AssetsTools.NET.Extra
 
             if (Files.Contains(fileInst))
             {
-                monoTypeTreeTemplateFieldCache.Remove(fileInst);
-                monoCldbTemplateFieldCache.Remove(fileInst);
-                refTypeManagerCache.Remove(fileInst);
+                monoTypeTreeTemplateFieldCache.TryRemove(fileInst, out _);
+                monoCldbTemplateFieldCache.TryRemove(fileInst, out _);
+                refTypeManagerCache.TryRemove(fileInst, out _);
 
                 string lookupKey = GetFileLookupKey(fileInst.path);
-                FileLookup.Remove(lookupKey);
-                Files.Remove(fileInst);
+                lock (FileLookup)
+                {
+                    lock (Files)
+                    {
+                        FileLookup.Remove(lookupKey);
+                        Files.Remove(fileInst);
+                    }
+                }
                 return true;
             }
 
@@ -163,8 +182,14 @@ namespace AssetsTools.NET.Extra
                 {
                     assetsInst.file.Close();
                 }
-                Files.Clear();
-                FileLookup.Clear();
+                lock (FileLookup)
+                {
+                    lock (Files)
+                    {
+                        Files.Clear();
+                        FileLookup.Clear();
+                    }
+                }
                 return true;
             }
             return false;

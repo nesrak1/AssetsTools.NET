@@ -33,6 +33,10 @@ namespace AssetsTools.NET.Extra
         /// The stream the assets file uses.
         /// </summary>
         public Stream AssetsStream => file.Reader.BaseStream;
+        /// <summary>
+        /// The reader used for locking.
+        /// </summary>
+        public AssetsFileReader LockReader => parentBundle != null ? parentBundle.file.DataReader : file.Reader;
 
         public AssetsFileInstance(Stream stream, string filePath)
         {
