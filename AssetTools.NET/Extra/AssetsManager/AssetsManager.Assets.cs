@@ -17,11 +17,22 @@ namespace AssetsTools.NET.Extra
                 LoadBundleDependencies(fileInst, bunInst, Path.GetDirectoryName(path));
         }
 
+        private AssetsFileInstance LoadAssetsFileCacheless(AssetsFile file, string path, bool loadDeps, BundleFileInstance bunInst = null)
+        {
+            AssetsFileInstance fileInst = new AssetsFileInstance(file, path);
+            fileInst.parentBundle = bunInst;
+            return LoadAssetsFileCacheless(fileInst, path, loadDeps, bunInst);
+        }
+
         private AssetsFileInstance LoadAssetsFileCacheless(Stream stream, string path, bool loadDeps, BundleFileInstance bunInst = null)
         {
             AssetsFileInstance fileInst = new AssetsFileInstance(stream, path);
             fileInst.parentBundle = bunInst;
+            return LoadAssetsFileCacheless(fileInst, path, loadDeps, bunInst);
+        }
 
+        private AssetsFileInstance LoadAssetsFileCacheless(AssetsFileInstance fileInst, string path, bool loadDeps, BundleFileInstance bunInst = null)
+        {
             string lookupKey = GetFileLookupKey(path);
             lock (FileLookup)
             {
@@ -65,10 +76,12 @@ namespace AssetsTools.NET.Extra
                 }
                 return fileInst;
             }
-            else
+
+            if (stream != null)
             {
                 return LoadAssetsFileCacheless(stream, path, loadDeps, bunInst);
             }
+            return null;
         }
 
         /// <summary>
@@ -95,10 +108,34 @@ namespace AssetsTools.NET.Extra
         {
             string lookupKey = GetFileLookupKey(path);
             if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
+            {
+                if (loadDeps)
+                {
+                    LoadAssetsFileDependencies(fileInst, path, null);
+                }
                 return fileInst;
+            }
 
             FileStream stream = File.OpenRead(path);
             return LoadAssetsFileCacheless(stream, stream.Name, loadDeps);
+        }
+
+
+        /// <summary>
+        /// Load an <see cref="AssetsFileInstance"/> from an existing loaded <see cref="AssetsFile"/>.
+        /// If a file with that name is already loaded, it will be returned instead.
+        /// </summary>
+        /// <param name="file">The assets file to use.</param>
+        /// <param name="path">The path of the file to read from.</param>
+        /// <param name="loadDeps">Load all dependencies immediately?</param>
+        /// <returns>The loaded <see cref="AssetsFileInstance"/>.</returns>
+        public AssetsFileInstance AddAssetsFile(AssetsFile file, string path, bool loadDeps = false)
+        {
+            string lookupKey = GetFileLookupKey(path);
+            if (FileLookup.TryGetValue(lookupKey, out AssetsFileInstance fileInst))
+                return fileInst;
+
+            return LoadAssetsFileCacheless(file, path, loadDeps);
         }
 
         /// <summary>
@@ -162,7 +199,7 @@ namespace AssetsTools.NET.Extra
         /// <summary>
         /// Unload all <see cref="AssetsFileInstance"/>s.
         /// </summary>
-        /// <param name="clearCache">Clear the cache? Recommended if you plan on reopening files later.</param>
+        /// <param name="clearCache">Clear the cache? Cache is recommended if you plan on reopening files later.</param>
         /// <returns>True if there are files that can be cleared, and false if no files are loaded.</returns>
         public bool UnloadAllAssetsFiles(bool clearCache = false)
         {

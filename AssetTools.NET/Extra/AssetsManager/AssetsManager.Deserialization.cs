@@ -33,7 +33,7 @@ namespace AssetsTools.NET.Extra
             AssetsFileInstance inst, AssetFileInfo info,
             AssetReadFlags readFlags = AssetReadFlags.None)
         {
-            ushort scriptIndex = inst.file.GetScriptIndex(info);
+            ushort scriptIndex = info.GetScriptIndex(inst.file);
             if (info.ReplacerType != ContentReplacerType.AddOrModify)
             {
                 long absFilePos = info.GetAbsoluteByteOffset(inst.file);
@@ -176,7 +176,7 @@ namespace AssetsTools.NET.Extra
                     AssetFileInfo monoScriptInfo = monoScriptFile.file.GetAssetInfo(msPtr.PathId);
                     long monoScriptAbsFilePos = monoScriptInfo.GetAbsoluteByteOffset(monoScriptFile.file);
                     int monoScriptTypeId = monoScriptInfo.TypeId;
-                    ushort monoScriptScriptIndex = monoScriptFile.file.GetScriptIndex(monoScriptInfo);
+                    ushort monoScriptScriptIndex = monoScriptInfo.GetScriptIndex(monoScriptFile.file);
 
                     bool success = GetMonoScriptInfo(
                         monoScriptFile, monoScriptAbsFilePos, monoScriptTypeId, monoScriptScriptIndex,

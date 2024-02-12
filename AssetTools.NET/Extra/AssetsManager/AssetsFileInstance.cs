@@ -38,6 +38,14 @@ namespace AssetsTools.NET.Extra
         /// </summary>
         public AssetsFileReader LockReader => parentBundle != null ? parentBundle.file.DataReader : file.Reader;
 
+        public AssetsFileInstance(AssetsFile file, string filePath)
+        {
+            path = Path.GetFullPath(filePath);
+            name = Path.GetFileName(path);
+            this.file = file;
+            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+        }
+
         public AssetsFileInstance(Stream stream, string filePath)
         {
             path = Path.GetFullPath(filePath);
@@ -46,6 +54,7 @@ namespace AssetsTools.NET.Extra
             file.Read(new AssetsFileReader(stream));
             dependencyCache = new Dictionary<int, AssetsFileInstance>();
         }
+
         public AssetsFileInstance(FileStream stream)
         {
             path = stream.Name;

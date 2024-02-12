@@ -32,6 +32,10 @@ namespace AssetsTools.NET
         /// </summary>
         public bool HasValue { get; set; }
         /// <summary>
+        /// Version of the field. This value is updated when the type changes across engine versions.
+        /// </summary>
+        public ushort Version { get; set; }
+        /// <summary>
         /// Children of the field.
         /// </summary>
         public List<AssetTypeTemplateField> Children { get; set; }
@@ -55,6 +59,7 @@ namespace AssetsTools.NET
             IsArray = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array);
             IsAligned = (field.MetaFlags & 0x4000) != 0;
             HasValue = ValueType != AssetValueType.None;
+            Version = field.Version;
 
             Children = new List<AssetTypeTemplateField>();
 
@@ -121,6 +126,7 @@ namespace AssetsTools.NET
             IsArray = node.TypeFlags == 1;
             IsAligned = (node.MetaFlag & 0x4000) != 0;
             HasValue = ValueType != AssetValueType.None;
+            Version = node.Version;
 
             Children = new List<AssetTypeTemplateField>(node.Children.Count);
             foreach (ClassDatabaseTypeNode childNode in node.Children)

@@ -469,7 +469,7 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.R16 => RgbConverter.Convert<ColorR16, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.BGRA32 => width * height * 4,
+                TextureFormat.BGRA32 => data.Length,
                 TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RHalf => RgbConverter.Convert<ColorR16Half, Half, ColorBGRA32, byte>(data, width, height, out output),

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 
@@ -277,11 +276,15 @@ namespace AssetsTools.NET
                         case AssetValueType.ManagedReferencesRegistry:
                             writer.Write(AsManagedReferencesRegistry.version);
                             int childCount = AsManagedReferencesRegistry.references.Count;
-                            
+
+                            if (AsManagedReferencesRegistry.version >= 2)
+                            {
+                                writer.Write(childCount);
+                            }
                             for (int i = 0; i < childCount; i++)
                             {
                                 AssetTypeReferencedObject refdObject = AsManagedReferencesRegistry.references[i];
-                                if (AsManagedReferencesRegistry.version != 1)
+                                if (AsManagedReferencesRegistry.version >= 2)
                                 {
                                     writer.Write(refdObject.rid);
                                 }
