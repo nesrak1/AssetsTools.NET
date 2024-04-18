@@ -277,7 +277,11 @@ namespace AssetsTools.NET
                         case AssetValueType.ManagedReferencesRegistry:
                             writer.Write(AsManagedReferencesRegistry.version);
                             int childCount = AsManagedReferencesRegistry.references.Count;
-                            
+
+                            if (AsManagedReferencesRegistry.version != 1)
+                            {
+                                writer.Write(childCount);
+                            }
                             for (int i = 0; i < childCount; i++)
                             {
                                 AssetTypeReferencedObject refdObject = AsManagedReferencesRegistry.references[i];
