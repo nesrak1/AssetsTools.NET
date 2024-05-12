@@ -4,7 +4,7 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
-        internal string GetFileLookupKey(string path)
+        public static string GetFileLookupKey(string path)
         {
             return Path.GetFileName(path).ToLower();
         }

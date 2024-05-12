@@ -80,7 +80,7 @@ namespace AssetsTools.NET.Extra
                     depPath = depPath.Substring(depPath.IndexOf('/', "archive:/".Length) + 1);
                 }
 
-                if (!am.FileLookup.TryGetValue(am.GetFileLookupKey(depPath), out AssetsFileInstance inst))
+                if (!am.FileLookup.TryGetValue(AssetsManager.GetFileLookupKey(depPath), out AssetsFileInstance inst))
                 {
                     string pathDir = Path.GetDirectoryName(path);
                     string absPath = Path.Combine(pathDir, depPath);

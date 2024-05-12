@@ -171,14 +171,14 @@ namespace AssetsTools.NET
         }
 
         /// <summary>
-        /// Get the Type ID of the asset.
+        /// Get the Script ID of the asset.
         /// </summary>
         public ushort GetScriptIndex(AssetsFile assetsFile)
         {
             return GetScriptIndex(assetsFile.Metadata.TypeTreeTypes, assetsFile.Header.Version);
         }
         /// <summary>
-        /// Get the Type ID of the asset.
+        /// Get the Script ID of the asset.
         /// </summary>
         public ushort GetScriptIndex(AssetsFileMetadata metadata, uint version)
         {

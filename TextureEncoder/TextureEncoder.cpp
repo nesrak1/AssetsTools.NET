@@ -144,7 +144,7 @@ EXPORT int SanityCheck(int num) {
     return num + 123;
 }
 
-EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, TextureFormat uf, int quality = 3)
+EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, TextureFormat uf, int quality = 3, int mips = 1)
 {
     TextureDataBuffer buffer;
     buffer.size = 0;
@@ -153,13 +153,23 @@ EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, Tex
     bool convertSuccess = texture->convert(u2cfFormat(uf), u2cfType(uf), u2cfQuality(quality));
     if (!convertSuccess)
     {
-        std::cout << "failure setting conversion";
+        std::cout << "failure converting";
         return buffer;
+    }
+
+    if (mips > 1)
+    {
+        bool mipSuccess = texture->generateMipmaps(cuttlefish::Image::ResizeFilter::CatmullRom, mips);
+        if (!mipSuccess)
+        {
+            std::cout << "failure mipping";
+            return buffer;
+        }
     }
 
     buffer.width = texture->width();
     buffer.height = texture->height();
-    buffer.size = texture->dataSize();
+    buffer.size = (int)texture->dataSize();
     buffer.data = malloc(buffer.size);
     if (buffer.data == nullptr)
     {

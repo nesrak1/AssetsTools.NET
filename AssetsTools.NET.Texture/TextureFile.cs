@@ -282,7 +282,7 @@ namespace AssetsTools.NET.Texture
 
         public byte[] GetTextureData(AssetsFileInstance inst, bool useBgra = true)
         {
-            if (inst.parentBundle != null && m_StreamData.path != string.Empty)
+            if (inst.parentBundle != null && m_StreamData.path != string.Empty && (pictureData == null || pictureData.Length == 0))
             {
                 SetPictureDataFromBundle(inst.parentBundle);
             }
@@ -343,9 +343,11 @@ namespace AssetsTools.NET.Texture
 
         public bool SaveTextureDataToImage(AssetsFileInstance inst, Stream stream, ImageExportType type, int quality = 90)
         {
-            byte[] textureData = GetTextureData(inst, true);
+            byte[] textureData = GetTextureData(inst, false);
             if (textureData == null)
                 return false;
+
+            FlipBGRA32Vertically(textureData, m_Width, m_Height);
 
             ImageWriter imageWriter = new ImageWriter();
             switch (type)
@@ -413,7 +415,7 @@ namespace AssetsTools.NET.Texture
         {
             fixed (byte* ptr = rgbaData)
             {
-                for (int i = 0; i < rgbaData.Length / 4; i++)
+                for (int i = 0; i < rgbaData.Length; i += 4)
                 {
                     (ptr[i + 2], ptr[i]) = (ptr[i], ptr[i + 2]);
                 }
@@ -453,15 +455,39 @@ namespace AssetsTools.NET.Texture
 
         public static byte[] DecodeManaged(byte[] data, TextureFormat format, int width, int height, bool useBgra = true)
         {
-            if ((useBgra && (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)) || format == TextureFormat.RGBA32)
+            if ((useBgra && (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)) || (!useBgra && format == TextureFormat.RGBA32))
             {
                 byte[] newData = new byte[width * height * 4];
                 Array.Copy(data, newData, width * height * 4);
+                return newData;
             }
 
             byte[] output = Array.Empty<byte>();
             int size = format switch
             {
+                // different versions of .net == different versions of texture decoder == different type names :/
+#if NET7_0_OR_GREATER
+                TextureFormat.Alpha8 => RgbConverter.Convert<ColorA<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R16 => RgbConverter.Convert<ColorR<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.BGRA32 => data.Length,
+                TextureFormat.RG16 => RgbConverter.Convert<ColorRG<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R8 => RgbConverter.Convert<ColorR<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RHalf => RgbConverter.Convert<ColorR<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGHalf => RgbConverter.Convert<ColorRG<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RFloat => RgbConverter.Convert<ColorR<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGFloat => RgbConverter.Convert<ColorRG<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RG32 => RgbConverter.Convert<ColorRG<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+#else
                 TextureFormat.Alpha8 => RgbConverter.Convert<ColorA8, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB24, byte, ColorBGRA32, byte>(data, width, height, out output),
@@ -482,6 +508,7 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorBGRA32, byte>(data, width, height, out output),
+#endif
 
                 TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
                 TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),
@@ -529,8 +556,8 @@ namespace AssetsTools.NET.Texture
             if (size == 0)
                 return null;
 
-            if (useBgra)
-                SwapRBComponents(data);
+            if (!useBgra)
+                SwapRBComponents(output);
 
             return output;
         }
@@ -578,6 +605,7 @@ namespace AssetsTools.NET.Texture
             ImageResult imageResult = ImageResult.FromStream(stream, StbReadColorComponents.RedGreenBlueAlpha);
             width = imageResult.Width;
             height = imageResult.Height;
+            FlipBGRA32Vertically(imageResult.Data, width, height);
             return EncodeManaged(imageResult.Data, format, width, height, false);
         }
 
