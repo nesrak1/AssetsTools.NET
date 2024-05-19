@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 
@@ -27,7 +27,7 @@ namespace AssetsTools.NET.Extra
         /// </summary>
         public BundleFileInstance parentBundle = null;
 
-        internal Dictionary<int, AssetsFileInstance> dependencyCache;
+        internal ConcurrentDictionary<int, AssetsFileInstance> dependencyCache;
 
         /// <summary>
         /// The stream the assets file uses.
@@ -43,7 +43,7 @@ namespace AssetsTools.NET.Extra
             path = Path.GetFullPath(filePath);
             name = Path.GetFileName(path);
             this.file = file;
-            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
         }
 
         public AssetsFileInstance(Stream stream, string filePath)
@@ -52,7 +52,7 @@ namespace AssetsTools.NET.Extra
             name = Path.GetFileName(path);
             file = new AssetsFile();
             file.Read(new AssetsFileReader(stream));
-            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
         }
 
         public AssetsFileInstance(FileStream stream)
@@ -61,15 +61,19 @@ namespace AssetsTools.NET.Extra
             name = Path.GetFileName(path);
             file = new AssetsFile();
             file.Read(new AssetsFileReader(stream));
-            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
         }
 
         public AssetsFileInstance GetDependency(AssetsManager am, int depIdx)
         {
-            if (!dependencyCache.ContainsKey(depIdx) || dependencyCache[depIdx] == null)
+            if ((!dependencyCache.ContainsKey(depIdx) || dependencyCache[depIdx] == null))
             {
-                string depPath = file.Metadata.Externals[depIdx].PathName;
+                if (depIdx >= file.Metadata.Externals.Count)
+                {
+                    return null;
+                }
 
+                string depPath = file.Metadata.Externals[depIdx].PathName;
                 if (depPath == string.Empty)
                 {
                     return null;
