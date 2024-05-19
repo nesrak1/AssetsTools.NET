@@ -11,5 +11,12 @@ endif()
 
 project ("AssetTools.NET")
 
+# We have to use UNIX here because according to CMake, Ubuntu is UNIX but not LINUX :|
+if (UNIX)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE) 
+    set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
 # Include sub-projects.
 add_subdirectory ("TextureEncoder")

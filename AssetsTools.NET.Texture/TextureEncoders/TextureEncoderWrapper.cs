@@ -13,19 +13,19 @@ namespace AssetsTools.NET.Texture
             public IntPtr data;
         }
 
-        [DllImport("TextureEncoder", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SanityCheck(int number);
 
-        [DllImport("TextureEncoder", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern IntPtr LoadTextureFromFile(string path);
 
-        [DllImport("TextureEncoder", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
         private unsafe static extern IntPtr LoadTextureFromBuffer(byte* data, int size, int width, int height);
 
-        [DllImport("TextureEncoder", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
         private static extern TextureDataBuffer ConvertAndFreeTexture(IntPtr image, TextureFormat format, int quality = 3);
 
-        [DllImport("TextureEncoder", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
         private static extern void FreeTextureDataBuffer(IntPtr imageData);
 
         [DllImport("PVRTexLib", CallingConvention = CallingConvention.Cdecl)]

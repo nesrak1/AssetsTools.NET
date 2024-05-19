@@ -2,25 +2,27 @@
 set_target_properties(TextureEncoder PROPERTIES OUTPUT_NAME "textureencoder")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET TextureEncoder PROPERTY CXX_STANDARD 20)
+    set_property(TARGET TextureEncoder PROPERTY CXX_STANDARD 20)
 endif()
 
 if (WIN32)
-    # Windows specific settings
     set(LIB_DIR "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/windows/lib")
     set(BIN_DIR "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/windows/bin")
     set(LIB_PREFIX "")
     set(LIB_SUFFIX ".lib")
 else()
-    # Linux specific settings
     set(LIB_DIR "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/linux/lib")
     set(BIN_DIR "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/linux/bin")
     set(LIB_PREFIX "lib")
     set(LIB_SUFFIX ".so")
 endif()
 
-link_directories(${LIB_DIR})
-target_include_directories(TextureEncoder PRIVATE "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/windows/include")
+#link_directories(${LIB_DIR})
+if (WIN32)
+    target_include_directories(TextureEncoder PRIVATE "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/windows/include")
+else()
+    target_include_directories(TextureEncoder PRIVATE "${CMAKE_SOURCE_DIR}/NativeLibs/cuttlefish/linux/include")
+endif()
 
 target_link_libraries(TextureEncoder ${LIB_DIR}/${LIB_PREFIX}cuttlefish${LIB_SUFFIX})
 if (PVRTL_ENABLED)

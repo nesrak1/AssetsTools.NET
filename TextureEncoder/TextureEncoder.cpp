@@ -3,6 +3,7 @@
 #include "cuttlefish/Image.h"
 #include "cuttlefish/Texture.h"
 #include <fstream>
+#include <cstring>
 
 using namespace std;
 
