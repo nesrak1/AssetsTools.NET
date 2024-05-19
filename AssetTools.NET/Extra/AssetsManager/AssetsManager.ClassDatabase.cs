@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
@@ -39,6 +36,16 @@ namespace AssetsTools.NET.Extra
         public ClassPackageFile LoadClassPackage(string path)
         {
             return LoadClassPackage(File.OpenRead(path));
+        }
+
+        public void UnloadClassDatabase()
+        {
+            ClassDatabase = null;
+        }
+
+        public void UnloadClassPackage()
+        {
+            ClassPackage = null;
         }
     }
 }
