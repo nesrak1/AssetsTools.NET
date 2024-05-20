@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AssetsTools.NET
 {
@@ -27,6 +28,11 @@ namespace AssetsTools.NET
         /// </summary>
         public AssetBundleFSHeader FileStreamHeader { get; set; }
 
+        /// <summary>
+        /// Weather align after header. Because for 2019.4.30f1 Signature is 0x06 but has align
+        /// </summary>
+        public bool NeedAlignAfterHeader { get; set; }
+
         public void Read(AssetsFileReader reader)
         {
             reader.BigEndian = true;
@@ -38,6 +44,25 @@ namespace AssetsTools.NET
             {
                 FileStreamHeader = new AssetBundleFSHeader();
                 FileStreamHeader.Read(reader);
+                if (Version >= 7)
+                {
+                    NeedAlignAfterHeader = true;
+                }
+                else if(EngineVersion.StartsWith("2019.4.")) 
+                // should check if FileStreamHeader.Flags != AssetBundleFSHeaderFlags.HasDirectoryInfo
+                // but UABEANext now only save file with none compression and will read saved file again
+                // to avoid error won't check flag at now time
+                {
+                    long p = reader.Position;
+                    long len = 16 - p % 16;
+                    byte[] bytes = reader.ReadBytes((int)len);
+                    NeedAlignAfterHeader = bytes.All(x => x == 0);
+                    reader.Position = p;
+                }
+                else
+                {
+                    NeedAlignAfterHeader = false;
+                }
             }
             else
             {
@@ -80,7 +105,7 @@ namespace AssetsTools.NET
             else
             {
                 long ret = GenerationVersion.Length + EngineVersion.Length + 0x1a;
-                if (Version >= 7)
+                if (NeedAlignAfterHeader)
                 {
                     if ((flags & AssetBundleFSHeaderFlags.OldWebPluginCompatibility) != 0)
                         return ((ret + 0x0a) + 15) & ~15;
@@ -111,7 +136,7 @@ namespace AssetsTools.NET
             else
                 ret += Signature.Length + 1;
 
-            if (Version >= 7)
+            if (NeedAlignAfterHeader)
                 ret = (ret + 15) & ~15;
             if ((flags & AssetBundleFSHeaderFlags.BlockAndDirAtEnd) == 0)
                 ret += compressedSize;

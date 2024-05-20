@@ -58,7 +58,7 @@ namespace AssetsTools.NET
                 Header = new AssetBundleHeader();
                 Header.Read(reader);
 
-                if (Header.Version >= 7)
+                if (Header.NeedAlignAfterHeader)
                 {
                     reader.Align16();
                 }
@@ -104,7 +104,7 @@ namespace AssetsTools.NET
 
             Header.Write(writer);
 
-            if (Header.Version >= 7)
+            if (Header.NeedAlignAfterHeader)
             {
                 writer.Align16();
             }
@@ -257,6 +257,8 @@ namespace AssetsTools.NET
                     )
                 }
             };
+            
+            newBundleHeader.NeedAlignAfterHeader = Header.NeedAlignAfterHeader;
 
             long fileSize = newBundleHeader.GetFileDataOffset();
             for (int i = 0; i < blockInfos.Length; i++)
@@ -296,7 +298,7 @@ namespace AssetsTools.NET
             }
 
             newBundleHeader.Write(writer);
-            if (newBundleHeader.Version >= 7)
+            if (newBundleHeader.NeedAlignAfterHeader)
             {
                 writer.Align16();
             }
@@ -405,7 +407,7 @@ namespace AssetsTools.NET
             long startPos = writer.Position;
 
             newHeader.Write(writer);
-            if (newHeader.Version >= 7)
+            if (newHeader.NeedAlignAfterHeader)
                 writer.Align16();
 
             int headerSize = (int)(writer.Position - startPos);
@@ -579,7 +581,7 @@ namespace AssetsTools.NET
 
             writer.Position = 0;
             newHeader.Write(writer);
-            if (newHeader.Version >= 7)
+            if (newHeader.NeedAlignAfterHeader)
                 writer.Align16();
         }
 
