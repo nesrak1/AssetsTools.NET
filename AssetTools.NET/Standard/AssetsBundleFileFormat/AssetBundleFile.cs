@@ -395,6 +395,8 @@ namespace AssetsTools.NET
                 EngineVersion = Header.EngineVersion,
                 FileStreamHeader = newFsHeader
             };
+            
+            newHeader.NeedAlignAfterHeader = Header.NeedAlignAfterHeader;
 
             AssetBundleBlockAndDirInfo newBlockAndDirList = new AssetBundleBlockAndDirInfo()
             {
