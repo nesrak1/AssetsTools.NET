@@ -167,12 +167,18 @@ namespace AssetsTools.NET.Extra
                 if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
                 {
                     ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
-                    isArrayOrList = arrType.IsVector;
+                    isArrayOrList = arrType.IsVector; // isn't this always true?
+                    if (isArrayOrList)
+                    {
+                        // resolidify the type to match the actual element
+                        // back to its original type if it's a generic one
+                        fieldTypeDef = type.SolidifyType(arrType.ElementType);
+                    }
                 }
                 else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
                     isArrayOrList = true;
+                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
                 }
 
                 field.Name = fieldDef.Name;
@@ -284,7 +290,8 @@ namespace AssetsTools.NET.Extra
                             {
                                 continue;
                             }
-                            solidifiedFieldType = elemType;
+                            // resolidify type
+                            solidifiedFieldType = parentType.SolidifyType(elemType);
                         }
                         // unity doesn't serialize a field of the same type as declaring type
                         // unless it inherits from UnityEngine.Object

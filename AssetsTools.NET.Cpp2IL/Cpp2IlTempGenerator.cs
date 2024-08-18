@@ -184,13 +184,18 @@ namespace AssetsTools.NET.Cpp2IL
 
                 if (fieldTypeDef.typeRef.isArray)
                 {
-                    isArrayOrList = fieldTypeDef.typeRef.arrayRank == 1;
-                    fieldTypeDef = fieldTypeDef.typeRef.arrayType;
+                    isArrayOrList = fieldTypeDef.typeRef.arrayRank == 1; // isn't this always true?
+                    if (isArrayOrList)
+                    {
+                        // resolidify the type to match the actual element
+                        // back to its original type if it's a generic one
+                        fieldTypeDef = type.SolidifyType(fieldTypeDef.typeRef.arrayType);
+                    }
                 }
                 else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldTypeDef = fieldTypeDef.typeRef.genericParams[0];
                     isArrayOrList = true;
+                    fieldTypeDef = fieldTypeDef.typeRef.genericParams[0];
                 }
 
                 List<string> attributeNames = GetAttributeNamesOnField(type.typeDef.DeclaringAssembly, fieldDef);
@@ -315,7 +320,8 @@ namespace AssetsTools.NET.Cpp2IL
                             {
                                 continue;
                             }
-                            solidifiedFieldType = elemType;
+                            // resolidify type
+                            solidifiedFieldType = parentType.SolidifyType(elemType);
                         }
                         // unity doesn't serialize a field of the same type as declaring type
                         // unless it inherits from UnityEngine.Object
