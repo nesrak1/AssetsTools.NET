@@ -8,6 +8,7 @@ using AssetRipper.TextureDecoder.Rgb;
 using AssetRipper.TextureDecoder.Rgb.Formats;
 using AssetRipper.TextureDecoder.Yuy2;
 using AssetsTools.NET.Extra;
+using AssetsTools.NET.Texture.TextureDecoders;
 using StbImageSharp;
 using StbImageWriteSharp;
 using System;
@@ -549,6 +550,9 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.PVRTC_RGBA4 => PvrtcDecoder.DecompressPVRTC(data, width, height, false, out output),
 
                 TextureFormat.YUY2 => Yuy2Decoder.DecompressYUY2(data, width, height, out output),
+
+                TextureFormat.DXT1Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT1Crunched, out output),
+                TextureFormat.DXT5Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT5Crunched, out output),
 
                 _ => 0
             };
