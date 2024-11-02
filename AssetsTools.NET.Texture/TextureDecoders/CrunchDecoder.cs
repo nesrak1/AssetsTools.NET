@@ -3,7 +3,7 @@ using AssetRipper.TextureDecoder.Etc;
 using AssetsTools.NET.Texture.TextureDecoders.CrnUnity;
 using System;
 
-namespace AssetsTools.NET.Texture.TextureDecoders
+namespace AssetsTools.NET.Texture
 {
     public class CrunchDecoder
     {

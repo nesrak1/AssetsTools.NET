@@ -22,7 +22,8 @@ struct TextureDataBuffer {
 
 cuttlefish::Texture::Format u2cfFormat(TextureFormat uf)
 {
-    switch (uf) {
+    switch (uf)
+    {
         case TextureFormat::Alpha8: return cuttlefish::Texture::Format::A8; // <not supported>
         case TextureFormat::ARGB4444: return cuttlefish::Texture::Format::A4R4G4B4;
         case TextureFormat::RGB24: return cuttlefish::Texture::Format::R8G8B8;

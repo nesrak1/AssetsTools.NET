@@ -14,7 +14,7 @@ namespace AssetsTools.NET.Texture
     // 4. unswizzle using padded image size, raw texture block size, and gob block height
     //      use Unswizzle
     // 5. crop image to original texture2d size
-    public class SwitchSwizzle
+    public class SwitchSwizzle : ISwizzler
     {
         private const int GOB_X_TEXEL_COUNT = 4;
         private const int GOB_Y_TEXEL_COUNT = 8;
@@ -48,6 +48,48 @@ namespace AssetsTools.NET.Texture
         MOQSUW...
         NPRTVX...
         */
+
+        private readonly Size originalSize;
+        private readonly Size paddedSize;
+        private readonly Size blockSize;
+        private readonly int gobsPerBlock;
+        private readonly TextureFormat realFormat;
+
+        // deswizzle
+        public SwitchSwizzle(TextureFile tex)
+        {
+            originalSize = new Size(tex.m_Width, tex.m_Height);
+            realFormat = (TextureFormat)tex.m_TextureFormat;
+
+            gobsPerBlock = GetBlockHeightByPlatformBlob(tex.m_PlatformBlob);
+
+            // in older versions of unity, rgb24 has a platformblob which shouldn't
+            // be possible. it turns out in this case, the image is just rgba32.
+            if (realFormat == TextureFormat.RGB24)
+            {
+                realFormat = TextureFormat.RGBA32;
+            }
+            else if (realFormat == TextureFormat.BGR24)
+            {
+                realFormat = TextureFormat.BGRA32;
+            }
+
+            blockSize = GetTextureFormatBlockSize(realFormat);
+            paddedSize = GetPaddedTextureSize(originalSize.Width, originalSize.Height, blockSize.Width, blockSize.Height, gobsPerBlock);
+        }
+
+        byte[] ISwizzler.PreprocessDeswizzle(byte[] rawData, out TextureFormat format, out int width, out int height)
+        {
+            format = realFormat;
+            width = paddedSize.Width;
+            height = paddedSize.Height;
+            return Unswizzle(rawData, paddedSize, blockSize, gobsPerBlock);
+        }
+
+        byte[] ISwizzler.PostprocessDeswizzle(byte[] rawData)
+        {
+            return TextureOperations.CropFromTopLeft(rawData, paddedSize.Width, paddedSize.Height, originalSize.Width, originalSize.Height);
+        }
 
         private static int CeilDivide(int a, int b)
         {
@@ -137,38 +179,38 @@ namespace AssetsTools.NET.Texture
         // this will need to be updated in the future if more texture types are supported.
         public static Size GetTextureFormatBlockSize(TextureFormat textureFormat)
         {
-            switch (textureFormat)
+            return textureFormat switch
             {
-                case TextureFormat.Alpha8: return new Size(16, 1);
-                case TextureFormat.ARGB4444: return new Size(8, 1);
-                case TextureFormat.RGBA32: return new Size(4, 1);
-                case TextureFormat.ARGB32: return new Size(4, 1);
-                case TextureFormat.ARGBFloat: return new Size(1, 1);
-                case TextureFormat.RGB565: return new Size(8, 1);
-                case TextureFormat.R16: return new Size(8, 1);
-                case TextureFormat.DXT1: return new Size(8, 4);
-                case TextureFormat.DXT5: return new Size(4, 4);
-                case TextureFormat.RGBA4444: return new Size(8, 1);
-                case TextureFormat.BGRA32: return new Size(4, 1);
-                case TextureFormat.BC6H: return new Size(4, 4);
-                case TextureFormat.BC7: return new Size(4, 4);
-                case TextureFormat.BC4: return new Size(8, 4);
-                case TextureFormat.BC5: return new Size(4, 4);
-                case TextureFormat.ASTC_RGB_4x4: return new Size(4, 4);
-                case TextureFormat.ASTC_RGB_5x5: return new Size(5, 5);
-                case TextureFormat.ASTC_RGB_6x6: return new Size(6, 6);
-                case TextureFormat.ASTC_RGB_8x8: return new Size(8, 8);
-                case TextureFormat.ASTC_RGB_10x10: return new Size(10, 10);
-                case TextureFormat.ASTC_RGB_12x12: return new Size(12, 12);
-                case TextureFormat.ASTC_RGBA_4x4: return new Size(4, 4);
-                case TextureFormat.ASTC_RGBA_5x5: return new Size(5, 5);
-                case TextureFormat.ASTC_RGBA_6x6: return new Size(6, 6);
-                case TextureFormat.ASTC_RGBA_8x8: return new Size(8, 8);
-                case TextureFormat.ASTC_RGBA_10x10: return new Size(10, 10);
-                case TextureFormat.ASTC_RGBA_12x12: return new Size(12, 12);
-                case TextureFormat.RG16: return new Size(8, 1);
-                case TextureFormat.R8: return new Size(16, 1);
-                default: throw new NotImplementedException();
+                TextureFormat.Alpha8 => new Size(16, 1),
+                TextureFormat.ARGB4444 => new Size(8, 1),
+                TextureFormat.RGBA32 => new Size(4, 1),
+                TextureFormat.ARGB32 => new Size(4, 1),
+                TextureFormat.ARGBFloat => new Size(1, 1),
+                TextureFormat.RGB565 => new Size(8, 1),
+                TextureFormat.R16 => new Size(8, 1),
+                TextureFormat.DXT1 => new Size(8, 4),
+                TextureFormat.DXT5 => new Size(4, 4),
+                TextureFormat.RGBA4444 => new Size(8, 1),
+                TextureFormat.BGRA32 => new Size(4, 1),
+                TextureFormat.BC6H => new Size(4, 4),
+                TextureFormat.BC7 => new Size(4, 4),
+                TextureFormat.BC4 => new Size(8, 4),
+                TextureFormat.BC5 => new Size(4, 4),
+                TextureFormat.ASTC_RGB_4x4 => new Size(4, 4),
+                TextureFormat.ASTC_RGB_5x5 => new Size(5, 5),
+                TextureFormat.ASTC_RGB_6x6 => new Size(6, 6),
+                TextureFormat.ASTC_RGB_8x8 => new Size(8, 8),
+                TextureFormat.ASTC_RGB_10x10 => new Size(10, 10),
+                TextureFormat.ASTC_RGB_12x12 => new Size(12, 12),
+                TextureFormat.ASTC_RGBA_4x4 => new Size(4, 4),
+                TextureFormat.ASTC_RGBA_5x5 => new Size(5, 5),
+                TextureFormat.ASTC_RGBA_6x6 => new Size(6, 6),
+                TextureFormat.ASTC_RGBA_8x8 => new Size(8, 8),
+                TextureFormat.ASTC_RGBA_10x10 => new Size(10, 10),
+                TextureFormat.ASTC_RGBA_12x12 => new Size(12, 12),
+                TextureFormat.RG16 => new Size(8, 1),
+                TextureFormat.R8 => new Size(16, 1),
+                _ => throw new NotImplementedException(),
             };
         }
 
@@ -216,6 +258,11 @@ namespace AssetsTools.NET.Texture
                 return TextureFormat.BGRA32;
             }
             return format;
+        }
+
+        public static bool IsSwitchSwizzled(byte[] platformBlob, SwizzleType swizzleType)
+        {
+            return swizzleType == SwizzleType.Switch && platformBlob != null && platformBlob.Length >= 12;
         }
     }
 }
