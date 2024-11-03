@@ -80,7 +80,7 @@ namespace AssetsTools.NET.Extra
                 if (UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
                 {
                     if (monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates) &&
-                        templates.TryGetValue(scriptIndex, out AssetTypeTemplateField template))
+                        templates.TryGetValue(scriptIndex, out baseField))
                     {
                         return baseField;
                     }
