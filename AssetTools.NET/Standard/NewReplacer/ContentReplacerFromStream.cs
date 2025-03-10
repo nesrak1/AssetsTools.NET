@@ -15,15 +15,24 @@ namespace AssetsTools.NET
         {
             this.stream = stream;
             this.offset = offset;
-            this.length = length;
             this.closeOnWrite = closeOnWrite;
             if (!stream.CanSeek)
             {
                 throw new NotSupportedException("Stream needs to be seekable.");
             }
+
+            if (length == -1)
+            {
+                long fromOffset = offset == -1 ? stream.Position : offset;
+                this.length = stream.Length - fromOffset;
+            }
+            else
+            {
+                this.length = length;
+            }
         }
 
-        public void Write(AssetsFileWriter writer)
+        public void Write(AssetsFileWriter writer, bool finalWrite)
         {
             if (offset != -1)
             {
@@ -32,7 +41,7 @@ namespace AssetsTools.NET
 
             stream.CopyToCompat(writer.BaseStream, length);
 
-            if (closeOnWrite)
+            if (closeOnWrite && finalWrite)
             {
                 stream.Close();
             }
@@ -57,6 +66,11 @@ namespace AssetsTools.NET
         public ContentReplacerType GetReplacerType()
         {
             return ContentReplacerType.AddOrModify;
+        }
+
+        public long GetSize()
+        {
+            return length;
         }
     }
 }

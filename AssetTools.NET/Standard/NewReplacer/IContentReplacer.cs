@@ -7,7 +7,9 @@ namespace AssetsTools.NET
         /// <summary>
         /// Write the content with provided writer.
         /// </summary>
-        void Write(AssetsFileWriter writer);
+        /// <param name="writer">The writer to use.</param>
+        /// <param name="finalWrite">Is this the final write? Good for checking when to close a stream.</param>
+        void Write(AssetsFileWriter writer, bool finalWrite);
         /// <summary>
         /// Does the content has a preview stream? This will be true if the data
         /// is readily available (i.e. buffer or stream) and false if the data
@@ -23,5 +25,11 @@ namespace AssetsTools.NET
         /// The replacer type such as modified or removed.
         /// </summary>
         ContentReplacerType GetReplacerType();
+        /// <summary>
+        /// The maximum size this replacer can write to.
+        /// If the size is already known, return that size. Otherwise,
+        /// return a worst-case size for the replacer.
+        /// </summary>
+        long GetSize();
     }
 }

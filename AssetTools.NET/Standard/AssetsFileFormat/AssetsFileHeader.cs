@@ -83,5 +83,17 @@
 
             writer.BigEndian = Endianness;
         }
+
+        /// <summary>
+        /// Get the size of this header.
+        /// </summary>
+        public long GetSize()
+        {
+            long size = 20;
+            if (Version >= 22)
+                size += 28;
+
+            return size;
+        }
     }
 }

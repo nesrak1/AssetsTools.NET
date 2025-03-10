@@ -370,5 +370,35 @@ namespace AssetsTools.NET
                 Replacer = null,
             };
         }
+
+        /// <summary>
+        /// Get the maximum size of this asset file info for a version.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        public static long GetSize(uint version)
+        {
+            long size = 0;
+            if (version >= 14)
+                size += 8;
+            else
+                size += 4;
+
+            if (version >= 22)
+                size += 8;
+            else
+                size += 4;
+
+            size += 4;
+            size += 4;
+            if (version <= 15)
+                size += 2;
+            if (version <= 16)
+                size += 2;
+            if (15 <= version && version <= 16)
+                size += 1;
+
+            size = (size + 3) & ~3;
+            return size;
+        }
     }
 }

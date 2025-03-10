@@ -173,6 +173,55 @@ namespace AssetsTools.NET
         }
 
         /// <summary>
+        /// Get the maximum size of this type tree type.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        /// <param name="hasTypeTree">Is type tree enabled for this file?</param>
+        public long GetSize(uint version, bool hasTypeTree)
+        {
+            long size = 0;
+            size += 4;
+            if (version >= 16)
+                size += 1;
+
+            if (version >= 17)
+                size += 2;
+
+            if ((version < 17 && TypeId < 0) ||
+                (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||
+                (IsRefType && ScriptTypeIndex != 0xffff))
+            {
+                size += 16;
+            }
+
+            size += 16;
+
+            if (hasTypeTree)
+            {
+                size += 4;
+                size += 4;
+                size += TypeTreeNode.GetSize(version) * Nodes.Count;
+                size += StringBufferBytes.Length;
+                if (version >= 21)
+                {
+                    if (!IsRefType)
+                    {
+                        size += 4;
+                        size += TypeDependencies.Length * 4;
+                    }
+                    else
+                    {
+                        size += TypeReference.ClassName.Length + 1;
+                        size += TypeReference.Namespace.Length + 1;
+                        size += TypeReference.AsmName.Length + 1;
+                    }
+                }
+            }
+
+            return size;
+        }
+
+        /// <summary>
         /// The string table used for commonly occuring strings in type trees.
         /// </summary>
         public static readonly byte[] COMMON_STRING_TABLE = Encoding.UTF8.GetBytes(

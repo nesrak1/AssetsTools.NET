@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace AssetsTools.NET
+﻿namespace AssetsTools.NET
 {
     public class AssetsFileExternal
     {
@@ -80,6 +75,31 @@ namespace AssetsTools.NET
                 assetPathTemp = OriginalPathName;
             }
             writer.WriteNullTerminated(assetPathTemp);
+        }
+
+        /// <summary>
+        /// Get the maximum size of this external.
+        /// </summary>
+        public long GetSize()
+        {
+            long size = 0;
+            size += VirtualAssetPathName.Length + 1;
+            size += 16;
+            size += 4;
+
+            if ((PathName == "Resources/unity_builtin_extra" ||
+                PathName == "Resources/unity default resources" ||
+                PathName == "Resources/unity editor resources")
+                && OriginalPathName != string.Empty)
+            {
+                size += OriginalPathName.Length + 1;
+            }
+            else
+            {
+                size += PathName.Length + 1;
+            }
+
+            return size;
         }
     }
 }

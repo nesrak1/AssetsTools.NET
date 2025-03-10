@@ -153,7 +153,7 @@ namespace AssetsTools.NET
                 ContentReplacerType replacerType = assetInfo.ReplacerType;
                 if (replacerType == ContentReplacerType.AddOrModify)
                 {
-                    assetInfo.Replacer.Write(writer);
+                    assetInfo.Replacer.Write(writer, true);
                 }
                 else
                 {
