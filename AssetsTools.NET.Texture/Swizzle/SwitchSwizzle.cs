@@ -59,20 +59,8 @@ namespace AssetsTools.NET.Texture
         public SwitchSwizzle(TextureFile tex)
         {
             originalSize = new Size(tex.m_Width, tex.m_Height);
-            realFormat = (TextureFormat)tex.m_TextureFormat;
-
+            realFormat = GetCorrectedSwitchTextureFormat((TextureFormat)tex.m_TextureFormat);
             gobsPerBlock = GetBlockHeightByPlatformBlob(tex.m_PlatformBlob);
-
-            // in older versions of unity, rgb24 has a platformblob which shouldn't
-            // be possible. it turns out in this case, the image is just rgba32.
-            if (realFormat == TextureFormat.RGB24)
-            {
-                realFormat = TextureFormat.RGBA32;
-            }
-            else if (realFormat == TextureFormat.BGR24)
-            {
-                realFormat = TextureFormat.BGRA32;
-            }
 
             blockSize = GetTextureFormatBlockSize(realFormat);
             paddedSize = GetPaddedTextureSize(originalSize.Width, originalSize.Height, blockSize.Width, blockSize.Height, gobsPerBlock);

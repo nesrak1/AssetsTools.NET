@@ -158,18 +158,25 @@ namespace AssetsTools.NET.Texture
             }
 
             AssetTypeValueField platformBlob = baseField["m_PlatformBlob.Array"];
-            if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
+            if (!platformBlob.IsDummy)
             {
-                texture.m_PlatformBlob = platformBlob.AsByteArray;
+                if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
+                {
+                    texture.m_PlatformBlob = platformBlob.AsByteArray;
+                }
+                else
+                {
+                    int platformBlobSize = platformBlob.Children.Count;
+                    texture.m_PlatformBlob = new byte[platformBlobSize];
+                    for (int i = 0; i < platformBlobSize; i++)
+                    {
+                        texture.m_PlatformBlob[i] = (byte)platformBlob[i].AsInt;
+                    }
+                }
             }
             else
             {
-                int platformBlobSize = platformBlob.Children.Count;
-                texture.m_PlatformBlob = new byte[platformBlobSize];
-                for (int i = 0; i < platformBlobSize; i++)
-                {
-                    texture.m_PlatformBlob[i] = (byte)platformBlob[i].AsInt;
-                }
+                texture.m_PlatformBlob = Array.Empty<byte>();
             }
 
             return texture;
@@ -271,23 +278,26 @@ namespace AssetsTools.NET.Texture
             }
 
             AssetTypeValueField platformBlob = baseField["m_PlatformBlob.Array"];
-            if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
+            if (!platformBlob.IsDummy)
             {
-                platformBlob.AsByteArray = m_PlatformBlob;
-            }
-            else
-            {
-                platformBlob.AsArray = new AssetTypeArrayInfo(m_PlatformBlob.Length);
-
-                List<AssetTypeValueField> children = new List<AssetTypeValueField>(m_PlatformBlob.Length);
-                for (int i = 0; i < m_PlatformBlob.Length; i++)
+                if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
                 {
-                    AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(platformBlob);
-                    child.AsByte = m_PlatformBlob[i];
-                    children[i] = child;
+                    platformBlob.AsByteArray = m_PlatformBlob;
                 }
+                else
+                {
+                    platformBlob.AsArray = new AssetTypeArrayInfo(m_PlatformBlob.Length);
 
-                platformBlob.Children = children;
+                    List<AssetTypeValueField> children = new List<AssetTypeValueField>(m_PlatformBlob.Length);
+                    for (int i = 0; i < m_PlatformBlob.Length; i++)
+                    {
+                        AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(platformBlob);
+                        child.AsByte = m_PlatformBlob[i];
+                        children[i] = child;
+                    }
+
+                    platformBlob.Children = children;
+                }
             }
         }
 
