@@ -5,9 +5,21 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
+        /// <summary>
+        /// Cache template fields, including MonoBehaviours generated from class databases
+        /// </summary>
         public bool UseTemplateFieldCache { get; set; } = false;
+        /// <summary>
+        /// Cache MonoBehaviour template fields from type trees and generated mono temp generators
+        /// </summary>
         public bool UseMonoTemplateFieldCache { get; set; } = false;
+        /// <summary>
+        /// Cache managed reference type template fields
+        /// </summary>
         public bool UseRefTypeManagerCache { get; set; } = false;
+        /// <summary>
+        /// Use a dictionary to look up asset infos rather than a simple sequential search
+        /// </summary>
         public bool UseQuickLookup { get; set; } = false;
 
         public ClassDatabaseFile ClassDatabase { get; private set; }

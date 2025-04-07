@@ -22,7 +22,8 @@ struct TextureDataBuffer {
 
 cuttlefish::Texture::Format u2cfFormat(TextureFormat uf)
 {
-    switch (uf) {
+    switch (uf)
+    {
         case TextureFormat::Alpha8: return cuttlefish::Texture::Format::A8; // <not supported>
         case TextureFormat::ARGB4444: return cuttlefish::Texture::Format::A4R4G4B4;
         case TextureFormat::RGB24: return cuttlefish::Texture::Format::R8G8B8;
@@ -154,7 +155,8 @@ EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, Tex
     bool convertSuccess = texture->convert(u2cfFormat(uf), u2cfType(uf), u2cfQuality(quality));
     if (!convertSuccess)
     {
-        std::cout << "failure converting";
+        buffer.width = -1;
+        buffer.height = -1;
         return buffer;
     }
 
@@ -163,7 +165,8 @@ EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, Tex
         bool mipSuccess = texture->generateMipmaps(cuttlefish::Image::ResizeFilter::CatmullRom, mips);
         if (!mipSuccess)
         {
-            std::cout << "failure mipping";
+            buffer.width = -2;
+            buffer.height = -1;
             return buffer;
         }
     }
@@ -174,7 +177,8 @@ EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, Tex
     buffer.data = malloc(buffer.size);
     if (buffer.data == nullptr)
     {
-        std::cout << "failure allocating buffer";
+        buffer.width = -3;
+        buffer.height = -1;
         return buffer;
     }
 

@@ -5,7 +5,6 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace AssetsTools.NET
 {
@@ -109,18 +108,41 @@ namespace AssetsTools.NET
                 writer.Align16();
             }
 
-            AssetBundleBlockInfo newBlockInfo = new AssetBundleBlockInfo
+            long blockDataLength = 0;
+            int blockDataCount = 1;
+            foreach (AssetBundleDirectoryInfo dirInfo in directoryInfos)
             {
-                CompressedSize = 0,
-                DecompressedSize = 0,
-                Flags = 0x40
-            };
+                if (dirInfo.Replacer != null)
+                {
+                    blockDataLength += dirInfo.Replacer.GetSize();
+                }
+                else
+                {
+                    blockDataLength += dirInfo.DecompressedSize;
+                }
+
+                while (blockDataLength >= uint.MaxValue)
+                {
+                    blockDataLength -= uint.MaxValue;
+                    blockDataCount++;
+                }
+            }
 
             AssetBundleBlockAndDirInfo newBundleInf = new AssetBundleBlockAndDirInfo()
             {
                 Hash = new Hash128(),
-                BlockInfos = new AssetBundleBlockInfo[] { newBlockInfo }
+                BlockInfos = new AssetBundleBlockInfo[blockDataCount]
             };
+
+            for (int i = 0; i < blockDataCount; i++)
+            {
+                newBundleInf.BlockInfos[i] = new AssetBundleBlockInfo
+                {
+                    CompressedSize = 0,
+                    DecompressedSize = 0,
+                    Flags = 0x40
+                };
+            }
 
             List<AssetBundleDirectoryInfo> dirInfos = new List<AssetBundleDirectoryInfo>();
 
@@ -168,7 +190,7 @@ namespace AssetsTools.NET
                 ContentReplacerType replacerType = dirInfo.ReplacerType;
                 if (replacerType == ContentReplacerType.AddOrModify)
                 {
-                    dirInfo.Replacer.Write(writer);
+                    dirInfo.Replacer.Write(writer, true);
                 }
                 else
                 {
@@ -182,19 +204,22 @@ namespace AssetsTools.NET
 
             // now that we know what the sizes are of the written files, let's go back and fix them
             long finalSize = writer.Position;
-            
-            // this would suck :|
-            if (finalSize - assetDataPos > uint.MaxValue)
+            long assetSize = finalSize - assetDataPos;
+
+            // is it okay to have blocks of zero size in case we overshoot?
+            long remainingAssetSize = assetSize;
+            for (int i = 0; i < newBundleInf.BlockInfos.Length; i++)
             {
-                throw new NotImplementedException("Data larger than max uint not supported yet.");
+                AssetBundleBlockInfo blockInfo = newBundleInf.BlockInfos[i];
+                uint take = (uint)Math.Min(remainingAssetSize, uint.MaxValue);
+                blockInfo.DecompressedSize = take;
+                blockInfo.CompressedSize = take;
+                remainingAssetSize -= take;
             }
 
-            uint assetSize = (uint)(finalSize - assetDataPos);
+            newBundleInf.DirectoryInfos = dirInfos;
 
             writer.Position = bundleInfPos;
-            newBlockInfo.DecompressedSize = assetSize;
-            newBlockInfo.CompressedSize = assetSize;
-            newBundleInf.DirectoryInfos = dirInfos;
             newBundleInf.Write(writer);
 
             uint infoSize = (uint)(assetDataPos - bundleInfPos);
@@ -777,7 +802,7 @@ namespace AssetsTools.NET
         {
             if (Header == null)
                 throw new Exception("Header must be loaded! (Did you forget to call bundle.Read?)");
-            
+
             List<string> names = new List<string>();
             List<AssetBundleDirectoryInfo> dirInfos = BlockAndDirInfo.DirectoryInfos;
             foreach (AssetBundleDirectoryInfo dirInfo in dirInfos)

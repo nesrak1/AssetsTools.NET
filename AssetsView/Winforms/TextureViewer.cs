@@ -68,7 +68,8 @@ namespace AssetsView.Winforms
                 }
             }
 
-            byte[] texDat = tf.GetTextureData(inst);
+            byte[] rawTexDat = tf.FillPictureData(inst);
+            byte[] texDat = tf.DecodeTextureRaw(rawTexDat);
             if (texDat != null && texDat.Length > 0)
             {
                 string fmtName = ((TextureFormat)tf.m_TextureFormat).ToString().Replace("_", " ");
@@ -94,7 +95,7 @@ namespace AssetsView.Winforms
                 mouseDown = false;
 
                 DoubleBuffered = true;
-                
+
                 Rectangle workingArea = Screen.PrimaryScreen.WorkingArea;
                 int waWidth = workingArea.Width;
                 int waHeight = workingArea.Height;
@@ -134,7 +135,7 @@ namespace AssetsView.Winforms
 
         public void SaveTexture()
         {
-            if(image == null)
+            if (image == null)
             {
                 return;
             }

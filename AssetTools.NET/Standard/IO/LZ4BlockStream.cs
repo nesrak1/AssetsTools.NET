@@ -3,7 +3,6 @@ using AssetsTools.NET.Extra.Decompressors.LZ4;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -19,7 +18,7 @@ namespace AssetsTools.NET
         private readonly Queue<int> decompressedBlockQueue;
 
         public int maxBlockMapSize;
-        public const int DEFAULT_MAX_BLOCK_MAP_SIZE = 382; // roughly 50mb of cache
+        public const int DEFAULT_MAX_BLOCK_MAP_SIZE = 23; // roughly 3mb of cache
 
         public LZ4BlockStream(
             Stream baseStream, long baseOffset, AssetBundleBlockInfo[] blockInfos,
@@ -164,7 +163,7 @@ namespace AssetsTools.NET
 
                 blockStream.Position = Position % blockSize;
                 int thisReadCount = blockStream.Read(buffer, offset + readCount, (int)Math.Min(blockStream.Length, count - readCount));
-                
+
                 if (thisReadCount == 0)
                 {
                     break;

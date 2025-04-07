@@ -468,5 +468,47 @@ namespace AssetsTools.NET
             }
             return null;
         }
+
+        /// <summary>
+        /// Get the maximum size of this metadata.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        public long GetSize(uint version)
+        {
+            long size = 0;
+            size += UnityVersion.Length + 1;
+            size += 4;
+            if (version >= 13)
+                size += 1;
+
+            size += 4;
+            for (int i = 0; i < TypeTreeTypes.Count; i++)
+                size += TypeTreeTypes[i].GetSize(version, TypeTreeEnabled);
+
+            size += 4;
+            size = (size + 3) & ~3;
+            size += AssetFileInfo.GetSize(version) * AssetInfos.Count;
+
+            // if we get unity 4- support, this needs to be changed
+            size += 4;
+            size = (size + 3) & ~3;
+            size += 12 * ScriptTypes.Count;
+
+            size += 4;
+            for (int i = 0; i < Externals.Count; i++)
+                size += Externals[i].GetSize();
+
+            if (version >= 20)
+            {
+                size += 4;
+                for (int j = 0; j < RefTypes.Count; j++)
+                    size += RefTypes[j].GetSize(version, TypeTreeEnabled);
+            }
+
+            if (version >= 5)
+                size += UserInformation.Length + 1;
+
+            return size;
+        }
     }
 }

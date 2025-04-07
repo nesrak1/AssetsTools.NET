@@ -104,7 +104,7 @@ namespace AssetsTools.NET.Tests
                     var texBf = am.GetBaseField(fileInst, texInf);
                     var tex = TextureFile.ReadTextureFile(texBf);
                     tex.m_TextureFormat = (int)format;
-                    tex.SetTextureData("test4096.png");
+                    tex.EncodeTextureImage("test4096.png", level);
                     tex.WriteTo(texBf);
                     texInf.SetNewData(texBf);
 

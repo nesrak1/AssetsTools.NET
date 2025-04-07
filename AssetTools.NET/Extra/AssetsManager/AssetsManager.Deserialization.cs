@@ -66,6 +66,7 @@ namespace AssetsTools.NET.Extra
             bool forceFromCldb = readFlags.HasFlag(AssetReadFlags.ForceFromCldb);
             bool skipMonoBehaviourFields = readFlags.HasFlag(AssetReadFlags.SkipMonoBehaviourFields);
 
+            // if non-monobehaviour type is in cache, return the cached item
             if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour && templateFieldCache.TryGetValue(typeId, out baseField))
             {
                 return baseField;
@@ -79,9 +80,9 @@ namespace AssetsTools.NET.Extra
                 if (UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
                 {
                     if (monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates) &&
-                        templates.TryGetValue(scriptIndex, out AssetTypeTemplateField template))
+                        templates.TryGetValue(scriptIndex, out baseField))
                     {
-                        return template;
+                        return baseField;
                     }
                 }
 
@@ -108,6 +109,7 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
+            // if we cached a monobehaviour from a class database, clone a copy
             if (UseTemplateFieldCache && UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
             {
                 if (templateFieldCache.TryGetValue(typeId, out baseField))
@@ -116,8 +118,16 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
+            // if we haven't got the basefield yet, the only option left is
+            // the class database. if it's not there or the database isn't
+            // loaded, we're out of luck.
             if (baseField == null)
             {
+                if (ClassDatabase == null)
+                {
+                    return null;
+                }
+
                 ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(typeId);
                 if (cldbType == null)
                 {
@@ -140,6 +150,11 @@ namespace AssetsTools.NET.Extra
                 }
             }
 
+            // we need to generate the monobehaviour fields from a mono temp
+            // generator. this requires parsing the base monobehaviour so we
+            // can get the monoscript (we could also use the script index
+            // but this is safer) and then passing the script from there to
+            // the temp generator. we then append those fields to the base.
             if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields && reader != null)
             {
                 AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);

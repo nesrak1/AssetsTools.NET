@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
@@ -125,6 +127,21 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return typeName;
+        }
+
+        public static long GuidToPathId(string guid, int assetType, long internalId)
+        {
+            using MemoryStream ms = new MemoryStream();
+            AssetsFileWriter w = new AssetsFileWriter(ms);
+
+            w.WriteRawString(guid);
+            w.Write(assetType);
+            w.Write(internalId);
+
+            MD4 md4 = new MD4();
+            byte[] pathIdBytes = md4.GetByteHashFromBytes(ms.ToArray());
+            long pathId = BitConverter.ToInt64(pathIdBytes, 0);
+            return pathId;
         }
     }
 }

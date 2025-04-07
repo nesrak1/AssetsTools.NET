@@ -23,7 +23,7 @@ namespace AssetsTools.NET.Texture
         private unsafe static extern IntPtr LoadTextureFromBuffer(byte* data, int size, int width, int height);
 
         [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
-        private static extern TextureDataBuffer ConvertAndFreeTexture(IntPtr image, TextureFormat format, int quality = 3);
+        private static extern TextureDataBuffer ConvertAndFreeTexture(IntPtr image, TextureFormat format, int quality = 3, int mips = 1);
 
         [DllImport("textureencoder", CallingConvention = CallingConvention.Cdecl)]
         private static extern void FreeTextureDataBuffer(IntPtr imageData);
@@ -53,9 +53,17 @@ namespace AssetsTools.NET.Texture
             }
 
             IntPtr image = LoadTextureFromFile(path);
+            if (image == IntPtr.Zero)
+            {
+                throw new Exception($"{nameof(LoadTextureFromFile)} returned null.");
+            }
+
             TextureDataBuffer dataBuffer = ConvertAndFreeTexture(image, textureFormat, quality);
+            ThrowIfConvertFailed(ref dataBuffer);
+
             width = dataBuffer.width;
             height = dataBuffer.height;
+
             IntPtr dataPtr = dataBuffer.data;
             int dataSize = dataBuffer.size;
 
@@ -81,25 +89,24 @@ namespace AssetsTools.NET.Texture
                     image = LoadTextureFromBuffer(rgbaDataPtr, rgbaData.Length, width, height);
                 }
             }
+            if (image == IntPtr.Zero)
+            {
+                throw new Exception($"{nameof(LoadTextureFromBuffer)} returned null.");
+            }
 
             IntPtr dataPtr = IntPtr.Zero;
             byte[] data = null;
-            try
-            {
-                TextureDataBuffer dataBuffer = ConvertAndFreeTexture(image, textureFormat, quality);
-                dataPtr = dataBuffer.data;
-                int dataSize = dataBuffer.size;
 
-                data = new byte[dataSize];
-                Marshal.Copy(dataPtr, data, 0, dataSize);
-            }
-            finally
-            {
-                if (dataPtr != IntPtr.Zero)
-                {
-                    FreeTextureDataBuffer(dataPtr);
-                }
-            }
+            TextureDataBuffer dataBuffer = ConvertAndFreeTexture(image, textureFormat, quality);
+            ThrowIfConvertFailed(ref dataBuffer);
+
+            dataPtr = dataBuffer.data;
+            int dataSize = dataBuffer.size;
+
+            data = new byte[dataSize];
+            Marshal.Copy(dataPtr, data, 0, dataSize);
+
+            FreeTextureDataBuffer(dataPtr);
             return data;
         }
 
@@ -113,6 +120,37 @@ namespace AssetsTools.NET.Texture
             catch
             {
                 return false;
+            }
+        }
+
+        private static void ThrowIfConvertFailed(ref TextureDataBuffer dataBuf)
+        {
+            int width = dataBuf.width;
+            int height = dataBuf.height;
+            if (height == -1)
+            {
+                IntPtr dataPtr = dataBuf.data;
+                if (dataPtr != IntPtr.Zero)
+                {
+                    FreeTextureDataBuffer(dataPtr);
+                }
+
+                if (width == -1)
+                {
+                    throw new Exception($"{nameof(ConvertAndFreeTexture)} failed to encode texture.");
+                }
+                else if (width == -2)
+                {
+                    throw new Exception($"{nameof(ConvertAndFreeTexture)} failed to encode mipmaps.");
+                }
+                else if (width == -3)
+                {
+                    throw new Exception($"{nameof(ConvertAndFreeTexture)} failed to allocate memory.");
+                }
+                else
+                {
+                    throw new Exception($"{nameof(ConvertAndFreeTexture)} returned an unknown error.");
+                }
             }
         }
 

@@ -44,7 +44,7 @@ namespace AssetsTools.NET
         {
             unchecked
             {
-                return BigEndian ? ReverseInt(System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0)) :
+                return BigEndian ? ReverseInt(System.BitConverter.ToUInt32(new byte[] { 0 }.Concat(ReadBytes(3)).ToArray(), 0)) :
                     System.BitConverter.ToUInt32(ReadBytes(3).Concat(new byte[] { 0 }).ToArray(), 0);
             }
         }

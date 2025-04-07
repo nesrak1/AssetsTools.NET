@@ -28,29 +28,6 @@
 		<ProjectReference Include="..\AssetTools.NET\AssetsTools.NET.csproj" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="../build/TextureEncoder/Debug/textureencoder.dll">
-      <Pack>true</Pack>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles;content</PackagePath>
-    </Content>
-    <Content Include="../build/TextureEncoder/Debug/cuttlefish.dll">
-      <Pack>true</Pack>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles;content</PackagePath>
-    </Content>
-    <!--
-    <Content Include="../out/build/x64-debug/TextureEncoder/libtextureencoder.so">
-      <Pack>true</Pack>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-      <PackagePath>contentFiles;content</PackagePath>
-    </Content>
-    -->
-  </ItemGroup>
-
   <!-- necessary because prebuild is called for every single target -->
   <!--<Target Name="CmakeNatives" BeforeTargets="DispatchToInnerBuilds">
     <Exec Command="cmake - -build $(SolutionDir)/build" />

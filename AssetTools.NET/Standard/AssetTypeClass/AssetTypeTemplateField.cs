@@ -281,12 +281,13 @@ namespace AssetsTools.NET
                             throw new Exception($"Expected ManagedReferencesRegistry to have two children, found {registryChildCount} instead!");
 
                         registry.version = reader.ReadInt32();
-                        registry.references = new List<AssetTypeReferencedObject>(0);
+                        registry.references = new List<AssetTypeReferencedObject>();
 
                         if (registry.version == 1)
                         {
                             while (true)
                             {
+                                // rid is consecutive starting at 0
                                 var refdObject = MakeReferencedObject(reader, registry.version, registry.references.Count, refMan);
                                 if (refdObject.type.Equals(AssetTypeReference.TERMINUS))
                                 {
@@ -300,7 +301,8 @@ namespace AssetsTools.NET
                             int childCount = reader.ReadInt32();
                             for (int i = 0; i < childCount; i++)
                             {
-                                var refdObject = MakeReferencedObject(reader, registry.version, i, refMan);
+                                // rid is read from data
+                                var refdObject = MakeReferencedObject(reader, registry.version, -1, refMan);
                                 registry.references.Add(refdObject);
                             }
                         }
@@ -401,11 +403,11 @@ namespace AssetsTools.NET
             AssetTypeTemplateField objectTempField = refMan.GetTemplateField(refType);
             if (objectTempField != null)
             {
-                refdObject.data = new AssetTypeValueField()
+                AssetTypeValueField tempField = new AssetTypeValueField()
                 {
                     TemplateField = objectTempField
                 };
-                refdObject.data = ReadType(reader, refdObject.data, refMan);
+                refdObject.data = ReadType(reader, tempField, refMan);
             }
             else
             {

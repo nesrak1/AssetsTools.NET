@@ -17,7 +17,7 @@ namespace AssetsTools.NET
             file = inst.file;
         }
 
-        public void Write(AssetsFileWriter writer)
+        public void Write(AssetsFileWriter writer, bool finalWrite)
         {
             // some parts of an assets file need to be aligned to a multiple of 4/8/16 bytes,
             // but for this to work correctly, the start of the file of course needs to be aligned too.
@@ -43,6 +43,51 @@ namespace AssetsTools.NET
         public ContentReplacerType GetReplacerType()
         {
             return ContentReplacerType.AddOrModify;
+        }
+
+        public long GetSize()
+        {
+            long size = 0;
+            size += file.Header.GetSize();
+            size += file.Metadata.GetSize(file.Header.Version);
+            if (size < 0x1000)
+            {
+                size = 0x1000;
+            }
+            else
+            {
+                size += 16;
+            }
+
+            foreach (AssetFileInfo assetInfo in file.Metadata.AssetInfos)
+            {
+                if (assetInfo.Replacer != null)
+                {
+                    if (assetInfo.Replacer.HasPreview())
+                    {
+                        size += assetInfo.Replacer.GetPreviewStream().Length;
+                    }
+                    else
+                    {
+                        // slower, but we weren't left with any other option.
+                        // this should probably be some kind of dummy reader
+                        // so it doesn't use memory, but this will work for now.
+                        using (AssetsFileWriter writer = new AssetsFileWriter(new MemoryStream()))
+                        {
+                            assetInfo.Replacer.Write(writer, false);
+                            size += writer.BaseStream.Length;
+                        }
+                    }
+                }
+                else
+                {
+                    size += assetInfo.ByteSize;
+                }
+
+                size = (size + 7) & ~7;
+            }
+
+            return 0;
         }
     }
 }
