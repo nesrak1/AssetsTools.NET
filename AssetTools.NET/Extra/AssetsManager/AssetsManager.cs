@@ -31,7 +31,26 @@ namespace AssetsTools.NET.Extra
         public List<BundleFileInstance> Bundles { get; private set; } = new List<BundleFileInstance>();
         public Dictionary<string, BundleFileInstance> BundleLookup { get; private set; } = new Dictionary<string, BundleFileInstance>();
 
-        public IMonoBehaviourTemplateGenerator MonoTempGenerator { get; set; } = null;
+        private IMonoBehaviourTemplateGenerator _monoTempGenerator = null;
+        public IMonoBehaviourTemplateGenerator MonoTempGenerator
+        {
+            get
+            {
+                return _monoTempGenerator;
+            }
+            set
+            {
+                _monoTempGenerator = value;
+
+                // refmans aren't connected to the manager so update all of their temp gens manually
+                foreach (var kvp in refTypeManagerCache)
+                {
+                    AssetsFileInstance fileInst = kvp.Key;
+                    RefTypeManager refMan = kvp.Value;
+                    refMan.WithMonoTemplateGenerator(fileInst.file.Metadata, _monoTempGenerator, UseMonoTemplateFieldCache ? monoTemplateFieldCache : null);
+                }
+            }
+        }
 
         private readonly ConcurrentDictionary<int, AssetTypeTemplateField> templateFieldCache = new ConcurrentDictionary<int, AssetTypeTemplateField>();
         private readonly ConcurrentDictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateFieldCache = new ConcurrentDictionary<AssetTypeReference, AssetTypeTemplateField>();
