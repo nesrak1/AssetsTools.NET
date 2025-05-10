@@ -358,7 +358,7 @@ namespace AssetsTools.NET.Cpp2IL
 
             bool IsValidDef(List<string> attributeNames, TypeDefWithSelfRef typeDef, int availableDepth)
             {
-                // before 2020.1.0 you couldn't have fields of a generic type, so they should be ingored
+                // before 2020.1.0 you couldn't have fields of a generic type, so they should be ignored
                 // https://unity.com/releases/editor/whats-new/2020.1.0
                 if (typeDef.typeDef.GenericContainer != null && _unityVersion.major < 2020)
                 {
