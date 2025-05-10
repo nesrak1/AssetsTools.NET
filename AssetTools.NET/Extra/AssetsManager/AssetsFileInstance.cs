@@ -34,7 +34,9 @@ namespace AssetsTools.NET.Extra
         /// </summary>
         public Stream AssetsStream => file.Reader.BaseStream;
         /// <summary>
-        /// The reader used for locking.
+        /// The reader used for locking. This reader shouldn't be used for reading, but instead
+        /// will select the top-most reader to lock on so that consumers that use a different
+        /// reader but come from the same base stream will lock on the same object.
         /// </summary>
         public AssetsFileReader LockReader => parentBundle != null ? parentBundle.file.DataReader : file.Reader;
 

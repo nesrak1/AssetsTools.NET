@@ -282,7 +282,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
@@ -338,7 +338,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
@@ -365,7 +365,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type by type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// For games before 5.5, <paramref name="scriptIndex"/> is ignored since this data is read
         /// from the negative value of <paramref name="id"/>. In 5.5 and later, MonoBehaviours are always
         /// 0x72, so <paramref name="scriptIndex"/> is used instead.
@@ -393,7 +393,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type index by type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// For games before 5.5, <paramref name="scriptIndex"/> is ignored since this data is read
         /// from the negative value of <paramref name="id"/>. In 5.5 and later, MonoBehaviours are always
         /// 0x72, so <paramref name="scriptIndex"/> is used instead.
@@ -422,7 +422,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type by script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="scriptIndex">The script index to search for.</param>
         /// <returns>The type tree type with this script index.</returns>
