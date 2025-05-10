@@ -112,13 +112,14 @@ namespace AssetsTools.NET
         }
         public string ReadNullTerminated()
         {
-            string output = "";
-            char curChar;
-            while ((curChar = ReadChar()) != 0x00)
+            MemoryStream ms = new MemoryStream();
+            byte curByte;
+            while ((curByte = ReadByte()) != 0)
             {
-                output += curChar;
+                ms.WriteByte(curByte);
             }
-            return output;
+
+            return Encoding.UTF8.GetString(ms.ToArray());
         }
         public static string ReadNullTerminatedArray(byte[] bytes, uint pos)
         {
