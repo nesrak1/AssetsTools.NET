@@ -18,7 +18,7 @@ namespace AssetsTools.NET.Cpp2IL
         private readonly string _assemblyPath;
         private ATUnityVersion _unityVersion;
         private bool _initialized;
-        private bool anyFieldIsManagedReference;
+        private bool _anyFieldIsManagedReference;
 
         public Cpp2IlTempGenerator(string globalMetadataPath, string assemblyPath)
         {
@@ -83,7 +83,7 @@ namespace AssetsTools.NET.Cpp2IL
                 Debug.WriteLine("Warning: This unity version does not match what Cpp2Il was registered with. Call ResetUnityVersion().");
             }
 
-            anyFieldIsManagedReference = false;
+            _anyFieldIsManagedReference = false;
 
             Il2CppMetadata meta = LibCpp2IlMain.TheMetadata;
 
@@ -122,28 +122,81 @@ namespace AssetsTools.NET.Cpp2IL
             return newBaseField;
         }
 
+        public byte[] LoadNewCustomAttributeData(Il2CppImageDefinition image, Il2CppMetadata metadata, Il2CppFieldDefinition field)
+        {
+            Il2CppCustomAttributeDataRange target = new Il2CppCustomAttributeDataRange
+            {
+                token = field.token
+            };
+
+            int caIndex = metadata.AttributeDataRanges.BinarySearch
+            (
+                image.customAttributeStart,
+                (int)image.customAttributeCount,
+                target,
+                new TokenComparer()
+            );
+
+            if (caIndex < 0)
+            {
+                return null;
+            }
+
+            Il2CppCustomAttributeDataRange attributeDataRange = metadata.AttributeDataRanges[caIndex];
+            Il2CppCustomAttributeDataRange next = metadata.AttributeDataRanges[caIndex + 1];
+
+            long blobStart = metadata.metadataHeader.attributeDataOffset + attributeDataRange.startOffset;
+            long blobEnd = metadata.metadataHeader.attributeDataOffset + next.startOffset;
+
+            return metadata.ReadByteArrayAtRawAddress(blobStart, (int)(blobEnd - blobStart));
+        }
+
         private List<string> GetAttributeNamesOnField(Il2CppImageDefinition image, Il2CppFieldDefinition field)
         {
             List<string> attributeNames = new List<string>();
 
-            var attributeTypeRange = LibCpp2IlMain.TheMetadata.GetCustomAttributeData(image, field.customAttributeIndex, field.token, out int idx);
-
-            if (attributeTypeRange == null)
+            Il2CppMetadata metadata = LibCpp2IlMain.TheMetadata;
+            if (LibCpp2IlMain.MetadataVersion >= 29f)
             {
+                // new version
+                byte[] rawAttrData = LoadNewCustomAttributeData(image, metadata, field);
+                if (rawAttrData == null)
+                {
+                    // no attributes
+                    return attributeNames;
+                }
+
+                ParsedCustomAttrData parsedCustomAttrData = new ParsedCustomAttrData(rawAttrData);
+                foreach (uint attrIdx in parsedCustomAttrData.attributeIndices)
+                {
+                    var attrCtorMethod = metadata.methodDefs[attrIdx];
+                    var attrType = metadata.typeDefs[attrCtorMethod.declaringTypeIdx];
+                    attributeNames.Add(attrType.FullName);
+                }
+
                 return attributeNames;
             }
-
-            for (int attributeIdx = 0; attributeIdx < attributeTypeRange.count; attributeIdx++)
+            else
             {
-                var attributeTypeIndex = LibCpp2IlMain.TheMetadata.attributeTypes[attributeTypeRange.start + attributeIdx];
-                var attributeTypeDef = LibCpp2IlMain.TheMetadata.typeDefs.FirstOrDefault(td => td.ByvalTypeIndex == attributeTypeIndex);
-                if (attributeTypeDef != null)
+                // old version
+                var attributeTypeRange = metadata.GetCustomAttributeData(image, field.customAttributeIndex, field.token, out int idx);
+                if (attributeTypeRange == null)
                 {
-                    attributeNames.Add(attributeTypeDef.FullName);
+                    return attributeNames;
                 }
-            }
 
-            return attributeNames;
+                for (int attributeIdx = 0; attributeIdx < attributeTypeRange.count; attributeIdx++)
+                {
+                    var attributeTypeIndex = metadata.attributeTypes[attributeTypeRange.start + attributeIdx];
+                    var attributeTypeDef = metadata.typeDefs.FirstOrDefault(td => td.ByvalTypeIndex == attributeTypeIndex);
+                    if (attributeTypeDef != null)
+                    {
+                        attributeNames.Add(attributeTypeDef.FullName);
+                    }
+                }
+
+                return attributeNames;
+            }
         }
 
         private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> templateFields, int availableDepth, bool isRecursiveCall = false)
@@ -222,7 +275,7 @@ namespace AssetsTools.NET.Cpp2IL
                 }
                 else if (isManagedReference = attributeNames.Contains("UnityEngine.SerializeReference"))
                 {
-                    anyFieldIsManagedReference = true;
+                    _anyFieldIsManagedReference = true;
                     field.Type = "managedReference";
                 }
                 else
@@ -256,7 +309,7 @@ namespace AssetsTools.NET.Cpp2IL
                 }
                 else
                 {
-                    Console.WriteLine("you wot mate");
+                    throw new Exception($"Could not determine type of asset field to use for {field.Name}");
                 }
 
                 field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
@@ -278,7 +331,7 @@ namespace AssetsTools.NET.Cpp2IL
                 localChildren.Add(field);
             }
 
-            if (anyFieldIsManagedReference && DerivesFromUEObject(type))
+            if (_anyFieldIsManagedReference && DerivesFromUEObject(type))
             {
                 localChildren.Add(CommonMonoTemplateHelper.ManagedReferencesRegistry("references", _unityVersion));
             }
