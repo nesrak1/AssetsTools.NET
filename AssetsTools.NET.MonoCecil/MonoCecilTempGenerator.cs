@@ -40,13 +40,24 @@ namespace AssetsTools.NET.Extra
                 assemblyName += ".dll";
             }
 
-            string assemblyPath = Path.Combine(managedPath, assemblyName);
-            if (!File.Exists(assemblyPath))
-            {
-                return null;
-            }
+            List<AssetTypeTemplateField> newFields;
 
-            List<AssetTypeTemplateField> newFields = Read(assemblyPath, nameSpace, className, unityVersion);
+            // if the assembly is already loaded, use it
+            if (loadedAssemblies.ContainsKey(assemblyName))
+            {
+                AssemblyDefinition asmDef = loadedAssemblies[assemblyName];
+                newFields = Read(asmDef, nameSpace, className, unityVersion);
+            }
+            else
+            // otherwise, try to read it from the managed path
+            {
+                string assemblyPath = Path.Combine(managedPath, assemblyName);
+                if (!File.Exists(assemblyPath))
+                {
+                    return null;
+                }
+                newFields = Read(assemblyPath, nameSpace, className, unityVersion);
+            }
 
             AssetTypeTemplateField newBaseField = baseField.Clone();
             newBaseField.Children.AddRange(newFields);
