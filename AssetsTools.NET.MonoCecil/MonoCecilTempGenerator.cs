@@ -125,6 +125,10 @@ namespace AssetsTools.NET.Extra
                 type = typeRef.Resolve();
             }
 
+            if (type == null) {
+                throw new NonexistentTypeException(module.Assembly.Name.Name, nameSpace, typeName);
+            }
+
             RecursiveTypeLoad(type, attf, availableDepth, true);
         }
 
