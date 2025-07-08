@@ -47,6 +47,9 @@ namespace AssetsTools.NET.Extra
             }
 
             List<AssetTypeTemplateField> newFields = Read(assemblyPath, nameSpace, className, unityVersion);
+            if (newFields == null) {
+                return null;
+            }
 
             AssetTypeTemplateField newBaseField = baseField.Clone();
             newBaseField.Children.AddRange(newFields);
@@ -66,7 +69,35 @@ namespace AssetsTools.NET.Extra
             anyFieldIsManagedReference = false;
             List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
 
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, CommonMonoTemplateHelper.GetSerializationLimit(unityVersion));
+            int availableDepth = CommonMonoTemplateHelper.GetSerializationLimit(unityVersion);
+            // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
+            TypeReference typeRef;
+            TypeDefinition type;
+
+            if (typeName.Contains('/'))
+            {
+                string[] types = typeName.Split('/');
+                type = new TypeReference(nameSpace, types[0], assembly.MainModule, assembly.MainModule).Resolve();
+                for (int i = 1; i < types.Length; i++)
+                {
+                    typeRef = new TypeReference("", types[i], assembly.MainModule, assembly.MainModule)
+                    {
+                        DeclaringType = type
+                    };
+                    type = typeRef.Resolve();
+                }
+            }
+            else
+            {
+                typeRef = new TypeReference(nameSpace, typeName, assembly.MainModule, assembly.MainModule);
+                type = typeRef.Resolve();
+            }
+
+            if (type == null) {
+                return null;
+            }
+
+            RecursiveTypeLoad(type, children, availableDepth, true);
             return children;
         }
 
@@ -98,38 +129,6 @@ namespace AssetsTools.NET.Extra
             }
 
             return asmDef;
-        }
-
-        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf, int availableDepth)
-        {
-            // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
-            TypeReference typeRef;
-            TypeDefinition type;
-
-            if (typeName.Contains('/'))
-            {
-                string[] types = typeName.Split('/');
-                type = new TypeReference(nameSpace, types[0], module, module).Resolve();
-                for (int i = 1; i < types.Length; i++)
-                {
-                    typeRef = new TypeReference("", types[i], module, module)
-                    {
-                        DeclaringType = type
-                    };
-                    type = typeRef.Resolve();
-                }
-            }
-            else
-            {
-                typeRef = new TypeReference(nameSpace, typeName, module, module);
-                type = typeRef.Resolve();
-            }
-
-            if (type == null) {
-                throw new NonexistentTypeException(module.Assembly.Name.Name, nameSpace, typeName);
-            }
-
-            RecursiveTypeLoad(type, attf, availableDepth, true);
         }
 
         private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth, bool isRecursiveCall = false)

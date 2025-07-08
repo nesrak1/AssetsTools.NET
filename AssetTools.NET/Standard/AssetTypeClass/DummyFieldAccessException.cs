@@ -8,11 +8,4 @@ namespace AssetsTools.NET
         {
         }
     }
-
-    public class NonexistentTypeException : Exception
-    {
-        public NonexistentTypeException(string assembly, string nameSpace, string typeName) : base(
-            $"Type `{(nameSpace != "" ? $"{nameSpace}." : "")}{typeName}` does not exist in assembly `{assembly}`"
-        ) {}
-    }
 }
