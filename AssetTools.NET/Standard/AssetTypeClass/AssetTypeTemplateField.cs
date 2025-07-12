@@ -81,10 +81,8 @@ namespace AssetsTools.NET
             // (ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
             if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
             {
-                Type = Children[0].Type;
-                ValueType = Children[0].ValueType;
-
-                Children.Clear();
+                Type = "_string";
+                ValueType = AssetValueType.None;
             }
 
             if (IsArray)
@@ -140,11 +138,8 @@ namespace AssetsTools.NET
             // (ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
             if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
             {
-                Type = Children[0].Type;
-                ValueType = Children[0].ValueType;
-
-                Children.Clear();
-                Children.TrimExcess();
+                Type = "_string";
+                ValueType = AssetValueType.None;
             }
 
             if (IsArray)
