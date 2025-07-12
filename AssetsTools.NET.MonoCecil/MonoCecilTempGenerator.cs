@@ -163,6 +163,7 @@ namespace AssetsTools.NET.Extra
                 bool isPrimitive = false;
                 bool derivesFromUEObject = false;
                 bool isManagedReference = false;
+                bool isString = false;
 
                 if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
                 {
@@ -191,7 +192,7 @@ namespace AssetsTools.NET.Extra
                 {
                     field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(fieldTypeDef.typeDef.FullName);
                 }
-                else if (fieldTypeDef.typeDef.FullName == "System.String")
+                else if (isString = fieldTypeDef.typeDef.FullName == "System.String")
                 {
                     field.Type = "string";
                 }
@@ -240,7 +241,7 @@ namespace AssetsTools.NET.Extra
 
                 if (isArrayOrList)
                 {
-                    if (isPrimitive || derivesFromUEObject)
+                    if (isPrimitive || isString || derivesFromUEObject)
                     {
                         field = CommonMonoTemplateHelper.Vector(field);
                     }
