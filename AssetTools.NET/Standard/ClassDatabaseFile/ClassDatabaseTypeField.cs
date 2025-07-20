@@ -24,7 +24,7 @@ namespace AssetsTools.NET
             Version = reader.ReadUInt16();
             TypeFlags = reader.ReadByte();
             MetaFlag = reader.ReadUInt32();
-            
+
             int childrenCount = reader.ReadUInt16();
             Children = new List<ClassDatabaseTypeNode>(childrenCount);
             for (int i = 0; i < childrenCount; i++)
@@ -44,6 +44,7 @@ namespace AssetsTools.NET
             writer.Write(TypeName);
             writer.Write(FieldName);
             writer.Write(ByteSize);
+            writer.Write(Version);
             writer.Write(TypeFlags);
             writer.Write(MetaFlag);
 
