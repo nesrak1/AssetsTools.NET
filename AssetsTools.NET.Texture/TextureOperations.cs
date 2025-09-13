@@ -2,9 +2,9 @@
 
 namespace AssetsTools.NET.Texture
 {
-    internal static class TextureOperations
+    public static class TextureOperations
     {
-        internal static unsafe void SwapRBComponents(byte[] rgbaData)
+        public static unsafe void SwapRBComponents(byte[] rgbaData)
         {
             fixed (byte* ptr = rgbaData)
             {
@@ -15,7 +15,7 @@ namespace AssetsTools.NET.Texture
             }
         }
 
-        internal static void FlipBGRA32Vertically(byte[] data, int width, int height)
+        public static void FlipBGRA32Vertically(byte[] data, int width, int height)
         {
             int rowSize = width * 4;
             byte[] row = new byte[rowSize];
@@ -30,7 +30,7 @@ namespace AssetsTools.NET.Texture
         }
 
         // copiloted, may not work correctly
-        internal static byte[] CropFromTopLeft(byte[] data, int width, int height, int cropToWidth, int cropToHeight)
+        public static byte[] CropFromTopLeft(byte[] data, int width, int height, int cropToWidth, int cropToHeight)
         {
             if (cropToWidth > width || cropToHeight > height)
                 throw new ArgumentException("Crop size is bigger than the original image size.");
