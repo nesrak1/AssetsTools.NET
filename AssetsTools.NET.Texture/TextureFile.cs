@@ -9,12 +9,10 @@ using AssetRipper.TextureDecoder.Rgb.Formats;
 using AssetRipper.TextureDecoder.Yuy2;
 using AssetsTools.NET.Extra;
 using StbImageSharp;
-using StbImageWriteSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using StbReadColorComponents = StbImageSharp.ColorComponents;
-using StbWriteColorComponents = StbImageWriteSharp.ColorComponents;
 
 namespace AssetsTools.NET.Texture
 {
@@ -595,35 +593,7 @@ namespace AssetsTools.NET.Texture
             }
 
             TextureOperations.FlipBGRA32Vertically(textureData, width, height);
-
-            ImageWriter imageWriter = new ImageWriter();
-            switch (exportType)
-            {
-                case ImageExportType.Bmp:
-                {
-                    imageWriter.WriteBmp(textureData, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
-                    return true;
-                }
-                case ImageExportType.Tga:
-                {
-                    imageWriter.WriteTga(textureData, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
-                    return true;
-                }
-                case ImageExportType.Png:
-                {
-                    imageWriter.WritePng(textureData, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
-                    return true;
-                }
-                case ImageExportType.Jpg:
-                {
-                    imageWriter.WriteJpg(textureData, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream, quality);
-                    return true;
-                }
-                default:
-                {
-                    return false;
-                }
-            }
+            return TextureOperations.WriteRawImage(textureData, width, height, outputStream, exportType, quality);
         }
 
         public static bool DecodeManagedImage(

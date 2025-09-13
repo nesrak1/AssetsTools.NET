@@ -1,4 +1,7 @@
-﻿using System;
+﻿using StbImageWriteSharp;
+using System;
+using System.IO;
+using StbWriteColorComponents = StbImageWriteSharp.ColorComponents;
 
 namespace AssetsTools.NET.Texture
 {
@@ -45,6 +48,39 @@ namespace AssetsTools.NET.Texture
             }
             return cropped;
         }
-    }
 
+        public static bool WriteRawImage(
+            byte[] data, int width, int height,
+            Stream outputStream, ImageExportType exportType, int quality = 90)
+        {
+            ImageWriter imageWriter = new ImageWriter();
+            switch (exportType)
+            {
+                case ImageExportType.Bmp:
+                {
+                    imageWriter.WriteBmp(data, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
+                    return true;
+                }
+                case ImageExportType.Tga:
+                {
+                    imageWriter.WriteTga(data, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
+                    return true;
+                }
+                case ImageExportType.Png:
+                {
+                    imageWriter.WritePng(data, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream);
+                    return true;
+                }
+                case ImageExportType.Jpg:
+                {
+                    imageWriter.WriteJpg(data, width, height, StbWriteColorComponents.RedGreenBlueAlpha, outputStream, quality);
+                    return true;
+                }
+                default:
+                {
+                    return false;
+                }
+            }
+        }
+    }
 }
