@@ -19,6 +19,9 @@ namespace AssetsTools.NET
         /// </summary>
         public List<AssetTypeValueField> Children { get; set; }
 
+        /// <summary>
+        /// Set to true if a field did not exist.
+        /// </summary>
         public bool IsDummy { get; set; }
 
         /// <summary>
@@ -328,6 +331,28 @@ namespace AssetsTools.NET
                 data = ms.ToArray();
             }
             return data;
+        }
+
+        /// <summary>
+        /// Perform a deep clone of the <see cref="AssetTypeValueField"/>.
+        /// </summary>
+        /// <returns>The cloned field.</returns>
+        public AssetTypeValueField Clone()
+        {
+            var newChildren = new List<AssetTypeValueField>(Children.Count);
+            for (int i = 0; i < Children.Count; i++)
+            {
+                AssetTypeValueField child = Children[i];
+                newChildren.Add(child.Clone());
+            }
+
+            return new AssetTypeValueField
+            {
+                TemplateField = TemplateField,
+                Value = Value?.Clone(),
+                Children = newChildren,
+                IsDummy = IsDummy
+            };
         }
 
         public IEnumerator<AssetTypeValueField> GetEnumerator()

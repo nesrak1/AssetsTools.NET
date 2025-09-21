@@ -359,13 +359,64 @@ namespace AssetsTools.NET
             return valueField;
         }
 
+        public AssetTypeTemplateField this[string name]
+        {
+            get
+            {
+                if (name.Contains("."))
+                {
+                    string[] splitNames = name.Split('.');
+                    AssetTypeTemplateField field = this;
+                    foreach (string splitName in splitNames)
+                    {
+                        bool foundChild = false;
+
+                        foreach (AssetTypeTemplateField child in field.Children)
+                        {
+                            if (child.Name == splitName)
+                            {
+                                foundChild = true;
+                                field = child;
+                                break;
+                            }
+                        }
+
+                        if (!foundChild)
+                        {
+                            return null;
+                        }
+                    }
+                    return field;
+                }
+                else
+                {
+                    foreach (AssetTypeTemplateField child in Children)
+                    {
+                        if (child.Name == name)
+                        {
+                            return child;
+                        }
+                    }
+                    return null;
+                }
+            }
+        }
+
+        public AssetTypeTemplateField this[int index]
+        {
+            get
+            {
+                return Children[index];
+            }
+        }
+
         /// <summary>
-        /// Clone the field.
+        /// Perform a deep clone of the <see cref="AssetTypeTemplateField"/>.
         /// </summary>
         /// <returns>The cloned field.</returns>
         public AssetTypeTemplateField Clone()
         {
-            var clone = new AssetTypeTemplateField
+            return new AssetTypeTemplateField
             {
                 Name = Name,
                 Type = Type,
@@ -375,7 +426,6 @@ namespace AssetsTools.NET
                 HasValue = HasValue,
                 Children = Children.Select(c => c.Clone()).ToList()
             };
-            return clone;
         }
 
         private AssetTypeReferencedObject MakeReferencedObject(AssetsFileReader reader, int registryVersion, int referenceIndex, RefTypeManager refMan)

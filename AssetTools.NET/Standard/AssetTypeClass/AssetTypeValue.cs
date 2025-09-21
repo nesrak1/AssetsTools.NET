@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace AssetsTools.NET
@@ -258,6 +259,59 @@ namespace AssetsTools.NET
                 else
                     Value = value;
             }
+        }
+
+        /// <summary>
+        /// Perform a clone of the <see cref="AssetTypeValue"/>.
+        /// </summary>
+        /// <returns>The cloned value.</returns>
+        public AssetTypeValue Clone()
+        {
+            object clonedValue = null;
+            switch (Value)
+            {
+                case bool boolValue: clonedValue = boolValue; break;
+                case sbyte sbyteValue: clonedValue = sbyteValue; break;
+                case byte byteValue: clonedValue = byteValue; break;
+                case short shortValue: clonedValue = shortValue; break;
+                case ushort ushortValue: clonedValue = ushortValue; break;
+                case int intValue: clonedValue = intValue; break;
+                case uint uintValue: clonedValue = uintValue; break;
+                case long longValue: clonedValue = longValue; break;
+                case ulong ulongValue: clonedValue = ulongValue; break;
+                case float floatValue: clonedValue = floatValue; break;
+                case double doubleValue: clonedValue = doubleValue; break;
+                case byte[] bytesValue: clonedValue = (byte[])bytesValue.Clone(); break;
+                case AssetTypeArrayInfo arrayInfoValue: clonedValue = arrayInfoValue; break;
+                case ManagedReferencesRegistry manRefRegValue:
+                {
+                    List<AssetTypeReferencedObject> references = new List<AssetTypeReferencedObject>();
+                    for (int i = 0; i < manRefRegValue.references.Count; i++)
+                    {
+                        AssetTypeReferencedObject origReference = manRefRegValue.references[i];
+                        references[i] = new AssetTypeReferencedObject
+                        {
+                            rid = origReference.rid,
+                            type = new AssetTypeReference
+                            {
+                                ClassName = origReference.type.ClassName,
+                                Namespace = origReference.type.Namespace,
+                                AsmName = origReference.type.AsmName
+                            },
+                            data = origReference.data?.Clone()
+                        };
+                    }
+
+                    clonedValue = new ManagedReferencesRegistry
+                    {
+                        version = manRefRegValue.version,
+                        references = references
+                    };
+                    break;
+                }
+            }
+
+            return new AssetTypeValue(ValueType, clonedValue);
         }
 
         public override string ToString()
