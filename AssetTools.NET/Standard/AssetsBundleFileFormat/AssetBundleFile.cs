@@ -457,6 +457,7 @@ namespace AssetsTools.NET
                     break;
                 }
                 case AssetBundleCompressionType.LZ4:
+                case AssetBundleCompressionType.LZ4Fast:
                 {
                     // compress into 0x20000 blocks
                     BinaryReader bundleDataReader = new BinaryReader(bundleDataStream);
@@ -470,7 +471,9 @@ namespace AssetsTools.NET
                     byte[] uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
                     while (uncompressedBlock.Length != 0)
                     {
-                        byte[] compressedBlock = LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+                        byte[] compressedBlock = compType == AssetBundleCompressionType.LZ4Fast
+                            ? LZ4Codec.Encode32(uncompressedBlock, 0, uncompressedBlock.Length)
+                            : LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
 
                         if (progress != null)
                         {
@@ -555,7 +558,9 @@ namespace AssetsTools.NET
             }
 
             // listing is usually lz4 even if the data blocks are lzma
-            byte[] bundleInfoBytesCom = LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
+            byte[] bundleInfoBytesCom = compType == AssetBundleCompressionType.LZ4Fast
+                ? LZ4Codec.Encode32(bundleInfoBytes, 0, bundleInfoBytes.Length)
+                : LZ4Codec.Encode32HC(bundleInfoBytes, 0, bundleInfoBytes.Length);
 
             long totalFileSize = headerSize + bundleInfoBytesCom.Length + totalCompressedSize;
             newFsHeader.TotalFileSize = totalFileSize;
@@ -796,6 +801,7 @@ namespace AssetsTools.NET
     {
         None,
         LZMA,
-        LZ4
+        LZ4,
+        LZ4Fast
     }
 }
