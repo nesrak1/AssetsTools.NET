@@ -114,6 +114,19 @@ namespace AssetsTools.NET
             return ReadStringTableString(stringTable, commonStringTable ?? TypeTreeType.COMMON_STRING_TABLE, NameStrOffset);
         }
 
+        /// <summary>
+        /// Get the maximum size of this type tree node for a version.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        public static long GetSize(uint version)
+        {
+            long size = 24;
+            if (version >= 0x12)
+                size += 8;
+
+            return size;
+        }
+
         private string ReadStringTableString(byte[] stringTable, byte[] commonStringTable, uint offset)
         {
             if ((offset & 0x80000000) != 0)

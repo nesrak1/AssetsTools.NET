@@ -32,6 +32,10 @@ namespace AssetsTools.NET
         /// </summary>
         public bool HasValue { get; set; }
         /// <summary>
+        /// Version of the field. This value is updated when the type changes across engine versions.
+        /// </summary>
+        public ushort Version { get; set; }
+        /// <summary>
         /// Children of the field.
         /// </summary>
         public List<AssetTypeTemplateField> Children { get; set; }
@@ -55,6 +59,7 @@ namespace AssetsTools.NET
             IsArray = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array);
             IsAligned = (field.MetaFlags & 0x4000) != 0;
             HasValue = ValueType != AssetValueType.None;
+            Version = field.Version;
 
             Children = new List<AssetTypeTemplateField>();
 
@@ -76,10 +81,8 @@ namespace AssetsTools.NET
             // (ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
             if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
             {
-                Type = Children[0].Type;
-                ValueType = Children[0].ValueType;
-
-                Children.Clear();
+                Type = "_string";
+                ValueType = AssetValueType.None;
             }
 
             if (IsArray)
@@ -121,6 +124,7 @@ namespace AssetsTools.NET
             IsArray = node.TypeFlags == 1;
             IsAligned = (node.MetaFlag & 0x4000) != 0;
             HasValue = ValueType != AssetValueType.None;
+            Version = node.Version;
 
             Children = new List<AssetTypeTemplateField>(node.Children.Count);
             foreach (ClassDatabaseTypeNode childNode in node.Children)
@@ -134,11 +138,8 @@ namespace AssetsTools.NET
             // (ExposedReferenceTable field in PlayableDirector class before 2018.4.25)
             if (ValueType == AssetValueType.String && !Children[0].IsArray && Children[0].ValueType != AssetValueType.None)
             {
-                Type = Children[0].Type;
-                ValueType = Children[0].ValueType;
-
-                Children.Clear();
-                Children.TrimExcess();
+                Type = "_string";
+                ValueType = AssetValueType.None;
             }
 
             if (IsArray)
@@ -275,12 +276,13 @@ namespace AssetsTools.NET
                             throw new Exception($"Expected ManagedReferencesRegistry to have two children, found {registryChildCount} instead!");
 
                         registry.version = reader.ReadInt32();
-                        registry.references = new List<AssetTypeReferencedObject>(0);
+                        registry.references = new List<AssetTypeReferencedObject>();
 
                         if (registry.version == 1)
                         {
                             while (true)
                             {
+                                // rid is consecutive starting at 0
                                 var refdObject = MakeReferencedObject(reader, registry.version, registry.references.Count, refMan);
                                 if (refdObject.type.Equals(AssetTypeReference.TERMINUS))
                                 {
@@ -294,7 +296,8 @@ namespace AssetsTools.NET
                             int childCount = reader.ReadInt32();
                             for (int i = 0; i < childCount; i++)
                             {
-                                var refdObject = MakeReferencedObject(reader, registry.version, i, refMan);
+                                // rid is read from data
+                                var refdObject = MakeReferencedObject(reader, registry.version, -1, refMan);
                                 registry.references.Add(refdObject);
                             }
                         }
@@ -356,13 +359,64 @@ namespace AssetsTools.NET
             return valueField;
         }
 
+        public AssetTypeTemplateField this[string name]
+        {
+            get
+            {
+                if (name.Contains("."))
+                {
+                    string[] splitNames = name.Split('.');
+                    AssetTypeTemplateField field = this;
+                    foreach (string splitName in splitNames)
+                    {
+                        bool foundChild = false;
+
+                        foreach (AssetTypeTemplateField child in field.Children)
+                        {
+                            if (child.Name == splitName)
+                            {
+                                foundChild = true;
+                                field = child;
+                                break;
+                            }
+                        }
+
+                        if (!foundChild)
+                        {
+                            return null;
+                        }
+                    }
+                    return field;
+                }
+                else
+                {
+                    foreach (AssetTypeTemplateField child in Children)
+                    {
+                        if (child.Name == name)
+                        {
+                            return child;
+                        }
+                    }
+                    return null;
+                }
+            }
+        }
+
+        public AssetTypeTemplateField this[int index]
+        {
+            get
+            {
+                return Children[index];
+            }
+        }
+
         /// <summary>
-        /// Clone the field.
+        /// Perform a deep clone of the <see cref="AssetTypeTemplateField"/>.
         /// </summary>
         /// <returns>The cloned field.</returns>
         public AssetTypeTemplateField Clone()
         {
-            var clone = new AssetTypeTemplateField
+            return new AssetTypeTemplateField
             {
                 Name = Name,
                 Type = Type,
@@ -372,7 +426,6 @@ namespace AssetsTools.NET
                 HasValue = HasValue,
                 Children = Children.Select(c => c.Clone()).ToList()
             };
-            return clone;
         }
 
         private AssetTypeReferencedObject MakeReferencedObject(AssetsFileReader reader, int registryVersion, int referenceIndex, RefTypeManager refMan)
@@ -395,11 +448,11 @@ namespace AssetsTools.NET
             AssetTypeTemplateField objectTempField = refMan.GetTemplateField(refType);
             if (objectTempField != null)
             {
-                refdObject.data = new AssetTypeValueField()
+                AssetTypeValueField tempField = new AssetTypeValueField()
                 {
                     TemplateField = objectTempField
                 };
-                refdObject.data = ReadType(reader, refdObject.data, refMan);
+                refdObject.data = ReadType(reader, tempField, refMan);
             }
             else
             {

@@ -8,10 +8,11 @@ using AssetRipper.TextureDecoder.Rgb;
 using AssetRipper.TextureDecoder.Rgb.Formats;
 using AssetRipper.TextureDecoder.Yuy2;
 using AssetsTools.NET.Extra;
+using StbImageSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using StbReadColorComponents = StbImageSharp.ColorComponents;
 
 namespace AssetsTools.NET.Texture
 {
@@ -37,6 +38,11 @@ namespace AssetsTools.NET.Texture
         public int m_ColorSpace;
         public byte[] pictureData;
         public StreamingInfo m_StreamData;
+        public byte[] m_PlatformBlob;
+
+        // not assigned by default since we can't gurarantee
+        // the swizzle type yet (but may in the future)
+        public SwizzleType swizzleType = SwizzleType.None;
 
         public struct GLTextureSettings
         {
@@ -149,6 +155,28 @@ namespace AssetsTools.NET.Texture
                 texture.m_StreamData.path = streamData["path"].AsString;
             }
 
+            AssetTypeValueField platformBlob = baseField["m_PlatformBlob.Array"];
+            if (!platformBlob.IsDummy)
+            {
+                if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
+                {
+                    texture.m_PlatformBlob = platformBlob.AsByteArray;
+                }
+                else
+                {
+                    int platformBlobSize = platformBlob.Children.Count;
+                    texture.m_PlatformBlob = new byte[platformBlobSize];
+                    for (int i = 0; i < platformBlobSize; i++)
+                    {
+                        texture.m_PlatformBlob[i] = (byte)platformBlob[i].AsInt;
+                    }
+                }
+            }
+            else
+            {
+                texture.m_PlatformBlob = Array.Empty<byte>();
+            }
+
             return texture;
         }
 
@@ -246,6 +274,29 @@ namespace AssetsTools.NET.Texture
                 streamData["size"].AsUInt = m_StreamData.size;
                 streamData["path"].AsString = m_StreamData.path;
             }
+
+            AssetTypeValueField platformBlob = baseField["m_PlatformBlob.Array"];
+            if (!platformBlob.IsDummy)
+            {
+                if (platformBlob.TemplateField.ValueType == AssetValueType.ByteArray)
+                {
+                    platformBlob.AsByteArray = m_PlatformBlob;
+                }
+                else
+                {
+                    platformBlob.AsArray = new AssetTypeArrayInfo(m_PlatformBlob.Length);
+
+                    List<AssetTypeValueField> children = new List<AssetTypeValueField>(m_PlatformBlob.Length);
+                    for (int i = 0; i < m_PlatformBlob.Length; i++)
+                    {
+                        AssetTypeValueField child = ValueBuilder.DefaultValueFieldFromArrayTemplate(platformBlob);
+                        child.AsByte = m_PlatformBlob[i];
+                        children[i] = child;
+                    }
+
+                    platformBlob.Children = children;
+                }
+            }
         }
 
         public bool SetPictureDataFromBundle(BundleFileInstance inst)
@@ -276,26 +327,28 @@ namespace AssetsTools.NET.Texture
             return true;
         }
 
-        public byte[] GetTextureData(AssetsFileInstance inst)
+        public byte[] FillPictureData(AssetsFileInstance inst)
         {
-            if (inst.parentBundle != null && m_StreamData.path != string.Empty)
+            if (inst.parentBundle != null && m_StreamData.path != string.Empty && (pictureData == null || pictureData.Length == 0))
             {
                 SetPictureDataFromBundle(inst.parentBundle);
             }
-            return GetTextureData(Path.GetDirectoryName(inst.path));
+
+            string rootPath = Path.GetDirectoryName(inst.path);
+            return FillPictureData(rootPath);
         }
 
-        public byte[] GetTextureData(AssetsFile file)
+        public byte[] FillPictureData(AssetsFile file)
         {
-            string path = null;
             if (file.Reader.BaseStream is FileStream fs)
             {
-                path = Path.GetDirectoryName(fs.Name);
+                return FillPictureData(Path.GetDirectoryName(fs.Name));
             }
-            return GetTextureData(path);
+
+            return pictureData;
         }
 
-        public byte[] GetTextureData(string rootPath, bool useBgra = true)
+        public byte[] FillPictureData(string rootPath)
         {
             if ((pictureData == null || pictureData.Length == 0) && !string.IsNullOrEmpty(m_StreamData.path) && m_StreamData.size != 0)
             {
@@ -304,6 +357,7 @@ namespace AssetsTools.NET.Texture
                 {
                     fixedStreamPath = Path.Combine(rootPath, fixedStreamPath);
                 }
+
                 if (File.Exists(fixedStreamPath))
                 {
                     using Stream stream = File.OpenRead(fixedStreamPath);
@@ -316,37 +370,47 @@ namespace AssetsTools.NET.Texture
                     return null;
                 }
             }
-            return DecodeManaged(pictureData, (TextureFormat)m_TextureFormat, m_Width, m_Height, useBgra);
+
+            return pictureData;
         }
 
-        public byte[] GetTextureData(string rootPath, AssetBundleFile bundle)
+        public ISwizzler GetSwizzler()
         {
-            if ((pictureData == null || pictureData.Length == 0) && m_StreamData.path != null && m_StreamData.path.StartsWith("archive:/") && bundle != null)
+            if (swizzleType == SwizzleType.Switch)
             {
-                string resourceFileName = m_StreamData.path.Split('/').Last();
-                int resourceFileIndex = bundle.GetFileIndex(resourceFileName);
-                if (resourceFileIndex >= 0)
+                if (SwitchSwizzle.IsSwitchSwizzled(m_PlatformBlob, swizzleType))
                 {
-                    bundle.GetFileRange(resourceFileIndex, out long resourceFileOffset, out _);
-                    pictureData = new byte[m_StreamData.size];
-                    bundle.Reader.Position = resourceFileOffset + (long)m_StreamData.offset;
-                    bundle.Reader.Read(pictureData, 0, pictureData.Length);
+                    return new SwitchSwizzle(this);
                 }
             }
 
-            return GetTextureData(rootPath);
+            return null;
         }
 
-        public void SetTextureData(byte[] bgra, int width, int height)
+        public byte[] DecodeTextureRaw(byte[] textureData, bool useBgra = true)
         {
-            byte[] encoded = Encode(bgra, (TextureFormat)m_TextureFormat, width, height);
-            if (encoded == null)
-                throw new NotSupportedException("The current texture format is not supported for encoding.");
-
-            SetTextureDataRaw(encoded, width, height);
+            ISwizzler swizzler = GetSwizzler();
+            return DecodeManagedData(textureData, (TextureFormat)m_TextureFormat, m_Width, m_Height, useBgra, swizzler);
         }
 
-        public void SetTextureDataRaw(byte[] encodedData, int width, int height)
+        public bool DecodeTextureImage(byte[] textureData, Stream outputStream, ImageExportType exportType, int quality = 90)
+        {
+            ISwizzler swizzler = GetSwizzler();
+            return DecodeManagedImage(
+                textureData, (TextureFormat)m_TextureFormat, m_Width, m_Height,
+                outputStream, exportType, quality, swizzler);
+        }
+
+        public bool DecodeTextureImage(byte[] textureData, string outputPath, ImageExportType exportType, int quality = 90)
+        {
+            using FileStream fs = File.OpenWrite(outputPath);
+            ISwizzler swizzler = GetSwizzler();
+            return DecodeManagedImage(
+                textureData, (TextureFormat)m_TextureFormat, m_Width, m_Height,
+                fs, exportType, quality, swizzler);
+        }
+
+        public void SetPictureData(byte[] encodedData, int width, int height)
         {
             m_Width = width;
             m_Height = height;
@@ -357,19 +421,94 @@ namespace AssetsTools.NET.Texture
             m_CompleteImageSize = encodedData.Length;
         }
 
-        public static byte[] DecodeManaged(byte[] data, TextureFormat format, int width, int height, bool useBgra = true)
+        public void EncodeTextureRaw(byte[] textureData, int width, int height, int quality = 3, bool useBgra = true)
         {
+            byte[] encoded = EncodeNativeData(textureData, (TextureFormat)m_TextureFormat, width, height, quality, useBgra);
+            encoded ??= EncodeManagedData(textureData, (TextureFormat)m_TextureFormat, width, height, useBgra);
+            if (encoded == null)
+                throw new NotSupportedException("The current texture format is not supported for encoding.");
+
+            SetPictureData(encoded, width, height);
+        }
+
+        public void EncodeTextureImage(Stream stream, int quality = 3)
+        {
+            int width, height;
+            byte[] encoded = EncodeNativeImage(stream, (TextureFormat)m_TextureFormat, out width, out height, quality);
+            encoded ??= EncodeManagedImage(stream, (TextureFormat)m_TextureFormat, out width, out height);
+            if (encoded == null)
+                throw new NotSupportedException("The current texture format is not supported for encoding.");
+
+            SetPictureData(encoded, width, height);
+        }
+
+        public void EncodeTextureImage(string path, int quality = 3)
+        {
+            int width, height;
+            byte[] encoded = EncodeNativeImage(path, (TextureFormat)m_TextureFormat, out width, out height, quality);
+            encoded ??= EncodeManagedImage(path, (TextureFormat)m_TextureFormat, out width, out height);
+            if (encoded == null)
+                throw new NotSupportedException("The current texture format is not supported for encoding.");
+
+            SetPictureData(encoded, width, height);
+        }
+
+        public static byte[] DecodeManagedData(
+            byte[] data, TextureFormat format, int width, int height, bool useBgra = true, ISwizzler swizzler = null)
+        {
+            int originalWidth = width;
+            int originalHeight = height;
+            if (swizzler != null)
+                data = swizzler.PreprocessDeswizzle(data, out format, out width, out height);
+
+            if ((useBgra && (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)) || (!useBgra && format == TextureFormat.RGBA32))
+            {
+                byte[] newData = new byte[width * height * 4];
+                Array.Copy(data, newData, width * height * 4);
+                return newData;
+            }
+
             byte[] output = Array.Empty<byte>();
             int size = format switch
             {
+                // different versions of .net == different versions of texture decoder == different type names :/
+#if NET7_0_OR_GREATER
+                TextureFormat.Alpha8 => RgbConverter.Convert<ColorA<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                //TextureFormat.ARGBFloat => not supported :(
+                TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                //TextureFormat.BGR24 => not supported :(
+                TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB565 => RgbConverter.Convert<ColorRGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R16 => RgbConverter.Convert<ColorR<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.BGRA32 or TextureFormat.BGRA32Old => data.Length,
+                TextureFormat.RG16 => RgbConverter.Convert<ColorRG<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.R8 => RgbConverter.Convert<ColorR<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RHalf => RgbConverter.Convert<ColorR<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGHalf => RgbConverter.Convert<ColorRG<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA<Half>, Half, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RFloat => RgbConverter.Convert<ColorR<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGFloat => RgbConverter.Convert<ColorRG<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBFloat => RgbConverter.Convert<ColorRGB<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA<float>, float, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RG32 => RgbConverter.Convert<ColorRG<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA<ushort>, ushort, ColorBGRA32, byte>(data, width, height, out output),
+#else
                 TextureFormat.Alpha8 => RgbConverter.Convert<ColorA8, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
+                //TextureFormat.ARGBFloat => not supported :(
                 TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB24, byte, ColorBGRA32, byte>(data, width, height, out output),
+                //TextureFormat.BGR24 => not supported :(
                 TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA32, byte, ColorBGRA32, byte>(data, width, height, out output),
+                TextureFormat.RGB565 => RgbConverter.Convert<ColorRGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB32, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.R16 => RgbConverter.Convert<ColorR16, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA32, byte>(data, width, height, out output),
-                TextureFormat.BGRA32 => data.Length,
+                TextureFormat.BGRA32 or TextureFormat.BGRA32Old => data.Length,
                 TextureFormat.RG16 => RgbConverter.Convert<ColorRG16, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.R8 => RgbConverter.Convert<ColorR8, byte, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RHalf => RgbConverter.Convert<ColorR16Half, Half, ColorBGRA32, byte>(data, width, height, out output),
@@ -382,6 +521,7 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.RG32 => RgbConverter.Convert<ColorRG32, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB48, ushort, ColorBGRA32, byte>(data, width, height, out output),
                 TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorBGRA32, byte>(data, width, height, out output),
+#endif
 
                 TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
                 TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),
@@ -423,17 +563,67 @@ namespace AssetsTools.NET.Texture
 
                 TextureFormat.YUY2 => Yuy2Decoder.DecompressYUY2(data, width, height, out output),
 
+                TextureFormat.DXT1Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT1Crunched, out output),
+                TextureFormat.DXT5Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT5Crunched, out output),
+                TextureFormat.ETC_RGB4Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC_RGB4Crunched, out output),
+
                 _ => 0
             };
 
             if (size == 0)
                 return null;
 
+            if (swizzler != null)
+                output = swizzler.PostprocessDeswizzle(output);
+
+            if (!useBgra)
+                TextureOperations.SwapRBComponents(output);
+
             return output;
         }
 
-        public static byte[] Encode(byte[] data, TextureFormat format, int width, int height)
+        public static bool DecodeManagedImage(
+            byte[] data, TextureFormat format, int width, int height,
+            Stream outputStream, ImageExportType exportType, int quality = 90, ISwizzler swizzler = null)
         {
+            byte[] textureData = DecodeManagedData(data, format, width, height, false, swizzler);
+            if (textureData == null)
+            {
+                return false;
+            }
+
+            TextureOperations.FlipBGRA32Vertically(textureData, width, height);
+            return TextureOperations.WriteRawImage(textureData, width, height, outputStream, exportType, quality);
+        }
+
+        public static bool DecodeManagedImage(
+            byte[] data, TextureFormat format, int width, int height,
+            string outputPath, ImageExportType exportType, int quality = 100)
+        {
+            using FileStream fs = File.OpenWrite(outputPath);
+            return DecodeManagedImage(
+                data, format, width, height,
+                fs, exportType, quality);
+        }
+
+        public static byte[] EncodeManagedData(byte[] data, TextureFormat format, int width, int height, bool useBgra = true)
+        {
+            if (useBgra)
+            {
+                if (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)
+                    return data;
+            }
+            else
+            {
+                if (format == TextureFormat.RGBA32)
+                    return data;
+
+                TextureOperations.SwapRBComponents(data);
+
+                if (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)
+                    return data;
+            }
+
             return format switch
             {
                 TextureFormat.R8 => RGBAEncoders.EncodeR8(data, width, height),
@@ -451,6 +641,85 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.RGBAHalf => RGBAEncoders.EncodeRGBAHalf(data, width, height),
                 _ => null
             };
+        }
+
+        public static byte[] EncodeManagedImage(Stream stream, TextureFormat format, out int width, out int height)
+        {
+            ImageResult imageResult = ImageResult.FromStream(stream, StbReadColorComponents.RedGreenBlueAlpha);
+            width = imageResult.Width;
+            height = imageResult.Height;
+            TextureOperations.FlipBGRA32Vertically(imageResult.Data, width, height);
+            return EncodeManagedData(imageResult.Data, format, width, height, false);
+        }
+
+        public static byte[] EncodeManagedImage(string path, TextureFormat format, out int width, out int height)
+        {
+            using FileStream fs = File.OpenRead(path);
+            return EncodeManagedImage(fs, format, out width, out height);
+        }
+
+        public static byte[] EncodeNativeData(byte[] data, TextureFormat format, int width, int height, int quality = 3, bool useBgra = true)
+        {
+            if (!TextureEncoderWrapper.NativeLibrariesSupported())
+                return null;
+
+            if (useBgra)
+            {
+                if (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)
+                    return data;
+            }
+            else
+            {
+                if (format == TextureFormat.RGBA32)
+                    return data;
+
+                TextureOperations.SwapRBComponents(data);
+
+                if (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old)
+                    return data;
+            }
+
+            return TextureEncoderWrapper.ConvertImage(data, format, width, height, quality);
+        }
+
+        public static byte[] EncodeNativeImage(Stream stream, TextureFormat format, out int width, out int height, int quality = 3)
+        {
+            width = height = 0;
+
+            if (!TextureEncoderWrapper.NativeLibrariesSupported())
+                return null;
+
+            if (stream is FileStream fs)
+            {
+                return TextureEncoderWrapper.ConvertImage(fs.Name, format, out width, out height, quality);
+            }
+            else
+            {
+                // ok, this is pretty silly. cuttlefish is currently only setup to
+                // read from file as a png/jpg/etc or from a pointer to raw data.
+                // we don't have any way to pass a png/jpg/etc as bytes.
+                // to handle this for now, we read the whole image into bytes and
+                // pass it to stb to convert to rgba32.
+
+                using MemoryStream tmpMem = new MemoryStream();
+                stream.CopyTo(tmpMem);
+
+                ImageResult imageResult = ImageResult.FromStream(stream, StbReadColorComponents.RedGreenBlueAlpha);
+                width = imageResult.Width;
+                height = imageResult.Height;
+
+                return EncodeNativeData(tmpMem.ToArray(), format, width, height, quality, false);
+            }
+        }
+
+        public static byte[] EncodeNativeImage(string path, TextureFormat format, out int width, out int height, int quality = 3)
+        {
+            width = height = 0;
+
+            if (!TextureEncoderWrapper.NativeLibrariesSupported())
+                return null;
+
+            return TextureEncoderWrapper.ConvertImage(path, format, out width, out height, quality);
         }
     }
 }

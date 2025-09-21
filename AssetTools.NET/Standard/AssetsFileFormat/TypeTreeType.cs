@@ -51,7 +51,7 @@ namespace AssetsTools.NET
 
         public string StringBuffer
         {
-            get => Encoding.UTF8.GetString(StringBufferBytes);
+            get => StringBufferBytes != null ? Encoding.UTF8.GetString(StringBufferBytes) : null;
             set => StringBufferBytes = Encoding.UTF8.GetBytes(value);
         }
 
@@ -173,6 +173,55 @@ namespace AssetsTools.NET
         }
 
         /// <summary>
+        /// Get the maximum size of this type tree type.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        /// <param name="hasTypeTree">Is type tree enabled for this file?</param>
+        public long GetSize(uint version, bool hasTypeTree)
+        {
+            long size = 0;
+            size += 4;
+            if (version >= 16)
+                size += 1;
+
+            if (version >= 17)
+                size += 2;
+
+            if ((version < 17 && TypeId < 0) ||
+                (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||
+                (IsRefType && ScriptTypeIndex != 0xffff))
+            {
+                size += 16;
+            }
+
+            size += 16;
+
+            if (hasTypeTree)
+            {
+                size += 4;
+                size += 4;
+                size += TypeTreeNode.GetSize(version) * Nodes.Count;
+                size += StringBufferBytes.Length;
+                if (version >= 21)
+                {
+                    if (!IsRefType)
+                    {
+                        size += 4;
+                        size += TypeDependencies.Length * 4;
+                    }
+                    else
+                    {
+                        size += TypeReference.ClassName.Length + 1;
+                        size += TypeReference.Namespace.Length + 1;
+                        size += TypeReference.AsmName.Length + 1;
+                    }
+                }
+            }
+
+            return size;
+        }
+
+        /// <summary>
         /// The string table used for commonly occuring strings in type trees.
         /// </summary>
         public static readonly byte[] COMMON_STRING_TABLE = Encoding.UTF8.GetBytes(
@@ -188,6 +237,6 @@ namespace AssetsTools.NET
             "SInt8\0staticvector\0string\0TextAsset\0TextMesh\0Texture\0Texture2D\0Transform\0TypelessData\0UInt16\0" +
             "UInt32\0UInt64\0UInt8\0unsigned int\0unsigned long long\0unsigned short\0vector\0Vector2f\0Vector3f\0" +
             "Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0int2_storage\0int3_storage\0BoundsInt\0m_CorrespondingSourceObject\0" +
-            "m_PrefabInstance\0m_PrefabAsset\0FileSize\0Hash128\0");
+            "m_PrefabInstance\0m_PrefabAsset\0FileSize\0Hash128\0RenderingLayerMask\0");
     }
 }

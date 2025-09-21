@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 
@@ -27,12 +27,26 @@ namespace AssetsTools.NET.Extra
         /// </summary>
         public BundleFileInstance parentBundle = null;
 
-        internal Dictionary<int, AssetsFileInstance> dependencyCache;
+        internal ConcurrentDictionary<int, AssetsFileInstance> dependencyCache;
 
         /// <summary>
         /// The stream the assets file uses.
         /// </summary>
         public Stream AssetsStream => file.Reader.BaseStream;
+        /// <summary>
+        /// The reader used for locking. This reader shouldn't be used for reading, but instead
+        /// will select the top-most reader to lock on so that consumers that use a different
+        /// reader but come from the same base stream will lock on the same object.
+        /// </summary>
+        public AssetsFileReader LockReader => parentBundle != null ? parentBundle.file.DataReader : file.Reader;
+
+        public AssetsFileInstance(AssetsFile file, string filePath)
+        {
+            path = Path.GetFullPath(filePath);
+            name = Path.GetFileName(path);
+            this.file = file;
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
+        }
 
         public AssetsFileInstance(Stream stream, string filePath)
         {
@@ -40,23 +54,28 @@ namespace AssetsTools.NET.Extra
             name = Path.GetFileName(path);
             file = new AssetsFile();
             file.Read(new AssetsFileReader(stream));
-            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
         }
+
         public AssetsFileInstance(FileStream stream)
         {
             path = stream.Name;
             name = Path.GetFileName(path);
             file = new AssetsFile();
             file.Read(new AssetsFileReader(stream));
-            dependencyCache = new Dictionary<int, AssetsFileInstance>();
+            dependencyCache = new ConcurrentDictionary<int, AssetsFileInstance>();
         }
 
         public AssetsFileInstance GetDependency(AssetsManager am, int depIdx)
         {
-            if (!dependencyCache.ContainsKey(depIdx) || dependencyCache[depIdx] == null)
+            if ((!dependencyCache.ContainsKey(depIdx) || dependencyCache[depIdx] == null))
             {
-                string depPath = file.Metadata.Externals[depIdx].PathName;
+                if (depIdx >= file.Metadata.Externals.Count)
+                {
+                    return null;
+                }
 
+                string depPath = file.Metadata.Externals[depIdx].PathName;
                 if (depPath == string.Empty)
                 {
                     return null;
@@ -67,7 +86,7 @@ namespace AssetsTools.NET.Extra
                     depPath = depPath.Substring(depPath.IndexOf('/', "archive:/".Length) + 1);
                 }
 
-                if (!am.FileLookup.TryGetValue(am.GetFileLookupKey(depPath), out AssetsFileInstance inst))
+                if (!am.FileLookup.TryGetValue(AssetsManager.GetFileLookupKey(depPath), out AssetsFileInstance inst))
                 {
                     string pathDir = Path.GetDirectoryName(path);
                     string absPath = Path.Combine(pathDir, depPath);

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace AssetsTools.NET
+﻿namespace AssetsTools.NET
 {
     public class AssetsFileHeader
     {
@@ -42,7 +37,7 @@ namespace AssetsTools.NET
             Endianness = reader.ReadBoolean();
             reader.Position += 3; // unused bytes
 
-            if (Version >= 0x16)
+            if (Version >= 22)
             {
                 MetadataSize = reader.ReadUInt32();
                 FileSize = reader.ReadInt64();
@@ -60,7 +55,7 @@ namespace AssetsTools.NET
         public void Write(AssetsFileWriter writer)
         {
             writer.BigEndian = true;
-            if (Version >= 0x16)
+            if (Version >= 22)
             {
                 writer.Write(0);
                 writer.Write(0);
@@ -78,7 +73,7 @@ namespace AssetsTools.NET
             writer.Write(Endianness);
             writer.Write(new byte[3]);
 
-            if (Version >= 0x16)
+            if (Version >= 22)
             {
                 writer.Write((uint)MetadataSize);
                 writer.Write(FileSize);
@@ -87,6 +82,18 @@ namespace AssetsTools.NET
             }
 
             writer.BigEndian = Endianness;
+        }
+
+        /// <summary>
+        /// Get the size of this header.
+        /// </summary>
+        public long GetSize()
+        {
+            long size = 20;
+            if (Version >= 22)
+                size += 28;
+
+            return size;
         }
     }
 }

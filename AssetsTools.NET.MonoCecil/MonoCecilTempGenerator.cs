@@ -21,12 +21,15 @@ namespace AssetsTools.NET.Extra
 
         public void Dispose()
         {
-            foreach (AssemblyDefinition assembly in loadedAssemblies.Values)
+            lock (loadedAssemblies)
             {
-                assembly.Dispose();
-            }
+                foreach (AssemblyDefinition assembly in loadedAssemblies.Values)
+                {
+                    assembly.Dispose();
+                }
 
-            loadedAssemblies.Clear();
+                loadedAssemblies.Clear();
+            }
         }
 
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
@@ -70,9 +73,14 @@ namespace AssetsTools.NET.Extra
         private AssemblyDefinition GetAssemblyWithDependencies(string path)
         {
             string assemblyName = Path.GetFileName(path);
-            if (loadedAssemblies.ContainsKey(assemblyName))
+            lock (loadedAssemblies)
             {
-                return loadedAssemblies[assemblyName];
+                if (loadedAssemblies.ContainsKey(assemblyName))
+                {
+                    return loadedAssemblies[assemblyName];
+                }
+
+                loadedAssemblies[assemblyName] = null;
             }
 
             DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
@@ -84,7 +92,10 @@ namespace AssetsTools.NET.Extra
             };
 
             AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(path, readerParameters);
-            loadedAssemblies[assemblyName] = asmDef;
+            lock (loadedAssemblies)
+            {
+                loadedAssemblies[assemblyName] = asmDef;
+            }
 
             return asmDef;
         }
@@ -152,16 +163,23 @@ namespace AssetsTools.NET.Extra
                 bool isPrimitive = false;
                 bool derivesFromUEObject = false;
                 bool isManagedReference = false;
+                bool isString = false;
 
                 if (fieldTypeDef.typeRef.MetadataType == MetadataType.Array)
                 {
                     ArrayType arrType = (ArrayType)fieldTypeDef.typeRef;
-                    isArrayOrList = arrType.IsVector;
+                    isArrayOrList = arrType.IsVector; // isn't this always true?
+                    if (isArrayOrList)
+                    {
+                        // resolidify the type to match the actual element
+                        // back to its original type if it's a generic one
+                        fieldTypeDef = type.SolidifyType(arrType.ElementType);
+                    }
                 }
                 else if (fieldTypeDef.typeDef.FullName == "System.Collections.Generic.List`1")
                 {
-                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
                     isArrayOrList = true;
+                    fieldTypeDef = fieldTypeDef.typeParamToArg.First().Value;
                 }
 
                 field.Name = fieldDef.Name;
@@ -174,7 +192,7 @@ namespace AssetsTools.NET.Extra
                 {
                     field.Type = CommonMonoTemplateHelper.ConvertBaseToPrimitive(fieldTypeDef.typeDef.FullName);
                 }
-                else if (fieldTypeDef.typeDef.FullName == "System.String")
+                else if (isString = fieldTypeDef.typeDef.FullName == "System.String")
                 {
                     field.Type = "string";
                 }
@@ -223,7 +241,7 @@ namespace AssetsTools.NET.Extra
 
                 if (isArrayOrList)
                 {
-                    if (isPrimitive || derivesFromUEObject)
+                    if (isPrimitive || isString || derivesFromUEObject)
                     {
                         field = CommonMonoTemplateHelper.Vector(field);
                     }
@@ -273,7 +291,8 @@ namespace AssetsTools.NET.Extra
                             {
                                 continue;
                             }
-                            solidifiedFieldType = elemType;
+                            // resolidify type
+                            solidifiedFieldType = parentType.SolidifyType(elemType);
                         }
                         // unity doesn't serialize a field of the same type as declaring type
                         // unless it inherits from UnityEngine.Object

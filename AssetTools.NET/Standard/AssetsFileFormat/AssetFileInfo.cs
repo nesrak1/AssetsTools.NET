@@ -1,8 +1,6 @@
 ﻿using AssetsTools.NET.Extra;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -38,8 +36,8 @@ namespace AssetsTools.NET
         public ushort OldTypeId { get; set; }
         /// <summary>
         /// Script type index of the asset. Assets other than MonoBehaviours will have 0xffff for
-        /// this field. This value is stored in the type tree starting at version 17. Note this is
-        /// not the same as taking
+        /// this field. This value is stored in the type tree starting at version 17. You should use
+        /// <see cref="GetScriptIndex(AssetsFile)"/> instead.
         /// </summary>
         public ushort ScriptTypeIndex { get; set; }
         /// <summary>
@@ -139,7 +137,6 @@ namespace AssetsTools.NET
             }
         }
 
-        // we may get rid of these and stick with the set-once properties above
         /// <summary>
         /// Get the Type ID of the asset.
         /// </summary>
@@ -170,6 +167,39 @@ namespace AssetsTools.NET
                     throw new IndexOutOfRangeException("TypeIndex is larger than type tree count!");
                 }
                 return typeTreeTypes[TypeIdOrIndex].TypeId;
+            }
+        }
+
+        /// <summary>
+        /// Get the Script ID of the asset.
+        /// </summary>
+        public ushort GetScriptIndex(AssetsFile assetsFile)
+        {
+            return GetScriptIndex(assetsFile.Metadata.TypeTreeTypes, assetsFile.Header.Version);
+        }
+        /// <summary>
+        /// Get the Script ID of the asset.
+        /// </summary>
+        public ushort GetScriptIndex(AssetsFileMetadata metadata, uint version)
+        {
+            return GetScriptIndex(metadata.TypeTreeTypes, version);
+        }
+        /// <summary>
+        /// Get the Script ID of the asset.
+        /// </summary>
+        public ushort GetScriptIndex(List<TypeTreeType> typeTreeTypes, uint version)
+        {
+            if (version < 16)
+            {
+                return ScriptTypeIndex;
+            }
+            else
+            {
+                if (TypeIdOrIndex >= typeTreeTypes.Count)
+                {
+                    throw new IndexOutOfRangeException("TypeIndex is larger than type tree count!");
+                }
+                return typeTreeTypes[TypeIdOrIndex].ScriptTypeIndex;
             }
         }
 
@@ -210,7 +240,7 @@ namespace AssetsTools.NET
         {
             Replacer = new ContentReplacerFromBuffer(baseField.WriteToByteArray());
         }
-        
+
         /// <summary>
         /// Set the asset to be removed when the AssetsFile is written.
         /// </summary>
@@ -251,7 +281,7 @@ namespace AssetsTools.NET
         /// <param name="preferEditor">Read from the editor version of this type if available?</param>
         /// <returns>The new asset info, or null if the type can't be found in the type tree or class database.</returns>
         public static AssetFileInfo Create(
-            AssetsFile assetsFile, long pathId, int typeId, ushort scriptIndex = 0xffff,
+            AssetsFile assetsFile, long pathId, int typeId, ushort scriptIndex,
             ClassDatabaseFile classDatabase = null, bool preferEditor = false)
         {
             uint version = assetsFile.Header.Version;
@@ -326,7 +356,7 @@ namespace AssetsTools.NET
             {
                 scriptTypeIndex = 0;
             }
-            
+
             return new AssetFileInfo()
             {
                 PathId = pathId,
@@ -339,6 +369,36 @@ namespace AssetsTools.NET
                 TypeId = typeId,
                 Replacer = null,
             };
+        }
+
+        /// <summary>
+        /// Get the maximum size of this asset file info for a version.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        public static long GetSize(uint version)
+        {
+            long size = 0;
+            if (version >= 14)
+                size += 8;
+            else
+                size += 4;
+
+            if (version >= 22)
+                size += 8;
+            else
+                size += 4;
+
+            size += 4;
+            size += 4;
+            if (version <= 15)
+                size += 2;
+            if (version <= 16)
+                size += 2;
+            if (15 <= version && version <= 16)
+                size += 1;
+
+            size = (size + 3) & ~3;
+            return size;
         }
     }
 }

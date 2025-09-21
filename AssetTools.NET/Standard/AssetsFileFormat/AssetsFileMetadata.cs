@@ -44,7 +44,7 @@ namespace AssetsTools.NET
         /// </summary>
         public string UserInformation { get; set; }
 
-        private Dictionary<long, int> _quickLookup = null;
+        private Dictionary<long, AssetFileInfo> _quickLookup = null;
 
         /// <summary>
         /// Read the <see cref="AssetsFileMetadata"/> with the provided reader and file header.
@@ -201,7 +201,7 @@ namespace AssetsTools.NET
             {
                 if (_quickLookup.ContainsKey(pathId))
                 {
-                    return AssetInfos[_quickLookup[pathId]];
+                    return _quickLookup[pathId];
                 }
             }
             else
@@ -226,7 +226,7 @@ namespace AssetsTools.NET
         {
             if (_quickLookup != null)
             {
-                _quickLookup[info.PathId] = AssetInfos.Count;
+                _quickLookup[info.PathId] = info;
             }
             AssetInfos.Add(info);
         }
@@ -241,7 +241,6 @@ namespace AssetsTools.NET
         /// <param name="info">The info to remove</param>
         public bool RemoveAssetInfo(AssetFileInfo info)
         {
-            // todo: THIS ISN'T GOING TO WORK
             if (_quickLookup != null)
             {
                 _quickLookup.Remove(info.PathId);
@@ -255,11 +254,11 @@ namespace AssetsTools.NET
         /// </summary>
         public void GenerateQuickLookup()
         {
-            _quickLookup = new Dictionary<long, int>();
+            _quickLookup = new Dictionary<long, AssetFileInfo>();
             for (int i = 0; i < AssetInfos.Count; i++)
             {
                 AssetFileInfo info = AssetInfos[i];
-                _quickLookup[info.PathId] = i;
+                _quickLookup[info.PathId] = info;
             }
         }
 
@@ -283,7 +282,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
@@ -339,7 +338,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
@@ -366,7 +365,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type by type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// For games before 5.5, <paramref name="scriptIndex"/> is ignored since this data is read
         /// from the negative value of <paramref name="id"/>. In 5.5 and later, MonoBehaviours are always
         /// 0x72, so <paramref name="scriptIndex"/> is used instead.
@@ -394,7 +393,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type index by type ID and script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// For games before 5.5, <paramref name="scriptIndex"/> is ignored since this data is read
         /// from the negative value of <paramref name="id"/>. In 5.5 and later, MonoBehaviours are always
         /// 0x72, so <paramref name="scriptIndex"/> is used instead.
@@ -423,7 +422,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Get the type tree type by script index. The script index of an asset can be
-        /// found from <see cref="AssetsFile.GetScriptIndex(AssetFileInfo)"/> or <see cref="ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="scriptIndex">The script index to search for.</param>
         /// <returns>The type tree type with this script index.</returns>
@@ -468,6 +467,48 @@ namespace AssetsTools.NET
                     return type;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Get the maximum size of this metadata.
+        /// </summary>
+        /// <param name="version">The version of the file.</param>
+        public long GetSize(uint version)
+        {
+            long size = 0;
+            size += UnityVersion.Length + 1;
+            size += 4;
+            if (version >= 13)
+                size += 1;
+
+            size += 4;
+            for (int i = 0; i < TypeTreeTypes.Count; i++)
+                size += TypeTreeTypes[i].GetSize(version, TypeTreeEnabled);
+
+            size += 4;
+            size = (size + 3) & ~3;
+            size += AssetFileInfo.GetSize(version) * AssetInfos.Count;
+
+            // if we get unity 4- support, this needs to be changed
+            size += 4;
+            size = (size + 3) & ~3;
+            size += 12 * ScriptTypes.Count;
+
+            size += 4;
+            for (int i = 0; i < Externals.Count; i++)
+                size += Externals[i].GetSize();
+
+            if (version >= 20)
+            {
+                size += 4;
+                for (int j = 0; j < RefTypes.Count; j++)
+                    size += RefTypes[j].GetSize(version, TypeTreeEnabled);
+            }
+
+            if (version >= 5)
+                size += UserInformation.Length + 1;
+
+            return size;
         }
     }
 }

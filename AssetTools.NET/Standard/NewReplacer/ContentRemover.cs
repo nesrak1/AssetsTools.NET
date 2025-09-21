@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 namespace AssetsTools.NET
 {
     public class ContentRemover : IContentReplacer
     {
-        public void Write(AssetsFileWriter writer)
+        public void Write(AssetsFileWriter writer, bool finalWrite)
         {
         }
 
@@ -24,6 +21,11 @@ namespace AssetsTools.NET
         public ContentReplacerType GetReplacerType()
         {
             return ContentReplacerType.Remove;
+        }
+
+        public long GetSize()
+        {
+            return 0;
         }
     }
 }

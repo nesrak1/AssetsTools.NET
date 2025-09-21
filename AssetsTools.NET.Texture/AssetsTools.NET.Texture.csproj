@@ -1,17 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
 	<LangVersion>latest</LangVersion>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="StbImageSharp" Version="2.27.13" />
+    <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="AssetRipper.TextureDecoder" Version="1.3.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="AssetRipper.TextureDecoder" Version="1.3.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+    <PackageReference Include="AssetRipper.TextureDecoder" Version="2.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="AssetRipper.TextureDecoder" Version="2.1.1" />
   </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\AssetTools.NET\AssetsTools.NET.csproj" />
 	</ItemGroup>
+
+  <!-- necessary because prebuild is called for every single target -->
+  <!--<Target Name="CmakeNatives" BeforeTargets="DispatchToInnerBuilds">
+    <Exec Command="cmake - -build $(SolutionDir)/build" />
+  </Target>-->
 
 </Project>

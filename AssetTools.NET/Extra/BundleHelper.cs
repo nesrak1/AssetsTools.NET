@@ -1,13 +1,4 @@
-﻿////////////////////////////
-//   ASSETSTOOLS.NET PLUGINS
-//   Hey, watch out! This   
-//   library isn't done yet.
-//   You've been warned!    
-
-using AssetsTools.NET.Extra.Decompressors.LZ4;
-using SevenZip.Compression.LZMA;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 namespace AssetsTools.NET.Extra
@@ -17,7 +8,7 @@ namespace AssetsTools.NET.Extra
         public static byte[] LoadAssetDataFromBundle(AssetBundleFile bundle, int index)
         {
             bundle.GetFileRange(index, out long offset, out long length);
-            
+
             AssetsFileReader reader = bundle.DataReader;
             reader.Position = offset;
             return reader.ReadBytes((int)length);

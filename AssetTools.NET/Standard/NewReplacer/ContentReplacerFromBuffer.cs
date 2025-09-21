@@ -13,7 +13,7 @@ namespace AssetsTools.NET
             this.buffer = buffer;
         }
 
-        public void Write(AssetsFileWriter writer)
+        public void Write(AssetsFileWriter writer, bool finalWrite)
         {
             writer.Write(buffer);
         }
@@ -37,6 +37,11 @@ namespace AssetsTools.NET
         public ContentReplacerType GetReplacerType()
         {
             return ContentReplacerType.AddOrModify;
+        }
+
+        public long GetSize()
+        {
+            return buffer.Length;
         }
     }
 }

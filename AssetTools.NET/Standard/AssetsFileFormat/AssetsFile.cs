@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace AssetsTools.NET
@@ -37,7 +36,7 @@ namespace AssetsTools.NET
         public void Read(AssetsFileReader reader)
         {
             Reader = reader;
-            
+
             Header = new AssetsFileHeader();
             Header.Read(reader);
 
@@ -154,7 +153,7 @@ namespace AssetsTools.NET
                 ContentReplacerType replacerType = assetInfo.ReplacerType;
                 if (replacerType == ContentReplacerType.AddOrModify)
                 {
-                    assetInfo.Replacer.Write(writer);
+                    assetInfo.Replacer.Write(writer, true);
                 }
                 else
                 {
@@ -198,9 +197,10 @@ namespace AssetsTools.NET
         /// </summary>
         /// <param name="info">The file info to check.</param>
         /// <returns>The script index of the asset.</returns>
+        [Obsolete("Use the more consistent and safer info.GetScriptIndex() instead.")]
         public ushort GetScriptIndex(AssetFileInfo info)
         {
-            if (Header.Version < 0x10)
+            if (Header.Version < 16)
                 return info.ScriptTypeIndex;
             else
                 return Metadata.TypeTreeTypes[info.TypeIdOrIndex].ScriptTypeIndex;
