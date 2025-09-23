@@ -70,6 +70,16 @@ namespace AssetsTools.NET.Cpp2IL
             _initialized = true;
         }
 
+        public void InitializeCpp2IL(byte[] assemblyBytes, byte[] metadataBytes)
+        {
+            ARUnityVersion arUnityVersion = ARUnityVersion.Parse(_unityVersion.ToString());
+            if (!LibCpp2IlMain.Initialize(assemblyBytes, metadataBytes, arUnityVersion))
+            {
+                throw new Exception("Cpp2Il initialization failed");
+            }
+            _initialized = true;
+        }
+
         public AssetTypeTemplateField GetTemplateField(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, ATUnityVersion unityVersion)
         {
             int[] il2cppUnityVersion = new[] { unityVersion.major, unityVersion.minor, unityVersion.patch };
