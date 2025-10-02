@@ -16,7 +16,7 @@
         /// 0x02: Entry is deleted. Unknown usage.
         /// 0x04: Entry is serialized file. Assets files should enable this, and other files like .resS or .resource(s) should disable this.
         /// </summary>
-        public uint Flags;
+        public uint Flags; // todo: this should have real flags
         /// <summary>
         /// Name of this entry.
         /// </summary>
@@ -36,6 +36,10 @@
         /// Is the replacer non-null and does the replacer has a preview?
         /// </summary>
         public bool IsReplacerPreviewable => Replacer != null && Replacer.HasPreview();
+        /// <summary>
+        /// Is the file serialized?
+        /// </summary>
+        public bool IsSerialized => (Flags & 4) != 0;
 
         /// <summary>
         /// Sets the bytes used when the AssetBundleFile is written.
