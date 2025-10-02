@@ -285,14 +285,14 @@ namespace AssetsTools.NET
         /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
-        /// <param name="scriptIndex">The script index to search for.</param>
+        /// <param name="scriptIndex">The script index to search for, or <see cref="ushort.MaxValue"/> for any.</param>
         /// <returns>A list of infos for that type ID and script index.</returns>
         public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex)
         {
             List<AssetFileInfo> infos = new List<AssetFileInfo>();
             foreach (AssetFileInfo info in AssetInfos)
             {
-                if (scriptIndex != 0xffff)
+                if (scriptIndex != ushort.MaxValue)
                 {
                     if (info.TypeId < 0)
                     {
@@ -304,7 +304,14 @@ namespace AssetsTools.NET
                     }
                     else if (info.TypeId == (int)AssetClassID.MonoBehaviour)
                     {
-                        if (FindTypeTreeTypeByID(info.TypeId, info.ScriptTypeIndex).ScriptTypeIndex != scriptIndex)
+                        // we don't have access to the metadata or format version
+                        // in this function. let's double check this is ver >= 16.
+                        if (info.TypeIdOrIndex == info.TypeId)
+                            continue;
+
+                        // we've confirmed at this point we're not ver < 16. if we
+                        // were, we should have had TypeId < 0
+                        if (info.GetScriptIndex(this, 16) != scriptIndex)
                             continue;
 
                         if (typeId != (int)AssetClassID.MonoBehaviour)

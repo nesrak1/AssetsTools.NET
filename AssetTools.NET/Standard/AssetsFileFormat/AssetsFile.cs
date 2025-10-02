@@ -291,7 +291,7 @@ namespace AssetsTools.NET
         public List<AssetFileInfo> GetAssetsOfType(AssetClassID typeId) => Metadata.GetAssetsOfType(typeId);
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="GetScriptIndex(AssetFileInfo)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
@@ -299,7 +299,7 @@ namespace AssetsTools.NET
         public List<AssetFileInfo> GetAssetsOfType(int typeId, ushort scriptIndex) => Metadata.GetAssetsOfType(typeId, scriptIndex);
         /// <summary>
         /// Get all assets of a specific type ID and script index. The script index of an asset can be
-        /// found from <see cref="GetScriptIndex(AssetFileInfo)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
+        /// found from <see cref="AssetFileInfo.GetScriptIndex(AssetsFile)"/> or <see cref="AssetsFileMetadata.ScriptTypes"/>.
         /// </summary>
         /// <param name="typeId">The type ID to search for.</param>
         /// <param name="scriptIndex">The script index to search for.</param>
