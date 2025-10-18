@@ -334,7 +334,7 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                using MemoryStream assetDataStream = new MemoryStream();
+                using MemoryStream assetDataStream = new MemoryStream((int)info.ByteSize);
                 lock (inst.LockReader)
                 {
                     AssetsFileReader reader = inst.file.Reader;

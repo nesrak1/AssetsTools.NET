@@ -131,7 +131,7 @@ namespace AssetsTools.NET
                     BaseStream.Position = BaseOffset + blockPoses[blockIndex];
 
                     MemoryStream compressedStream = new MemoryStream();
-                    BaseStream.CopyToCompat(compressedStream, blockInfos[blockIndex].CompressedSize);
+                    BaseStream.CopyToCompat(compressedStream, blockInfos[blockIndex].CompressedSize, (int)blockSize);
                     compressedStream.Position = 0;
 
                     byte compressionType = blockInfos[blockIndex].GetCompressionType();

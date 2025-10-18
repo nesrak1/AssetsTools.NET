@@ -54,32 +54,26 @@ namespace AssetsTools.NET
         public override int Read(byte[] buffer, int offset, int count)
         {
             BaseStream.Position = BaseOffset + Position;
-            count = BaseStream.Read(buffer, offset, (int)Math.Min(count, Length - Position));
+
+            // fixed count for performance since .Length is expensive on FileStream base
+            var countFixed = length >= 0
+                ? (int)Math.Min(count, length - Position)
+                : count; // read as much as possible. Read() will handle if we try to read too much.
+
+            count = BaseStream.Read(buffer, offset, countFixed);
             Position += count;
             return count;
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            long newPosition;
-            switch (origin)
+            var newPosition = origin switch
             {
-                case SeekOrigin.Begin:
-                    newPosition = offset;
-                    break;
-
-                case SeekOrigin.Current:
-                    newPosition = Position + offset;
-                    break;
-
-                case SeekOrigin.End:
-                    newPosition = Position + Length + offset;
-                    break;
-
-                default:
-                    throw new ArgumentException();
-            }
-
+                SeekOrigin.Begin => offset,
+                SeekOrigin.Current => Position + offset,
+                SeekOrigin.End => Position + Length + offset,
+                _ => throw new ArgumentException(),
+            };
             if (newPosition < 0 || newPosition > Length)
                 throw new ArgumentOutOfRangeException(nameof(offset));
 

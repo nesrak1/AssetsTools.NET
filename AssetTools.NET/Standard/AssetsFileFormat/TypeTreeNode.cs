@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using System;
 using System.Text;
 
 namespace AssetsTools.NET
@@ -135,16 +135,8 @@ namespace AssetsTools.NET
                 stringTable = commonStringTable;
             }
 
-            using MemoryStream data = new MemoryStream();
-            int pos = (int)offset;
-            byte b;
-            while ((b = stringTable[pos]) != 0x00)
-            {
-                data.WriteByte(b);
-                pos++;
-            }
-
-            return Encoding.UTF8.GetString(data.ToArray());
+            var endIdx = Array.IndexOf(stringTable, (byte)0, (int)offset);
+            return Encoding.ASCII.GetString(stringTable, (int)offset, (int)(endIdx - offset));
         }
     }
 }
