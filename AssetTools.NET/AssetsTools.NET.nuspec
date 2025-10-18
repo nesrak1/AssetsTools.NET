@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET</id>
-    <version>3.0.0</version>
+    <version>3.0.2</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>	
@@ -11,12 +11,10 @@
     <icon>icon.png</icon>
     <summary>An assets/bundle library, inspired by UABE's AssetsTools</summary>
     <description>An assets/bundle library, inspired by UABE's AssetsTools. Read and write assets and bundle files from engine versions 5.x and later. For most cases, you'll need the class data file which you can find in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
-    <releaseNotes>v3.0.0 - the complete overhaul of assetstools.net. bug fixes, new replacers, and more.</releaseNotes>
+    <releaseNotes>v3.0.2 - bug fixes, template field [] syntax, lz4 fast compress option</releaseNotes>
     <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
-      <group targetFramework=".NETFramework3.5">
-      </group>
       <group targetFramework=".NETFramework4.0">
       </group>
       <group targetFramework=".NETStandard2.0">
@@ -26,9 +24,6 @@
   <files>
     <file src="icon.png" target="" />
 	
-    <file src="bin\Release\net35\AssetsTools.NET.dll" target="lib/net35" />
-    <file src="bin\Release\net35\AssetsTools.NET.pdb" target="lib/net35" />
-    <file src="bin\Release\net35\AssetsTools.NET.xml" target="lib/net35" />
     <file src="bin\Release\net40\AssetsTools.NET.dll" target="lib/net40" />
     <file src="bin\Release\net40\AssetsTools.NET.pdb" target="lib/net40" />
     <file src="bin\Release\net40\AssetsTools.NET.xml" target="lib/net40" />
