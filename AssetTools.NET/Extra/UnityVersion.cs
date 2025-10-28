@@ -20,7 +20,7 @@ namespace AssetsTools.NET.Extra
             major = int.Parse(versionSplit[0]);
             minor = int.Parse(versionSplit[1]);
 
-            int verTypeIndex = versionSplit[2].IndexOfAny(new[] { 'f', 'p', 'a', 'b', 'c', 'x' });
+            int verTypeIndex = versionSplit[2].IndexOfAny(new[] { 'f', 'p', 'a', 'b', 'c', 't', 'x' });
             if (verTypeIndex != -1)
             {
                 type = versionSplit[2][verTypeIndex].ToString();

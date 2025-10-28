@@ -66,7 +66,7 @@ namespace AssetsTools.NET.Extra
 
             if (file.Metadata.TypeTreeEnabled)
             {
-                ushort scriptId = file.GetScriptIndex(info);
+                ushort scriptId = info.GetScriptIndex(file);
 
                 TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(info.TypeId, scriptId);
 
