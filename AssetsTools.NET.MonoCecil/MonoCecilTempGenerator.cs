@@ -9,7 +9,6 @@ namespace AssetsTools.NET.Extra
     public class MonoCecilTempGenerator : IMonoBehaviourTemplateGenerator
     {
         private UnityVersion unityVersion;
-        private bool anyFieldIsManagedReference;
 
         public string managedPath;
         public Dictionary<string, AssemblyDefinition> loadedAssemblies = new Dictionary<string, AssemblyDefinition>();
@@ -63,10 +62,18 @@ namespace AssetsTools.NET.Extra
         public List<AssetTypeTemplateField> Read(AssemblyDefinition assembly, string nameSpace, string typeName, UnityVersion unityVersion)
         {
             this.unityVersion = unityVersion;
-            anyFieldIsManagedReference = false;
+            bool usingManagedReference = false;
             List<AssetTypeTemplateField> children = new List<AssetTypeTemplateField>();
 
-            RecursiveTypeLoad(assembly.MainModule, nameSpace, typeName, children, CommonMonoTemplateHelper.GetSerializationLimit(unityVersion));
+            RecursiveTypeLoad(
+                assembly.MainModule, nameSpace, typeName, children,
+                CommonMonoTemplateHelper.GetSerializationLimit(unityVersion), ref usingManagedReference);
+
+            if (usingManagedReference)
+            {
+                children.Add(CommonMonoTemplateHelper.ManagedReferencesRegistry("references", unityVersion));
+            }
+
             return children;
         }
 
@@ -100,7 +107,9 @@ namespace AssetsTools.NET.Extra
             return asmDef;
         }
 
-        private void RecursiveTypeLoad(ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf, int availableDepth)
+        private void RecursiveTypeLoad(
+            ModuleDefinition module, string nameSpace, string typeName, List<AssetTypeTemplateField> attf,
+            int availableDepth, ref bool usingManagedReference)
         {
             // TypeReference needed for TypeForwardedTo in UnityEngine (and others)
             TypeReference typeRef;
@@ -125,10 +134,12 @@ namespace AssetsTools.NET.Extra
                 type = typeRef.Resolve();
             }
 
-            RecursiveTypeLoad(type, attf, availableDepth, true);
+            RecursiveTypeLoad(type, attf, availableDepth, true, ref usingManagedReference);
         }
 
-        private void RecursiveTypeLoad(TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth, bool isRecursiveCall = false)
+        private void RecursiveTypeLoad(
+            TypeDefWithSelfRef type, List<AssetTypeTemplateField> attf, int availableDepth,
+            bool isRecursiveCall, ref bool usingManagedReference)
         {
             if (!isRecursiveCall)
             {
@@ -143,13 +154,13 @@ namespace AssetsTools.NET.Extra
             {
                 TypeDefWithSelfRef typeDef = type.typeDef.BaseType;
                 typeDef.AssignTypeParams(type);
-                RecursiveTypeLoad(typeDef, attf, availableDepth, true);
+                RecursiveTypeLoad(typeDef, attf, availableDepth, true, ref usingManagedReference);
             }
 
-            attf.AddRange(ReadTypes(type, availableDepth));
+            attf.AddRange(ReadTypes(type, availableDepth, ref usingManagedReference));
         }
 
-        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, int availableDepth)
+        private List<AssetTypeTemplateField> ReadTypes(TypeDefWithSelfRef type, int availableDepth, ref bool usingManagedReference)
         {
             List<FieldDefinition> acceptableFields = GetAcceptableFields(type, availableDepth);
             List<AssetTypeTemplateField> localChildren = new List<AssetTypeTemplateField>();
@@ -202,7 +213,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (isManagedReference = fieldDef.CustomAttributes.Any(a => a.AttributeType.Name == "SerializeReference"))
                 {
-                    anyFieldIsManagedReference = true;
+                    usingManagedReference = true;
                     field.Type = "managedReference";
                 }
                 else
@@ -220,7 +231,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (CommonMonoTemplateHelper.IsSpecialUnityType(fieldTypeDef.typeDef.FullName))
                 {
-                    field.Children = SpecialUnity(fieldTypeDef, availableDepth);
+                    field.Children = SpecialUnity(fieldTypeDef, availableDepth, ref usingManagedReference);
                 }
                 else if (derivesFromUEObject)
                 {
@@ -232,7 +243,7 @@ namespace AssetsTools.NET.Extra
                 }
                 else if (fieldTypeDef.typeDef.IsSerializable)
                 {
-                    field.Children = Serialized(fieldTypeDef, availableDepth);
+                    field.Children = Serialized(fieldTypeDef, availableDepth, ref usingManagedReference);
                 }
 
                 field.ValueType = AssetTypeValueField.GetValueTypeByTypeName(field.Type);
@@ -251,11 +262,6 @@ namespace AssetsTools.NET.Extra
                     }
                 }
                 localChildren.Add(field);
-            }
-
-            if (anyFieldIsManagedReference && DerivesFromUEObject(type))
-            {
-                localChildren.Add(CommonMonoTemplateHelper.ManagedReferencesRegistry("references", unityVersion));
             }
 
             return localChildren;
@@ -395,14 +401,16 @@ namespace AssetsTools.NET.Extra
             return false;
         }
 
-        private List<AssetTypeTemplateField> Serialized(TypeDefWithSelfRef type, int availableDepth)
+        private List<AssetTypeTemplateField> Serialized(
+            TypeDefWithSelfRef type, int availableDepth, ref bool usingManagedReference)
         {
             List<AssetTypeTemplateField> types = new List<AssetTypeTemplateField>();
-            RecursiveTypeLoad(type, types, availableDepth);
+            RecursiveTypeLoad(type, types, availableDepth, false, ref usingManagedReference);
             return types;
         }
 
-        private List<AssetTypeTemplateField> SpecialUnity(TypeDefWithSelfRef type, int availableDepth)
+        private List<AssetTypeTemplateField> SpecialUnity(
+            TypeDefWithSelfRef type, int availableDepth, ref bool usingManagedReference)
         {
             return type.typeDef.Name switch
             {
@@ -418,7 +426,7 @@ namespace AssetsTools.NET.Extra
                 "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
                 "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
                 "PropertyName" => CommonMonoTemplateHelper.PropertyName(),
-                _ => Serialized(type, availableDepth)
+                _ => Serialized(type, availableDepth, ref usingManagedReference)
             };
         }
     }

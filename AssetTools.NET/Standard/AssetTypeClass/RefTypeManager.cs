@@ -46,12 +46,7 @@ namespace AssetsTools.NET
 
                 AssetTypeTemplateField templateField = new AssetTypeTemplateField();
                 templateField.FromTypeTree(type);
-                // if ref type has fields with [SerializeReference] it can contain its own registry,
-                // but it shouldn't be there, as the registry is only available at the root type
-                if (templateField.Children.Count > 0 && templateField.Children[templateField.Children.Count - 1].ValueType == AssetValueType.ManagedReferencesRegistry)
-                {
-                    templateField.Children.RemoveAt(templateField.Children.Count - 1);
-                }
+                RemoveRedundantRegistry(templateField);
 
                 typeTreeLookup[type.TypeReference] = templateField;
             }
@@ -112,12 +107,28 @@ namespace AssetsTools.NET
                 templateField = monoTemplateGenerator.GetTemplateField(templateField, type.AsmName, type.Namespace, type.ClassName, unityVersion);
                 if (templateField != null)
                 {
+                    RemoveRedundantRegistry(templateField);
                     monoTemplateLookup[type] = templateField;
                     return templateField;
                 }
             }
 
             return null;
+        }
+
+        private void RemoveRedundantRegistry(AssetTypeTemplateField templateField)
+        {
+            // if ref type has fields with [SerializeReference] it can contain its own registry,
+            // but it shouldn't be there, as the registry is only available at the root type
+            if (templateField.Children.Count == 0)
+                return;
+
+            int lastChildIdx = templateField.Children.Count - 1;
+            AssetTypeTemplateField lastChild = templateField[lastChildIdx];
+            if (lastChild.ValueType == AssetValueType.ManagedReferencesRegistry)
+            {
+                templateField.Children.RemoveAt(lastChildIdx);
+            }
         }
     }
 }
