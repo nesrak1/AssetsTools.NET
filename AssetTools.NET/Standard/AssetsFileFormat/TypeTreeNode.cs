@@ -136,7 +136,7 @@ namespace AssetsTools.NET
             }
 
             var endIdx = Array.IndexOf(stringTable, (byte)0, (int)offset);
-            return Encoding.ASCII.GetString(stringTable, (int)offset, (int)(endIdx - offset));
+            return Encoding.UTF8.GetString(stringTable, (int)offset, (int)(endIdx - offset));
         }
     }
 }
