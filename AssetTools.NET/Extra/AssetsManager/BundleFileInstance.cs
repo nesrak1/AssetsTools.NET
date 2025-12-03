@@ -9,6 +9,11 @@ namespace AssetsTools.NET.Extra
         public string name;
         public AssetBundleFile file;
         /// <summary>
+        /// Original compression type. If this bundle is decompressed, you might
+        /// use this value to compress it back to its original compression type.
+        /// </summary>
+        public AssetBundleCompressionType originalCompression;
+        /// <summary>
         /// List of loaded assets files for this bundle.
         /// </summary>
         /// <remarks>
@@ -24,12 +29,16 @@ namespace AssetsTools.NET.Extra
         {
             path = Path.GetFullPath(filePath);
             name = Path.GetFileName(path);
+
             file = new AssetBundleFile();
             file.Read(new AssetsFileReader(stream));
+
+            originalCompression = file.GetCompressionType();
             if (file.Header != null && file.DataIsCompressed && unpackIfPacked)
             {
                 file = BundleHelper.UnpackBundle(file);
             }
+
             loadedAssetsFiles = new List<AssetsFileInstance>();
         }
 
