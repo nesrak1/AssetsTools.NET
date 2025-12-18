@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.IO;
 
 namespace AssetsTools.NET.Extra
@@ -62,9 +61,9 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField baseField = null;
             bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
 
-            bool preferEditor = readFlags.HasFlag(AssetReadFlags.PreferEditor);
-            bool forceFromCldb = readFlags.HasFlag(AssetReadFlags.ForceFromCldb);
-            bool skipMonoBehaviourFields = readFlags.HasFlag(AssetReadFlags.SkipMonoBehaviourFields);
+            bool preferEditor = (readFlags & AssetReadFlags.PreferEditor) != 0;
+            bool forceFromCldb = (readFlags & AssetReadFlags.ForceFromCldb) != 0;
+            bool skipMonoBehaviourFields = (readFlags & AssetReadFlags.SkipMonoBehaviourFields) != 0;
 
             // if non-monobehaviour type is in cache, return the cached item
             if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour && templateFieldCache.TryGetValue(typeId, out baseField))
