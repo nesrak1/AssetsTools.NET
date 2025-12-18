@@ -95,10 +95,7 @@ namespace AssetsTools.NET
                 _dict.Add(key, value);
             }
 #else
-            if (!_dict.TryAdd(key, value))
-            {
-                throw new System.ArgumentException("An item with the same key has already been added.", nameof(key));
-            }
+            ((IDictionary<TKey, TValue>)_dict).Add(key, value);
 #endif
         }
 
@@ -146,14 +143,7 @@ namespace AssetsTools.NET
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-#if NET35
             Add(item.Key, item.Value);
-#else
-            if (!_dict.TryAdd(item.Key, item.Value))
-            {
-                throw new System.ArgumentException("An item with the same key has already been added.", nameof(item));
-            }
-#endif
         }
 
         public void Clear()
