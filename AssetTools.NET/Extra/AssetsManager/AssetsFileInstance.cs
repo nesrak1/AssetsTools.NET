@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 
 namespace AssetsTools.NET.Extra
