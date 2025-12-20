@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AssetsTools.NET.Extra
+﻿namespace AssetsTools.NET.Extra
 {
     public class UnityVersion
     {
@@ -16,9 +12,20 @@ namespace AssetsTools.NET.Extra
 
         public UnityVersion(string version)
         {
+            major = 0;
+            minor = 0;
+            patch = 0;
+            type = "";
+            typeNum = 0;
+
             string[] versionSplit = version.Split('.');
-            major = int.Parse(versionSplit[0]);
-            minor = int.Parse(versionSplit[1]);
+
+            if (versionSplit.Length >= 1)
+                major = int.Parse(versionSplit[0]);
+            if (versionSplit.Length >= 2)
+                minor = int.Parse(versionSplit[1]);
+            if (versionSplit.Length <= 2)
+                return;
 
             int verTypeIndex = versionSplit[2].IndexOfAny(new[] { 'f', 'p', 'a', 'b', 'c', 't', 'x' });
             if (verTypeIndex != -1)
