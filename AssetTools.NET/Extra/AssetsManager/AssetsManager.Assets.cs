@@ -6,7 +6,7 @@ namespace AssetsTools.NET.Extra
     {
         public static string GetFileLookupKey(string path)
         {
-            return Path.GetFileName(path).ToLower();
+            return Path.GetFullPath(path).ToLower();
         }
 
         private void LoadAssetsFileDependencies(AssetsFileInstance fileInst, string path, BundleFileInstance bunInst)
