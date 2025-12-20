@@ -4,6 +4,11 @@ namespace AssetsTools.NET.Extra
 {
     public partial class AssetsManager
     {
+        public static string GetBundleLookupKey(string path)
+        {
+            return Path.GetFullPath(path);
+        }
+
         /// <summary>
         /// Load a <see cref="BundleFileInstance"/> from a stream with a path.
         /// Use the <see cref="FileStream"/> version of this method to skip the path argument.
@@ -17,7 +22,7 @@ namespace AssetsTools.NET.Extra
         public BundleFileInstance LoadBundleFile(Stream stream, string path, bool unpackIfPacked = true)
         {
             BundleFileInstance bunInst;
-            string lookupKey = GetFileLookupKey(path);
+            string lookupKey = GetBundleLookupKey(path);
             if (BundleLookup.TryGetValue(lookupKey, out bunInst))
                 return bunInst;
 
@@ -68,7 +73,7 @@ namespace AssetsTools.NET.Extra
         /// <returns>True if the file was found and closed, and false if it wasn't found.</returns>
         public bool UnloadBundleFile(string path)
         {
-            string lookupKey = GetFileLookupKey(path);
+            string lookupKey = GetBundleLookupKey(path);
             if (BundleLookup.TryGetValue(lookupKey, out BundleFileInstance bunInst))
             {
                 bunInst.file.Close();
@@ -109,7 +114,7 @@ namespace AssetsTools.NET.Extra
 
             if (Bundles.Contains(bunInst))
             {
-                string lookupKey = GetFileLookupKey(bunInst.path);
+                string lookupKey = GetBundleLookupKey(bunInst.path);
                 lock (BundleLookup)
                 {
                     lock (Bundles)
