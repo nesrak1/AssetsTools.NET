@@ -86,6 +86,8 @@ namespace AssetsTools.NET
             }
         }
 
+        // todo: these two GetXXXString methods should be using caching
+
         /// <summary>
         /// Get the type name from the string table (from <see cref="TypeTreeType.StringBuffer"/>).
         /// </summary>
