@@ -57,19 +57,17 @@ namespace AssetsTools.NET.Extra
             AssetsFileInstance inst, AssetsFileReader reader, long absByteStart,
             int typeId, ushort scriptIndex, AssetReadFlags readFlags)
         {
-            AssetsFile file = inst.file;
             AssetTypeTemplateField baseField = null;
-            bool hasTypeTree = inst.file.Metadata.TypeTreeEnabled;
-
-            bool preferEditor = (readFlags & AssetReadFlags.PreferEditor) != 0;
-            bool forceFromCldb = (readFlags & AssetReadFlags.ForceFromCldb) != 0;
-            bool skipMonoBehaviourFields = (readFlags & AssetReadFlags.SkipMonoBehaviourFields) != 0;
 
             // if non-monobehaviour type is in cache, return the cached item
             if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour && templateFieldCache.TryGetValue(typeId, out baseField))
             {
                 return baseField;
             }
+
+            AssetsFile file = inst.file;
+            bool hasTypeTree = file.Metadata.TypeTreeEnabled;
+            bool forceFromCldb = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.ForceFromCldb);
 
             // if there's a type tree AND we aren't forcing from a class database
             // (with the condition that we actually have a class database) then
@@ -133,6 +131,8 @@ namespace AssetsTools.NET.Extra
                     return null;
                 }
 
+                bool preferEditor = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.PreferEditor);
+
                 baseField = new AssetTypeTemplateField();
                 baseField.FromClassDatabase(ClassDatabase, cldbType, preferEditor);
 
@@ -154,6 +154,7 @@ namespace AssetsTools.NET.Extra
             // can get the monoscript (we could also use the script index
             // but this is safer) and then passing the script from there to
             // the temp generator. we then append those fields to the base.
+            bool skipMonoBehaviourFields = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.SkipMonoBehaviourFields);
             if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields && reader != null)
             {
                 AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
