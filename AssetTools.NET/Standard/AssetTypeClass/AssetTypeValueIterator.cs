@@ -210,11 +210,11 @@ namespace AssetsTools.NET
                             case AssetValueType.Int32:
                             case AssetValueType.UInt32:
                             case AssetValueType.Float:
-                            case AssetValueType.Double:
                                 reader.Position += 4;
                                 break;
                             case AssetValueType.Int64:
                             case AssetValueType.UInt64:
+                            case AssetValueType.Double:
                                 reader.Position += 8;
                                 break;
                             case AssetValueType.String:
