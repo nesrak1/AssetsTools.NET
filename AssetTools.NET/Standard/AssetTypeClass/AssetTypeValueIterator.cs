@@ -249,8 +249,7 @@ namespace AssetsTools.NET
                 // because we create child iterators for arrays rather than depend
                 // on the template field.
                 if (topField.Current != null
-                    && topField.Current.IsArray
-                    && topField.Current.ValueType != AssetValueType.ByteArray
+                    && (!topField.Current.IsArray || topField.Current.ValueType != AssetValueType.ByteArray)
                     && topField.Current.IsAligned)
                 {
                     reader.Align();
