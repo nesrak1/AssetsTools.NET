@@ -60,7 +60,8 @@ namespace AssetsTools.NET.Extra
             AssetTypeTemplateField baseField = null;
 
             // if non-monobehaviour type is in cache, return the cached item
-            if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour && templateFieldCache.TryGetValue(typeId, out baseField))
+            bool isMonoBehaviourTypeId = typeId == (int)AssetClassID.MonoBehaviour || typeId < 0;
+            if (UseTemplateFieldCache && !isMonoBehaviourTypeId && templateFieldCache.TryGetValue(typeId, out baseField))
             {
                 return baseField;
             }
@@ -74,7 +75,7 @@ namespace AssetsTools.NET.Extra
             // load from that instead
             if (hasTypeTree && (!forceFromCldb || ClassDatabase == null))
             {
-                if (UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
+                if (UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
                 {
                     if (monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates) &&
                         templates.TryGetValue(scriptIndex, out baseField))
@@ -89,11 +90,11 @@ namespace AssetsTools.NET.Extra
                     baseField = new AssetTypeTemplateField();
                     baseField.FromTypeTree(ttType);
 
-                    if (UseTemplateFieldCache && typeId != (int)AssetClassID.MonoBehaviour)
+                    if (UseTemplateFieldCache && !isMonoBehaviourTypeId)
                     {
                         templateFieldCache[typeId] = baseField;
                     }
-                    else if (UseMonoTemplateFieldCache && typeId == (uint)AssetClassID.MonoBehaviour)
+                    else if (UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
                     {
                         if (!monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates))
                         {
@@ -107,9 +108,9 @@ namespace AssetsTools.NET.Extra
             }
 
             // if we cached a monobehaviour from a class database, clone a copy
-            if (UseTemplateFieldCache && UseMonoTemplateFieldCache && typeId == (int)AssetClassID.MonoBehaviour)
+            if (UseTemplateFieldCache && UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
             {
-                if (templateFieldCache.TryGetValue(typeId, out baseField))
+                if (templateFieldCache.TryGetValue((int)AssetClassID.MonoBehaviour, out baseField))
                 {
                     baseField = baseField.Clone();
                 }
@@ -125,7 +126,9 @@ namespace AssetsTools.NET.Extra
                     return null;
                 }
 
-                ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(typeId);
+                int fixedTypeId = isMonoBehaviourTypeId ? (int)AssetClassID.MonoBehaviour : typeId;
+
+                ClassDatabaseType cldbType = ClassDatabase.FindAssetClassByID(fixedTypeId);
                 if (cldbType == null)
                 {
                     return null;
@@ -138,13 +141,13 @@ namespace AssetsTools.NET.Extra
 
                 if (UseTemplateFieldCache)
                 {
-                    if (typeId == (int)AssetClassID.MonoBehaviour)
+                    if (fixedTypeId == (int)AssetClassID.MonoBehaviour)
                     {
-                        templateFieldCache[typeId] = baseField.Clone();
+                        templateFieldCache[fixedTypeId] = baseField.Clone();
                     }
                     else
                     {
-                        templateFieldCache[typeId] = baseField;
+                        templateFieldCache[fixedTypeId] = baseField;
                     }
                 }
             }
@@ -155,7 +158,7 @@ namespace AssetsTools.NET.Extra
             // but this is safer) and then passing the script from there to
             // the temp generator. we then append those fields to the base.
             bool skipMonoBehaviourFields = Net35Polyfill.HasFlag(readFlags, AssetReadFlags.SkipMonoBehaviourFields);
-            if (typeId == (int)AssetClassID.MonoBehaviour && MonoTempGenerator != null && !skipMonoBehaviourFields && reader != null)
+            if (isMonoBehaviourTypeId && MonoTempGenerator != null && !skipMonoBehaviourFields && reader != null)
             {
                 AssetTypeValueField mbBaseField = baseField.MakeValue(reader, absByteStart);
                 AssetPPtr msPtr = AssetPPtr.FromField(mbBaseField["m_Script"]);
@@ -280,7 +283,7 @@ namespace AssetsTools.NET.Extra
             }
             else
             {
-                if (id != (int)AssetClassID.MonoBehaviour || scriptIndex == 0xffff)
+                if ((id != (int)AssetClassID.MonoBehaviour && id >= 0) || scriptIndex == 0xffff)
                 {
                     var cldbType = ClassDatabase.FindAssetClassByID(id);
                     templateField.FromClassDatabase(ClassDatabase, cldbType);

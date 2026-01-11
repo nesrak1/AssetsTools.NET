@@ -425,7 +425,8 @@ namespace AssetsTools.NET.Extra
                 "GUIStyle" => CommonMonoTemplateHelper.GUIStyle(unityVersion),
                 "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
                 "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
-                "PropertyName" => CommonMonoTemplateHelper.PropertyName(),
+                "PropertyName" => CommonMonoTemplateHelper.PropertyName(unityVersion),
+                "SphericalHarmonicsL2" => CommonMonoTemplateHelper.SphericalHarmonicsL2(unityVersion),
                 _ => Serialized(type, availableDepth, ref usingManagedReference)
             };
         }

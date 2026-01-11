@@ -88,45 +88,19 @@ namespace AssetsTools.NET.Extra
             ["System.String"] = "string"
         };
 
-        private static readonly Dictionary<string, AssetValueType> baseToAssetValueType = new Dictionary<string, AssetValueType>()
-        {
-            ["System.Boolean"] = AssetValueType.UInt8,
-            ["System.SByte"] = AssetValueType.Int8,
-            ["System.Byte"] = AssetValueType.UInt8,
-            ["System.Char"] = AssetValueType.UInt16,
-            ["System.Int16"] = AssetValueType.Int16,
-            ["System.UInt16"] = AssetValueType.UInt16,
-            ["System.Int32"] = AssetValueType.Int32,
-            ["System.UInt32"] = AssetValueType.UInt32,
-            ["System.Int64"] = AssetValueType.Int64,
-            ["System.UInt64"] = AssetValueType.UInt64,
-            ["System.Double"] = AssetValueType.Double,
-            ["System.Single"] = AssetValueType.Float,
-            ["System.String"] = AssetValueType.String
-        };
-
-        #endregion
-
-        #region Checks
-
-
         public static string ConvertBaseToPrimitive(string name)
         {
             if (baseToPrimitive.TryGetValue(name, out string primitiveName))
             {
                 return primitiveName;
             }
+
             return name;
         }
 
-        public static AssetValueType ConvertBaseToAssetValueType(string name)
-        {
-            if (baseToAssetValueType.TryGetValue(name, out AssetValueType value))
-            {
-                return value;
-            }
-            return AssetValueType.None;
-        }
+        #endregion
+
+        #region Checks
 
         public static bool IsSpecialUnityType(string fullName)
         {
@@ -145,20 +119,18 @@ namespace AssetsTools.NET.Extra
 
         public static bool TypeAligns(AssetValueType valueType)
         {
-            if (valueType.Equals(AssetValueType.Bool) ||
-                valueType.Equals(AssetValueType.Int8) ||
-                valueType.Equals(AssetValueType.UInt8) ||
-                valueType.Equals(AssetValueType.Int16) ||
-                valueType.Equals(AssetValueType.UInt16))
-                return true;
-            return false;
+            return valueType.Equals(AssetValueType.Bool)
+                || valueType.Equals(AssetValueType.Int8)
+                || valueType.Equals(AssetValueType.UInt8)
+                || valueType.Equals(AssetValueType.Int16)
+                || valueType.Equals(AssetValueType.UInt16);
         }
 
         public static int GetSerializationLimit(UnityVersion unityVersion)
         {
-            if (unityVersion.major > 2020 ||
-                (unityVersion.major == 2020 && (unityVersion.minor >= 2 || (unityVersion.minor == 1 && unityVersion.patch >= 4))) ||
-                (unityVersion.major == 2019 && unityVersion.minor == 4 && unityVersion.patch >= 9))
+            if (unityVersion.major > 2020
+                || (unityVersion.major == 2020 && (unityVersion.minor > 1 || (unityVersion.minor == 1 && unityVersion.patch >= 4)))
+                || (unityVersion.major == 2019 && unityVersion.minor == 4 && unityVersion.patch >= 9))
             {
                 return 10;
             }
@@ -210,13 +182,16 @@ namespace AssetsTools.NET.Extra
             {
                 Name = "Array",
                 Type = "Array",
-                ValueType = field.ValueType == AssetValueType.UInt8 ? AssetValueType.ByteArray : AssetValueType.Array,
+                ValueType = field.ValueType == AssetValueType.UInt8
+                    ? AssetValueType.ByteArray
+                    : AssetValueType.Array,
                 IsArray = true,
                 IsAligned = true,
                 HasValue = true,
                 Children = new List<AssetTypeTemplateField>
                 {
-                    Int("size"), CreateTemplateField("data", field.Type, field.ValueType, field.Children)
+                    Int("size"),
+                    CreateTemplateField("data", field.Type, field.ValueType, field.Children)
                 }
             };
 
@@ -232,10 +207,18 @@ namespace AssetsTools.NET.Extra
         {
             if (unityVersion.major > 2021 || (unityVersion.major == 2021 && unityVersion.minor >= 2))
             {
-                return new List<AssetTypeTemplateField> { Long("rid") };
+                return new List<AssetTypeTemplateField>
+                {
+                    Long("rid")
+                };
             }
-
-            return new List<AssetTypeTemplateField> { Int("id") };
+            else
+            {
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("id")
+                };
+            }
         }
 
         public static AssetTypeTemplateField ManagedReferencesRegistry(string name, UnityVersion unityVersion) =>
@@ -244,10 +227,20 @@ namespace AssetsTools.NET.Extra
         {
             if (unityVersion.major > 2021 || (unityVersion.major == 2021 && unityVersion.minor >= 2))
             {
-                return new List<AssetTypeTemplateField> { Int("version"), Vector(ReferencedObject("RefIds", unityVersion)) };
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("version"),
+                    Vector(ReferencedObject("RefIds", unityVersion))
+                };
             }
-
-            return new List<AssetTypeTemplateField> { Int("version"), ReferencedObject("00000000", unityVersion) };
+            else
+            {
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("version"),
+                    ReferencedObject("00000000", unityVersion)
+                };
+            }
         }
 
         public static AssetTypeTemplateField ReferencedObject(string name, UnityVersion unityVersion) => CreateTemplateField(name, "ReferencedObject", ReferencedObject(unityVersion));
@@ -255,16 +248,32 @@ namespace AssetsTools.NET.Extra
         {
             if (unityVersion.major > 2021 || (unityVersion.major == 2021 && unityVersion.minor >= 2))
             {
-                return new List<AssetTypeTemplateField> { Long("rid"), ReferencedManagedType("type"), CreateTemplateField("data", "ReferencedObjectData", AssetValueType.None) };
+                return new List<AssetTypeTemplateField>
+                {
+                    Long("rid"),
+                    ReferencedManagedType("type"),
+                    CreateTemplateField("data", "ReferencedObjectData", AssetValueType.None)
+                };
             }
-
-            return new List<AssetTypeTemplateField> { ReferencedManagedType("type"), CreateTemplateField("data", "ReferencedObjectData", AssetValueType.None) };
+            else
+            {
+                return new List<AssetTypeTemplateField>
+                {
+                    ReferencedManagedType("type"),
+                    CreateTemplateField("data", "ReferencedObjectData", AssetValueType.None)
+                };
+            }
         }
 
         public static AssetTypeTemplateField ReferencedManagedType(string name) => CreateTemplateField(name, "ReferencedManagedType", ReferencedManagedType());
         public static List<AssetTypeTemplateField> ReferencedManagedType()
         {
-            return new List<AssetTypeTemplateField> { String("class"), String("ns"), String("asm") };
+            return new List<AssetTypeTemplateField>
+            {
+                String("class"),
+                String("ns"),
+                String("asm")
+            };
         }
 
         #endregion
@@ -274,131 +283,362 @@ namespace AssetsTools.NET.Extra
         public static AssetTypeTemplateField Gradient(string name, UnityVersion unityVersion) => CreateTemplateField(name, "Gradient", Gradient(unityVersion));
         public static List<AssetTypeTemplateField> Gradient(UnityVersion unityVersion)
         {
-            if (unityVersion.major > 2022 || (unityVersion.major == 2022 && unityVersion.minor >= 2))
+            if (unityVersion.major > 5 || (unityVersion.major == 5 && unityVersion.minor >= 6))
             {
-                return new List<AssetTypeTemplateField> {
-                    RGBAf("key0"), RGBAf("key1"), RGBAf("key2"), RGBAf("key3"), RGBAf("key4"), RGBAf("key5"), RGBAf("key6"), RGBAf("key7"),
-                    UShort("ctime0"), UShort("ctime1"), UShort("ctime2"), UShort("ctime3"), UShort("ctime4"), UShort("ctime5"), UShort("ctime6"), UShort("ctime7"),
-                    UShort("atime0"), UShort("atime1"), UShort("atime2"), UShort("atime3"), UShort("atime4"), UShort("atime5"), UShort("atime6"), UShort("atime7"),
-                    Byte("m_Mode"), SByte("m_ColorSpace"), Byte("m_NumColorKeys"), Byte("m_NumAlphaKeys", true)
+                List<AssetTypeTemplateField> fields = new List<AssetTypeTemplateField>
+                {
+                    RGBAf("key0"),
+                    RGBAf("key1"),
+                    RGBAf("key2"),
+                    RGBAf("key3"),
+                    RGBAf("key4"),
+                    RGBAf("key5"),
+                    RGBAf("key6"),
+                    RGBAf("key7"),
+                    UShort("ctime0"),
+                    UShort("ctime1"),
+                    UShort("ctime2"),
+                    UShort("ctime3"),
+                    UShort("ctime4"),
+                    UShort("ctime5"),
+                    UShort("ctime6"),
+                    UShort("ctime7"),
+                    UShort("atime0"),
+                    UShort("atime1"),
+                    UShort("atime2"),
+                    UShort("atime3"),
+                    UShort("atime4"),
+                    UShort("atime5"),
+                    UShort("atime6"),
+                    UShort("atime7")
+                };
+
+                if (unityVersion.major > 2022 || (unityVersion.major == 2022 && unityVersion.minor >= 2))
+                {
+                    fields.Add(Byte("m_Mode"));
+                    fields.Add(SByte("m_ColorSpace"));
+                }
+                else
+                {
+                    fields.Add(Int("m_Mode"));
+                }
+
+                fields.Add(Byte("m_NumColorKeys"));
+                fields.Add(Byte("m_NumAlphaKeys", true));
+
+                return fields;
+            }
+            else
+            {
+                return new List<AssetTypeTemplateField>()
+                {
+                    RGBAi("key0"),
+                    RGBAi("key1"),
+                    RGBAi("key2"),
+                    RGBAi("key3"),
+                    RGBAi("key4"),
+                    RGBAi("key5"),
+                    RGBAi("key6"),
+                    RGBAi("key7")
                 };
             }
-
-            return new List<AssetTypeTemplateField> {
-                RGBAf("key0"), RGBAf("key1"), RGBAf("key2"), RGBAf("key3"), RGBAf("key4"), RGBAf("key5"), RGBAf("key6"), RGBAf("key7"),
-                UShort("ctime0"), UShort("ctime1"), UShort("ctime2"), UShort("ctime3"), UShort("ctime4"), UShort("ctime5"), UShort("ctime6"), UShort("ctime7"),
-                UShort("atime0"), UShort("atime1"), UShort("atime2"), UShort("atime3"), UShort("atime4"), UShort("atime5"), UShort("atime6"), UShort("atime7"),
-                Int("m_Mode"), Byte("m_NumColorKeys"), Byte("m_NumAlphaKeys", true)
-            };
         }
 
         public static AssetTypeTemplateField AnimationCurve(string name, UnityVersion unityVersion) => CreateTemplateField(name, "AnimationCurve", AnimationCurve(unityVersion));
         public static List<AssetTypeTemplateField> AnimationCurve(UnityVersion unityVersion)
         {
-            return new List<AssetTypeTemplateField> {
-                Vector(Keyframe("m_Curve", unityVersion)), Int("m_PreInfinity"), Int("m_PostInfinity"), Int("m_RotationOrder")
+            List<AssetTypeTemplateField> fields = new List<AssetTypeTemplateField>
+            {
+                Vector(Keyframe("m_Curve", unityVersion)),
+                Int("m_PreInfinity"),
+                Int("m_PostInfinity")
             };
+
+            if (unityVersion.major > 5 || (unityVersion.major == 5 && unityVersion.minor >= 3))
+            {
+                fields.Add(Int("m_RotationOrder"));
+            }
+
+            return fields;
         }
 
-        //only supports 2019 right now
         public static AssetTypeTemplateField GUIStyle(string name, UnityVersion unityVersion) => CreateTemplateField(name, "GUIStyle", GUIStyle(unityVersion));
         public static List<AssetTypeTemplateField> GUIStyle(UnityVersion unityVersion)
         {
-            return new List<AssetTypeTemplateField> {
+            List<AssetTypeTemplateField> fields = new List<AssetTypeTemplateField>
+            {
                 String("m_Name"),
-                GUIStyleState("m_Normal", unityVersion), GUIStyleState("m_Hover", unityVersion), GUIStyleState("m_Active", unityVersion), GUIStyleState("m_Focused", unityVersion),
-                GUIStyleState("m_OnNormal", unityVersion), GUIStyleState("m_OnHover", unityVersion), GUIStyleState("m_OnActive", unityVersion), GUIStyleState("m_OnFocused", unityVersion),
-                RectOffset("m_Border"), RectOffset("m_Margin"), RectOffset("m_Padding"), RectOffset("m_Overflow"),
-                PPtr("m_Font", "Font", unityVersion), Int("m_FontSize"), Int("m_FontStyle"),
-                Int("m_Alignment"), Bool("m_WordWrap"), Bool("m_RichText", true),
-                Int("m_TextClipping"), Int("m_ImagePosition"), Vector2f("m_ContentOffset"),
-                Float("m_FixedWidth"), Float("m_FixedHeight"), Bool("m_StretchWidth"), Bool("m_StretchHeight", true)
+                GUIStyleState("m_Normal", unityVersion),
+                GUIStyleState("m_Hover", unityVersion),
+                GUIStyleState("m_Active", unityVersion),
+                GUIStyleState("m_Focused", unityVersion),
+                GUIStyleState("m_OnNormal", unityVersion),
+                GUIStyleState("m_OnHover", unityVersion),
+                GUIStyleState("m_OnActive", unityVersion),
+                GUIStyleState("m_OnFocused", unityVersion),
+                RectOffset("m_Border"),
             };
+
+            if (unityVersion.major >= 4)
+            {
+                fields.Add(RectOffset("m_Margin"));
+                fields.Add(RectOffset("m_Padding"));
+            }
+            else
+            {
+                fields.Add(RectOffset("m_Padding"));
+                fields.Add(RectOffset("m_Margin"));
+            }
+
+            fields.Add(RectOffset("m_Overflow"));
+            fields.Add(PPtr("m_Font", "Font", unityVersion));
+
+            if (unityVersion.major >= 4)
+            {
+                fields.Add(Int("m_FontSize"));
+                fields.Add(Int("m_FontStyle"));
+                fields.Add(Int("m_Alignment"));
+                fields.Add(Bool("m_WordWrap"));
+                fields.Add(Bool("m_RichText", true));
+            }
+            else
+            {
+                fields.Add(Int("m_ImagePosition"));
+                fields.Add(Int("m_Alignment"));
+                fields.Add(Bool("m_WordWrap", true));
+            }
+
+            fields.Add(Int("m_TextClipping"));
+
+            if (unityVersion.major >= 4)
+            {
+                fields.Add(Int("m_ImagePosition"));
+            }
+
+            fields.Add(Vector2f("m_ContentOffset"));
+
+            if (unityVersion.major < 4)
+            {
+                fields.Add(Vector2f("m_ClipOffset"));
+            }
+
+            fields.Add(Float("m_FixedWidth"));
+            fields.Add(Float("m_FixedHeight"));
+
+            if (unityVersion.major >= 4)
+            {
+                fields.Add(Bool("m_StretchWidth"));
+            }
+            else
+            {
+                fields.Add(Int("m_FontSize"));
+                fields.Add(Int("m_FontStyle"));
+                fields.Add(Bool("m_StretchWidth", true));
+            }
+
+            fields.Add(Bool("m_StretchHeight", true));
+
+            return fields;
         }
 
         public static AssetTypeTemplateField Keyframe(string name, UnityVersion unityVersion) => CreateTemplateField(name, "Keyframe", Keyframe(unityVersion));
         public static List<AssetTypeTemplateField> Keyframe(UnityVersion unityVersion)
         {
+            List<AssetTypeTemplateField> fields = new List<AssetTypeTemplateField>
+            {
+                Float("time"),
+                Float("value"),
+                Float("inSlope"),
+                Float("outSlope")
+            };
+
             if (unityVersion.major >= 2018)
             {
-                return new List<AssetTypeTemplateField> {
-                    Float("time"), Float("value"), Float("inSlope"), Float("outSlope"),
-                    Int("weightedMode"), Float("inWeight"), Float("outWeight")
-                };
+                fields.Add(Int("weightedMode"));
+                fields.Add(Float("inWeight"));
+                fields.Add(Float("outWeight"));
             }
-            return new List<AssetTypeTemplateField> { Float("time"), Float("value"), Float("inSlope"), Float("outSlope") };
+
+            return fields;
         }
 
         public static AssetTypeTemplateField GUIStyleState(string name, UnityVersion unityVersion) => CreateTemplateField(name, "GUIStyleState", GUIStyleState(unityVersion));
         public static List<AssetTypeTemplateField> GUIStyleState(UnityVersion unityVersion)
         {
-            return new List<AssetTypeTemplateField> { PPtr("m_Background", "Texture2D", unityVersion), RGBAf("m_TextColor") };
+            return new List<AssetTypeTemplateField>
+            {
+                PPtr("m_Background", "Texture2D", unityVersion),
+                RGBAf("m_TextColor")
+            };
+        }
+
+        public static AssetTypeTemplateField SphericalHarmonicsL2(string name, UnityVersion unityVersion) => CreateTemplateField(name, "SphericalHarmonicsL2", SphericalHarmonicsL2(unityVersion));
+        public static List<AssetTypeTemplateField> SphericalHarmonicsL2(UnityVersion unityVersion)
+        {
+            List<AssetTypeTemplateField> fields = new List<AssetTypeTemplateField>();
+
+            if (unityVersion.major >= 5)
+            {
+                fields.Add(Float("sh[ 0]"));
+                fields.Add(Float("sh[ 1]"));
+                fields.Add(Float("sh[ 2]"));
+                fields.Add(Float("sh[ 3]"));
+                fields.Add(Float("sh[ 4]"));
+                fields.Add(Float("sh[ 5]"));
+                fields.Add(Float("sh[ 6]"));
+                fields.Add(Float("sh[ 7]"));
+                fields.Add(Float("sh[ 8]"));
+                fields.Add(Float("sh[ 9]"));
+            }
+            else
+            {
+                fields.Add(Float("sh[0]"));
+                fields.Add(Float("sh[1]"));
+                fields.Add(Float("sh[2]"));
+                fields.Add(Float("sh[3]"));
+                fields.Add(Float("sh[4]"));
+                fields.Add(Float("sh[5]"));
+                fields.Add(Float("sh[6]"));
+                fields.Add(Float("sh[7]"));
+                fields.Add(Float("sh[8]"));
+                fields.Add(Float("sh[9]"));
+            }
+
+            fields.Add(Float("sh[10]"));
+            fields.Add(Float("sh[11]"));
+            fields.Add(Float("sh[12]"));
+            fields.Add(Float("sh[13]"));
+            fields.Add(Float("sh[14]"));
+            fields.Add(Float("sh[15]"));
+            fields.Add(Float("sh[16]"));
+            fields.Add(Float("sh[17]"));
+            fields.Add(Float("sh[18]"));
+            fields.Add(Float("sh[19]"));
+            fields.Add(Float("sh[20]"));
+            fields.Add(Float("sh[21]"));
+            fields.Add(Float("sh[22]"));
+            fields.Add(Float("sh[23]"));
+            fields.Add(Float("sh[24]"));
+            fields.Add(Float("sh[25]"));
+            fields.Add(Float("sh[26]"));
+
+            return fields;
         }
 
         public static AssetTypeTemplateField RGBAf(string name) => CreateTemplateField(name, "ColorRGBA", RGBAf());
         public static List<AssetTypeTemplateField> RGBAf()
         {
-            return new List<AssetTypeTemplateField> { Float("r"), Float("g"), Float("b"), Float("a") };
+            return new List<AssetTypeTemplateField>
+            {
+                Float("r"),
+                Float("g"),
+                Float("b"),
+                Float("a")
+            };
         }
 
         public static AssetTypeTemplateField RGBAi(string name) => CreateTemplateField(name, "ColorRGBA", RGBAi());
         public static List<AssetTypeTemplateField> RGBAi()
         {
-            return new List<AssetTypeTemplateField> { UInt("rgba") };
+            return new List<AssetTypeTemplateField>
+            {
+                UInt("rgba")
+            };
         }
 
         public static AssetTypeTemplateField AABB(string name) => CreateTemplateField(name, "AABB", AABB());
         public static List<AssetTypeTemplateField> AABB()
         {
-            return new List<AssetTypeTemplateField> { Vector3f("m_Center"), Vector3f("m_Extent") };
+            return new List<AssetTypeTemplateField>
+            {
+                Vector3f("m_Center"),
+                Vector3f("m_Extent")
+            };
         }
 
         public static AssetTypeTemplateField BoundsInt(string name) => CreateTemplateField(name, "BoundsInt", BoundsInt());
         public static List<AssetTypeTemplateField> BoundsInt()
         {
-            return new List<AssetTypeTemplateField> { Vector3Int("m_Position"), Vector3Int("m_Size") };
+            return new List<AssetTypeTemplateField>
+            {
+                Vector3Int("m_Position"),
+                Vector3Int("m_Size")
+            };
         }
 
         public static AssetTypeTemplateField BitField(string name) => CreateTemplateField(name, "BitField", BitField());
         public static List<AssetTypeTemplateField> BitField()
         {
-            return new List<AssetTypeTemplateField> { UInt("m_Bits") };
+            return new List<AssetTypeTemplateField>
+            {
+                UInt("m_Bits")
+            };
         }
 
         public static AssetTypeTemplateField Rectf(string name) => CreateTemplateField(name, "Rectf", Rectf());
         public static List<AssetTypeTemplateField> Rectf()
         {
-            return new List<AssetTypeTemplateField> { Float("x"), Float("y"), Float("width"), Float("height") };
+            return new List<AssetTypeTemplateField>
+            {
+                Float("x"),
+                Float("y"),
+                Float("width"),
+                Float("height")
+            };
         }
 
         public static AssetTypeTemplateField RectOffset(string name) => CreateTemplateField(name, "RectOffset", RectOffset());
         public static List<AssetTypeTemplateField> RectOffset()
         {
-            return new List<AssetTypeTemplateField> { Int("m_Left"), Int("m_Right"), Int("m_Top"), Int("m_Bottom") };
+            return new List<AssetTypeTemplateField>
+            {
+                Int("m_Left"),
+                Int("m_Right"),
+                Int("m_Top"),
+                Int("m_Bottom")
+            };
         }
 
         public static AssetTypeTemplateField Vector2Int(string name) => CreateTemplateField(name, "int2_storage", Vector2Int());
         public static List<AssetTypeTemplateField> Vector2Int()
         {
-            return new List<AssetTypeTemplateField> { Int("x"), Int("y") };
+            return new List<AssetTypeTemplateField>
+            {
+                Int("x"),
+                Int("y")
+            };
         }
 
         public static AssetTypeTemplateField Vector3Int(string name) => CreateTemplateField(name, "int3_storage", Vector3Int());
         public static List<AssetTypeTemplateField> Vector3Int()
         {
-            return new List<AssetTypeTemplateField> { Int("x"), Int("y"), Int("z") };
+            return new List<AssetTypeTemplateField>
+            {
+                Int("x"),
+                Int("y"),
+                Int("z")
+            };
         }
 
         public static AssetTypeTemplateField Vector2f(string name) => CreateTemplateField(name, "Vector2f", Vector2f());
         public static List<AssetTypeTemplateField> Vector2f()
         {
-            return new List<AssetTypeTemplateField> { Float("x"), Float("y") };
+            return new List<AssetTypeTemplateField>
+            {
+                Float("x"),
+                Float("y")
+            };
         }
 
         public static AssetTypeTemplateField Vector3f(string name) => CreateTemplateField(name, "Vector3f", Vector3f());
         public static List<AssetTypeTemplateField> Vector3f()
         {
-            return new List<AssetTypeTemplateField> { Float("x"), Float("y"), Float("z") };
+            return new List<AssetTypeTemplateField>
+            {
+                Float("x"),
+                Float("y"),
+                Float("z")
+            };
         }
 
         public static AssetTypeTemplateField PPtr(string name, string typeName, UnityVersion unityVersion) => CreateTemplateField(name, $"PPtr<{typeName}>", PPtr(unityVersion));
@@ -406,17 +646,49 @@ namespace AssetsTools.NET.Extra
         {
             if (unityVersion.major >= 5)
             {
-                return new List<AssetTypeTemplateField> { Int("m_FileID"), Long("m_PathID") };
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("m_FileID"),
+                    Long("m_PathID")
+                };
             }
-
-            return new List<AssetTypeTemplateField> { Int("m_FileID"), Int("m_PathID") };
+            else
+            {
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("m_FileID"),
+                    Int("m_PathID")
+                };
+            }
         }
 
-        // yes, there is a double string here
-        public static AssetTypeTemplateField PropertyName(string name) => CreateTemplateField(name, "string", PropertyName());
-        public static List<AssetTypeTemplateField> PropertyName()
+        public static AssetTypeTemplateField PropertyName(string name, UnityVersion unityVersion) => CreateTemplateField(name, "string", PropertyName(unityVersion));
+        public static List<AssetTypeTemplateField> PropertyName(UnityVersion unityVersion)
         {
-            return new List<AssetTypeTemplateField> { String("id") };
+            if (unityVersion.major > 2020
+                || (unityVersion.major == 2020 &&
+                    (unityVersion.minor > 2 || (unityVersion.minor == 2 && (unityVersion.type != "a" || unityVersion.typeNum >= 16))))
+                || (unityVersion.major == 2020 &&
+                    (unityVersion.minor > 1 || (unityVersion.minor == 1 && unityVersion.type != "a" && (unityVersion.type != "b" || unityVersion.typeNum >= 15))))
+                || (unityVersion.major == 2019 &&
+                    (unityVersion.minor > 4 || (unityVersion.minor == 4 && (unityVersion.type != "a" || unityVersion.patch >= 3))))
+                || (unityVersion.major == 2018 &&
+                    (unityVersion.minor > 4 || (unityVersion.minor == 4 && (unityVersion.type != "a" || unityVersion.patch >= 25))))
+                )
+            {
+                // yes, there is a double string here
+                return new List<AssetTypeTemplateField>
+                {
+                    String("id")
+                };
+            }
+            else
+            {
+                return new List<AssetTypeTemplateField>
+                {
+                    Int("id")
+                };
+            }
         }
 
         #endregion

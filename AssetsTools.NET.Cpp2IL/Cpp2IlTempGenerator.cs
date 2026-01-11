@@ -502,7 +502,8 @@ namespace AssetsTools.NET.Cpp2IL
                 "GUIStyle" => CommonMonoTemplateHelper.GUIStyle(_unityVersion),
                 "Vector2Int" => CommonMonoTemplateHelper.Vector2Int(),
                 "Vector3Int" => CommonMonoTemplateHelper.Vector3Int(),
-                "PropertyName" => CommonMonoTemplateHelper.PropertyName(),
+                "PropertyName" => CommonMonoTemplateHelper.PropertyName(_unityVersion),
+                "SphericalHarmonicsL2" => CommonMonoTemplateHelper.SphericalHarmonicsL2(_unityVersion),
                 _ => Serialized(type, availableDepth)
             };
         }
