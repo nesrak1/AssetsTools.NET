@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
 
+#if NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
+
 namespace AssetsTools.NET.Extra
 {
     public static class Net35Polyfill
@@ -8,18 +12,31 @@ namespace AssetsTools.NET.Extra
         //https://stackoverflow.com/a/13022108
         public static void CopyToCompat(this Stream input, Stream output, long bytes = -1, int bufferSize = 80 * 1024)
         {
+#if NETSTANDARD2_1_OR_GREATER
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+#else
             byte[] buffer = new byte[bufferSize];
+#endif
             int read;
 
-            // set to largest value so we always go over buffer (hopefully)
-            if (bytes == -1)
-                bytes = long.MaxValue;
-
-            // bufferSize will always be an int so if bytes is larger, it's also under the size of an int
-            while (bytes > 0 && (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
+            try
             {
-                output.Write(buffer, 0, read);
-                bytes -= read;
+                // set to largest value so we always go over buffer (hopefully)
+                if (bytes == -1)
+                    bytes = long.MaxValue;
+
+                // bufferSize will always be an int so if bytes is larger, it's also under the size of an int
+                while (bytes > 0 && (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
+                {
+                    output.Write(buffer, 0, read);
+                    bytes -= read;
+                }
+            }
+            finally
+            {
+#if NETSTANDARD2_1_OR_GREATER
+            ArrayPool<byte>.Shared.Return(buffer);
+#endif
             }
         }
 
