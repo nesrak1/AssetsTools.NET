@@ -14,29 +14,34 @@ namespace AssetsTools.NET.Extra
         {
 #if NETSTANDARD2_1_OR_GREATER
             byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-#else
-            byte[] buffer = new byte[bufferSize];
-#endif
-            int read;
 
             try
             {
-                // set to largest value so we always go over buffer (hopefully)
-                if (bytes == -1)
-                    bytes = long.MaxValue;
-
-                // bufferSize will always be an int so if bytes is larger, it's also under the size of an int
-                while (bytes > 0 && (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
-                {
-                    output.Write(buffer, 0, read);
-                    bytes -= read;
-                }
+                CopyToCompat(input, output, bytes, buffer);
             }
             finally
             {
-#if NETSTANDARD2_1_OR_GREATER
-            ArrayPool<byte>.Shared.Return(buffer);
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+#else
+            byte[] buffer = new byte[bufferSize];
+            CopyToCompat(input, output, bytes, buffer);
 #endif
+        }
+
+        private static void CopyToCompat(this Stream input, Stream output, long bytes, byte[] buffer)
+        {
+            int read;
+
+            // set to largest value so we always go over buffer (hopefully)
+            if (bytes == -1)
+                bytes = long.MaxValue;
+
+            // bufferSize will always be an int so if bytes is larger, it's also under the size of an int
+            while (bytes > 0 && (read = input.Read(buffer, 0, (int)Math.Min(buffer.Length, bytes))) > 0)
+            {
+                output.Write(buffer, 0, read);
+                bytes -= read;
             }
         }
 
