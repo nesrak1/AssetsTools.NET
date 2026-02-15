@@ -3,6 +3,7 @@ using LibCpp2IL;
 using LibCpp2IL.Metadata;
 using LibCpp2IL.Reflection;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,16 +15,23 @@ namespace AssetsTools.NET.Cpp2IL
 {
     public class Cpp2IlTempGenerator : IMonoBehaviourTemplateGenerator
     {
-        private readonly string _globalMetadataPath;
-        private readonly string _assemblyPath;
+        private readonly byte[] _globalMetadataBytes;
+        private readonly byte[] _assemblyBytes;
         private ATUnityVersion _unityVersion;
         private bool _initialized;
         private bool _anyFieldIsManagedReference;
 
         public Cpp2IlTempGenerator(string globalMetadataPath, string assemblyPath)
         {
-            _globalMetadataPath = globalMetadataPath;
-            _assemblyPath = assemblyPath;
+            _globalMetadataBytes = File.ReadAllBytes(globalMetadataPath);
+            _assemblyBytes = File.ReadAllBytes(assemblyPath);
+            ResetCpp2IL();
+        }
+
+        public Cpp2IlTempGenerator(byte[] globalMetadataBytes, byte[] assemblyBytes)
+        {
+            _globalMetadataBytes = globalMetadataBytes;
+            _assemblyBytes = assemblyBytes;
             ResetCpp2IL();
         }
 
@@ -63,7 +71,7 @@ namespace AssetsTools.NET.Cpp2IL
         public void InitializeCpp2IL()
         {
             ARUnityVersion arUnityVersion = ARUnityVersion.Parse(_unityVersion.ToString());
-            if (!LibCpp2IlMain.LoadFromFile(_assemblyPath, _globalMetadataPath, arUnityVersion))
+            if (!LibCpp2IlMain.Initialize(_assemblyBytes, _globalMetadataBytes, arUnityVersion))
             {
                 throw new Exception("Cpp2Il initialization failed");
             }
