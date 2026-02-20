@@ -30,12 +30,23 @@ namespace AssetsTools.NET
         /// </summary>
         public bool DataIsCompressed { get; set; }
 
+        private static int _lz4ParallelPackBatchSize = 32;
         /// <summary>
-        /// Number of 0x20000 blocks processed per parallel batch in LZ4/LZ4Fast Pack.
+        /// Number of 0x20000 blocks processed per parallel batch in LZ4/LZ4Fast Pack/Unpack.
         /// Used on non-NET35 targets only. Values less than 1 are treated as 1.
         /// </summary>
-        public static int Lz4ParallelPackBatchSize { get; set; } = 32;
-
+        public static int Lz4ParallelPackBatchSize
+        {
+            get => _lz4ParallelPackBatchSize;
+            set
+            {
+                if (value <= 0)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Lz4ParallelPackBatchSize must be greater than 0.");
+                }
+                _lz4ParallelPackBatchSize = value;
+            }
+        }
         public AssetsFileReader Reader;
 
         /// <summary>
@@ -504,16 +515,13 @@ namespace AssetsTools.NET
                         writeStream = GetTempFileStream();
 
 #if !NET35
-                    int batchSize = Lz4ParallelPackBatchSize;
-                    if (batchSize < 1)
-                        batchSize = 1;
                     int totalBlockCount = (int)((bundleDataReader.BaseStream.Length + blockSize - 1) / blockSize);
                     int completedBlockCount = 0;
 
                     while (true)
                     {
-                        List<byte[]> uncompressedBlocks = new List<byte[]>(batchSize);
-                        for (int i = 0; i < batchSize; i++)
+                        List<byte[]> uncompressedBlocks = new List<byte[]>(_lz4ParallelPackBatchSize);
+                        for (int i = 0; i < _lz4ParallelPackBatchSize; i++)
                         {
                             byte[] block = bundleDataReader.ReadBytes(blockSize);
                             if (block.Length == 0)
