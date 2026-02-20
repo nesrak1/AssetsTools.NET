@@ -5,6 +5,9 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
 using System.IO;
+#if !NET35
+using System.Threading.Tasks;
+#endif
 
 namespace AssetsTools.NET
 {
@@ -26,6 +29,12 @@ namespace AssetsTools.NET
         /// Is data reader reading compressed data? Only LZMA bundles set this to true.
         /// </summary>
         public bool DataIsCompressed { get; set; }
+
+        /// <summary>
+        /// Number of 0x20000 blocks processed per parallel batch in LZ4/LZ4Fast Pack.
+        /// Used on non-NET35 targets only. Values less than 1 are treated as 1.
+        /// </summary>
+        public static int Lz4ParallelPackBatchSize { get; set; } = 32;
 
         public AssetsFileReader Reader;
 
@@ -485,6 +494,7 @@ namespace AssetsTools.NET
                 case AssetBundleCompressionType.LZ4Fast:
                 {
                     // compress into 0x20000 blocks
+                    const int blockSize = 0x20000;
                     BinaryReader bundleDataReader = new BinaryReader(bundleDataStream);
 
                     Stream writeStream;
@@ -493,7 +503,78 @@ namespace AssetsTools.NET
                     else
                         writeStream = GetTempFileStream();
 
-                    byte[] uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
+#if !NET35
+                    int batchSize = Lz4ParallelPackBatchSize;
+                    if (batchSize < 1)
+                        batchSize = 1;
+                    int totalBlockCount = (int)((bundleDataReader.BaseStream.Length + blockSize - 1) / blockSize);
+                    int completedBlockCount = 0;
+
+                    while (true)
+                    {
+                        List<byte[]> uncompressedBlocks = new List<byte[]>(batchSize);
+                        for (int i = 0; i < batchSize; i++)
+                        {
+                            byte[] block = bundleDataReader.ReadBytes(blockSize);
+                            if (block.Length == 0)
+                                break;
+                            uncompressedBlocks.Add(block);
+                        }
+
+                        if (uncompressedBlocks.Count == 0)
+                            break;
+
+                        // each outputBlock is a byte[]
+                        byte[][] outputBlocks = new byte[uncompressedBlocks.Count][];
+                        AssetBundleBlockInfo[] outputBlockInfos = new AssetBundleBlockInfo[uncompressedBlocks.Count];
+
+                        Parallel.For(0, uncompressedBlocks.Count, i =>
+                        {
+                            byte[] uncompressedBlock = uncompressedBlocks[i];
+                            byte[] compressedBlock = compType == AssetBundleCompressionType.LZ4Fast
+                                ? LZ4Codec.Encode32(uncompressedBlock, 0, uncompressedBlock.Length)
+                                : LZ4Codec.Encode32HC(uncompressedBlock, 0, uncompressedBlock.Length);
+
+                            if (compressedBlock.Length > uncompressedBlock.Length)
+                            {
+                                outputBlocks[i] = uncompressedBlock;
+                                outputBlockInfos[i] = new AssetBundleBlockInfo()
+                                {
+                                    CompressedSize = (uint)uncompressedBlock.Length,
+                                    DecompressedSize = (uint)uncompressedBlock.Length,
+                                    Flags = 0x00
+                                };
+                            }
+                            else
+                            {
+                                outputBlocks[i] = compressedBlock;
+                                outputBlockInfos[i] = new AssetBundleBlockInfo()
+                                {
+                                    CompressedSize = (uint)compressedBlock.Length,
+                                    DecompressedSize = (uint)uncompressedBlock.Length,
+                                    Flags = 0x03
+                                };
+                            }
+                        });
+
+                        for (int i = 0; i < outputBlocks.Length; i++)
+                        {
+                            byte[] outputBlock = outputBlocks[i];
+                            AssetBundleBlockInfo blockInfo = outputBlockInfos[i];
+
+                            writeStream.Write(outputBlock, 0, outputBlock.Length);
+                            totalCompressedSize += blockInfo.CompressedSize;
+                            newBlocks.Add(blockInfo);
+                        }
+
+                        completedBlockCount += outputBlocks.Length;
+                        if (progress != null && totalBlockCount > 0)
+                        {
+                            progress.SetProgress((float)completedBlockCount / totalBlockCount);
+                        }
+                    }
+#else
+                    byte[] uncompressedBlock = bundleDataReader.ReadBytes(blockSize);
                     while (uncompressedBlock.Length != 0)
                     {
                         byte[] compressedBlock = compType == AssetBundleCompressionType.LZ4Fast
@@ -536,8 +617,9 @@ namespace AssetsTools.NET
                             newBlocks.Add(blockInfo);
                         }
 
-                        uncompressedBlock = bundleDataReader.ReadBytes(0x20000);
+                        uncompressedBlock = bundleDataReader.ReadBytes(blockSize);
                     }
+#endif
 
                     if (!blockDirAtEnd)
                         newStreams.Add(writeStream);
