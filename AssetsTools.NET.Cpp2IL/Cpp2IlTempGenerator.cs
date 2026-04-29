@@ -153,8 +153,8 @@ namespace AssetsTools.NET.Cpp2IL
             Il2CppCustomAttributeDataRange attributeDataRange = metadata.AttributeDataRanges[caIndex];
             Il2CppCustomAttributeDataRange next = metadata.AttributeDataRanges[caIndex + 1];
 
-            long blobStart = metadata.metadataHeader.attributeDataOffset + attributeDataRange.startOffset;
-            long blobEnd = metadata.metadataHeader.attributeDataOffset + next.startOffset;
+            long blobStart = metadata.metadataHeader.attributeData.Offset + attributeDataRange.startOffset;
+            long blobEnd = metadata.metadataHeader.attributeData.Offset + next.startOffset;
 
             return metadata.ReadByteArrayAtRawAddress(blobStart, (int)(blobEnd - blobStart));
         }
@@ -178,7 +178,7 @@ namespace AssetsTools.NET.Cpp2IL
                 foreach (uint attrIdx in parsedCustomAttrData.attributeIndices)
                 {
                     var attrCtorMethod = metadata.methodDefs[attrIdx];
-                    var attrType = metadata.typeDefs[attrCtorMethod.declaringTypeIdx];
+                    var attrType = metadata.typeDefs[attrCtorMethod.declaringTypeIdx.Value];
                     attributeNames.Add(attrType.FullName);
                 }
 
@@ -196,7 +196,7 @@ namespace AssetsTools.NET.Cpp2IL
                 for (int attributeIdx = 0; attributeIdx < attributeTypeRange.count; attributeIdx++)
                 {
                     var attributeTypeIndex = metadata.attributeTypes[attributeTypeRange.start + attributeIdx];
-                    var attributeTypeDef = metadata.typeDefs.FirstOrDefault(td => td.ByvalTypeIndex == attributeTypeIndex);
+                    var attributeTypeDef = metadata.typeDefs.FirstOrDefault(td => td.ByvalTypeIndex.IsNonNull && td.ByvalTypeIndex.Value == attributeTypeIndex);
                     if (attributeTypeDef != null)
                     {
                         attributeNames.Add(attributeTypeDef.FullName);
