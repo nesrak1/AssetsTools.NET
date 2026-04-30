@@ -95,19 +95,22 @@ namespace AssetsTools.NET.Cpp2IL
 
             Il2CppMetadata meta = LibCpp2IlMain.TheMetadata;
 
-            Il2CppAssemblyDefinition asm = meta.AssemblyDefinitions.ToList().First(a => a.AssemblyName.Name == assemblyName);
-            if (asm == null)
-            {
-                throw new Exception($"Assembly \"{assemblyName}\" was not found in the IL2CPP metadata.");
-            }
+            string classFullName = string.IsNullOrEmpty(nameSpace) ? className : $"{nameSpace}.{className}";
 
-            string fullName = $"{nameSpace}{(string.IsNullOrEmpty(nameSpace) ? "" : ".")}{className}";
+            // Find class in all assemblies if namespace and name matсh
+            // so MonoBehaviour might has common assemble name UnityEngine.dll
+            // but class actually be located in submodule UnityEngine.TextCoreTextEngineModule.dll
 
-            Il2CppTypeDefinition type = asm.Image.Types.FirstOrDefault(t => t.FullName == fullName);
+            Il2CppTypeDefinition type = meta.AssemblyDefinitions
+                .Where(asm => asm.AssemblyName.Name.StartsWith(assemblyName, StringComparison.OrdinalIgnoreCase))
+                .SelectMany(asm => asm.Image.Types)
+                .FirstOrDefault(t => t.FullName == classFullName);
+
             if (type == null)
             {
-                throw new Exception($"Type \"{nameSpace}::{className}\" was not found in the IL2CPP metadata.");
+                throw new Exception($"Type \"{classFullName}\" was not found.");
             }
+
             Il2CppTypeReflectionData typeRef = new Il2CppTypeReflectionData
             {
                 baseType = type,
