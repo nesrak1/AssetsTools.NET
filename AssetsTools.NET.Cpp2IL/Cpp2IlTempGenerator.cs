@@ -108,7 +108,7 @@ namespace AssetsTools.NET.Cpp2IL
 
             if (type == null)
             {
-                throw new Exception($"Type \"{classFullName}\" was not found.");
+                throw new Exception($"Type \"{classFullName}\" was not found in the IL2CPP metadata.");
             }
 
             Il2CppTypeReflectionData typeRef = new Il2CppTypeReflectionData
