@@ -1,8 +1,10 @@
-﻿// TextureEncoder.h : Include file for standard system include files,
-// or project specific include files.
-
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 
-// TODO: Reference additional headers your program requires here.
+enum class TextureEncoderError
+{
+    EncodeTexture = -1,
+    EncodeMipmaps = -2,
+    AllocateMemory = -3
+};

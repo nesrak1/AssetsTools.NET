@@ -3,17 +3,6 @@ using System.Drawing;
 
 namespace AssetsTools.NET.Texture
 {
-    // how to use:
-    // 1. get raw texture block dimensions (region of pixels that fits in 16 bytes)
-    //      use GetTextureFormatBlockSize
-    // 2. get gob block height from platform blob (if available) or block size (if making new texture)
-    //      use GetBlockHeightByPlatformBlob or GetBlockHeightByBlockSize
-    //      (note: swizzle starts at a certain unity version, but I can't figure out which one)
-    // 3. get padded texture size based on texture2d's size
-    //      use GetPaddedTextureSize
-    // 4. unswizzle using padded image size, raw texture block size, and gob block height
-    //      use Unswizzle
-    // 5. crop image to original texture2d size
     public class SwitchSwizzle : ISwizzler
     {
         private const int GOB_X_TEXEL_COUNT = 4;
@@ -21,14 +10,14 @@ namespace AssetsTools.NET.Texture
         private const int TEXEL_BYTE_SIZE = 16;
         // referring to block here as a compressed texture block, not a gob one
         private const int BLOCKS_IN_GOB = GOB_X_TEXEL_COUNT * GOB_Y_TEXEL_COUNT;
-        private static readonly int[] GOB_X_POSES = new int[]
-        {
+        private static readonly int[] GOB_X_POSES =
+        [
             0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3
-        };
-        private static readonly int[] GOB_Y_POSES = new int[]
-        {
+        ];
+        private static readonly int[] GOB_Y_POSES =
+        [
             0, 1, 0, 1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 7, 6, 7, 0, 1, 0, 1, 2, 3, 2, 3, 4, 5, 4, 5, 6, 7, 6, 7
-        };
+        ];
 
         /*
         sector (made of compressed texture blocks):
@@ -56,27 +45,162 @@ namespace AssetsTools.NET.Texture
         private readonly TextureFormat realFormat;
 
         // deswizzle
-        public SwitchSwizzle(TextureFile tex)
+        public SwitchSwizzle(byte[] platformBlob, int width, int height,
+            ref TextureFormat format, out int paddedWidth, out int paddedHeight)
         {
-            originalSize = new Size(tex.m_Width, tex.m_Height);
-            realFormat = GetCorrectedSwitchTextureFormat((TextureFormat)tex.m_TextureFormat);
-            gobsPerBlock = GetBlockHeightByPlatformBlob(tex.m_PlatformBlob);
+            originalSize = new Size(width, height);
+            realFormat = GetCorrectedSwitchTextureFormat(format);
+            gobsPerBlock = GetBlockHeightByPlatformBlob(platformBlob);
 
             blockSize = GetTextureFormatBlockSize(realFormat);
-            paddedSize = GetPaddedTextureSize(originalSize.Width, originalSize.Height, blockSize.Width, blockSize.Height, gobsPerBlock);
-        }
+            if (!blockSize.IsEmpty)
+            {
+                paddedSize = GetPaddedTextureSize(originalSize.Width, originalSize.Height, blockSize.Width, blockSize.Height, gobsPerBlock);
+            }
+            else
+            {
+                paddedSize = originalSize;
+            }
 
-        byte[] ISwizzler.PreprocessDeswizzle(byte[] rawData, out TextureFormat format, out int width, out int height)
-        {
             format = realFormat;
-            width = paddedSize.Width;
-            height = paddedSize.Height;
-            return Unswizzle(rawData, paddedSize, blockSize, gobsPerBlock);
+            paddedWidth = paddedSize.Width;
+            paddedHeight = paddedSize.Height;
         }
 
-        byte[] ISwizzler.PostprocessDeswizzle(byte[] rawData)
+        // swizzle
+        public SwitchSwizzle(int width, int height,
+            ref TextureFormat format, out int paddedWidth, out int paddedHeight)
         {
+            originalSize = new Size(width, height);
+            realFormat = GetCorrectedSwitchTextureFormat(format);
+
+            blockSize = GetTextureFormatBlockSize(realFormat);
+            if (!blockSize.IsEmpty)
+            {
+                gobsPerBlock = GetBlockHeightByBlockSize(blockSize, height);
+                paddedSize = GetPaddedTextureSize(originalSize.Width, originalSize.Height, blockSize.Width, blockSize.Height, gobsPerBlock);
+            }
+            else
+            {
+                gobsPerBlock = 1;
+                paddedSize = originalSize;
+            }
+
+            format = realFormat;
+            paddedWidth = paddedSize.Width;
+            paddedHeight = paddedSize.Height;
+        }
+
+        public byte[] PreprocessDeswizzle(byte[] rawData, out int width, out int height)
+        {
+            if (!CanBeSwizzled())
+            {
+                width = originalSize.Width;
+                height = originalSize.Height;
+                return rawData;
+            }
+            else
+            {
+                width = paddedSize.Width;
+                height = paddedSize.Height;
+                return Unswizzle(rawData, paddedSize, blockSize, gobsPerBlock);
+            }
+        }
+
+        public byte[] PostprocessDeswizzle(byte[] rawData)
+        {
+            if (!CanBeSwizzled())
+                return rawData;
+
+            // same size crop handled by crop method
             return TextureOperations.CropFromTopLeft(rawData, paddedSize.Width, paddedSize.Height, originalSize.Width, originalSize.Height);
+        }
+
+        public byte[] ProcessSwizzle(byte[][] rawData, out int[] mipOffsets)
+        {
+            if (!CanBeSwizzled())
+                return TextureOperations.FlattenMips(rawData, out mipOffsets);
+
+            return SwizzleMips(rawData, originalSize.Width, originalSize.Height, realFormat, out mipOffsets);
+        }
+
+        // todo: review llm code **start**
+        public static byte[] SwizzleMips(byte[][] mips, int baseWidth, int baseHeight, TextureFormat format, out int[] mipOffsets)
+        {
+            Size blockSize = GetTextureFormatBlockSize(format);
+            mipOffsets = new int[mips.Length];
+
+            int totalSize = 0;
+            for (int mip = 0; mip < mips.Length; mip++)
+            {
+                int mipWidth = Math.Max(baseWidth >> mip, 1);
+                int mipHeight = Math.Max(baseHeight >> mip, 1);
+                int gobsPerBlock = GetBlockHeightByBlockSize(blockSize, mipHeight);
+                Size paddedSize = GetPaddedTextureSize(mipWidth, mipHeight, blockSize.Width, blockSize.Height, gobsPerBlock);
+                int paddedBlockCountX = CeilDivide(paddedSize.Width, blockSize.Width);
+                int paddedBlockCountY = CeilDivide(paddedSize.Height, blockSize.Height);
+                mipOffsets[mip] = totalSize;
+                totalSize += paddedBlockCountX * paddedBlockCountY * TEXEL_BYTE_SIZE;
+            }
+
+            byte[] result = new byte[totalSize];
+            int resultOffset = 0;
+
+            for (int mip = 0; mip < mips.Length; mip++)
+            {
+                int mipWidth = Math.Max(baseWidth >> mip, 1);
+                int mipHeight = Math.Max(baseHeight >> mip, 1);
+                int gobsPerBlock = GetBlockHeightByBlockSize(blockSize, mipHeight);
+                Size paddedSize = GetPaddedTextureSize(mipWidth, mipHeight, blockSize.Width, blockSize.Height, gobsPerBlock);
+
+                byte[] paddedMip = PadMipToGobSize(mips[mip], mipHeight, paddedSize, blockSize);
+                byte[] swizzledMip = Swizzle(paddedMip, paddedSize, blockSize, gobsPerBlock);
+
+                Array.Copy(swizzledMip, 0, result, resultOffset, swizzledMip.Length);
+                resultOffset += swizzledMip.Length;
+            }
+
+            return result;
+        }
+
+        private static byte[] PadMipToGobSize(byte[] mipData, int mipHeight, Size paddedSize, Size blockSize)
+        {
+            int srcBlockCountY = CeilDivide(mipHeight, blockSize.Height);
+            int srcRowStride = mipData.Length / srcBlockCountY; // actual bytes per row of the source
+
+            int dstBlockCountX = CeilDivide(paddedSize.Width, blockSize.Width);
+            int dstBlockCountY = CeilDivide(paddedSize.Height, blockSize.Height);
+
+            byte[] padded = new byte[dstBlockCountX * dstBlockCountY * TEXEL_BYTE_SIZE];
+
+            for (int row = 0; row < srcBlockCountY; row++)
+            {
+                int srcOffset = row * srcRowStride;
+                int dstOffset = row * dstBlockCountX * TEXEL_BYTE_SIZE;
+                Array.Copy(mipData, srcOffset, padded, dstOffset, srcRowStride);
+            }
+
+            return padded;
+        }
+        // todo: review llm code **end**
+
+        public byte[] MakePlatformBlob(int[] mipOffsets, uint completeImageSize)
+        {
+            int blockHeightIndex = gobsPerBlock switch
+            {
+                16 => 4,
+                8 => 3,
+                4 => 2,
+                2 => 1,
+                _ => 0
+            };
+
+            return SwitchPlatformBlob.MakePlatformBlob(blockHeightIndex, mipOffsets, completeImageSize);
+        }
+
+        public bool CanBeSwizzled()
+        {
+            return !blockSize.IsEmpty;
         }
 
         private static int CeilDivide(int a, int b)
@@ -196,9 +320,10 @@ namespace AssetsTools.NET.Texture
                 TextureFormat.ASTC_RGBA_8x8 => new Size(8, 8),
                 TextureFormat.ASTC_RGBA_10x10 => new Size(10, 10),
                 TextureFormat.ASTC_RGBA_12x12 => new Size(12, 12),
+                TextureFormat.RGBA64 => new Size(2, 1),
                 TextureFormat.RG16 => new Size(8, 1),
                 TextureFormat.R8 => new Size(16, 1),
-                _ => throw new NotImplementedException(),
+                _ => Size.Empty
             };
         }
 
@@ -227,25 +352,20 @@ namespace AssetsTools.NET.Texture
 
         public static int GetBlockHeightByPlatformBlob(byte[] platformBlob)
         {
-            // apparently there is another value to worry about, but seeing as it's
-            // always 0 and I have nothing else to test against, this will probably
-            // work fine for now
-            return 1 << BitConverter.ToInt32(platformBlob, 8);
+            return 1 << SwitchPlatformBlob.GetBlockHeightIndex(platformBlob);
         }
 
         public static TextureFormat GetCorrectedSwitchTextureFormat(TextureFormat format)
         {
-            // in older versions of unity, rgb24 has a platformblob which shouldn't
-            // be possible. it turns out in this case, the image is just rgba32.
-            if (format == TextureFormat.RGB24)
+            // in older versions of unity, there was (presumably) a mistake where
+            // rgb24 has a platformblob, but rgb24 can't be swizzled. it turns out
+            // in this case, the image was just encoded as rgba32.
+            return format switch
             {
-                return TextureFormat.RGBA32;
-            }
-            else if (format == TextureFormat.BGR24)
-            {
-                return TextureFormat.BGRA32;
-            }
-            return format;
+                TextureFormat.RGB24 => TextureFormat.RGBA32,
+                TextureFormat.BGR24 => TextureFormat.BGRA32,
+                _ => format
+            };
         }
 
         public static bool IsSwitchSwizzled(byte[] platformBlob, SwizzleType swizzleType)

@@ -2,7 +2,6 @@
 #include "TextureFormat.h"
 #include "cuttlefish/Image.h"
 #include "cuttlefish/Texture.h"
-#include <fstream>
 #include <cstring>
 
 using namespace std;
@@ -13,14 +12,33 @@ using namespace std;
 #define EXPORT extern "C" __attribute__((visibility("default")))
 #endif
 
-struct TextureDataBuffer {
+struct TextureDataMip
+{
     int width;
     int height;
     int size;
     void* data;
 };
 
-cuttlefish::Texture::Format u2cfFormat(TextureFormat uf)
+struct TextureDataBuffer
+{
+    int width;
+    int height;
+    int mipCount;
+    TextureDataMip* mips;
+};
+
+static TextureDataBuffer MakeError(TextureEncoderError code)
+{
+    TextureDataBuffer buffer;
+    buffer.width = (int)code;
+    buffer.height = -1;
+    buffer.mipCount = 0;
+    buffer.mips = nullptr;
+    return buffer;
+}
+
+static cuttlefish::Texture::Format U2cfFormat(TextureFormat uf)
 {
     switch (uf)
     {
@@ -98,7 +116,7 @@ cuttlefish::Texture::Format u2cfFormat(TextureFormat uf)
     }
 }
 
-cuttlefish::Texture::Type u2cfType(TextureFormat uf)
+static cuttlefish::Texture::Type U2cfType(TextureFormat uf)
 {
     switch (uf)
     {
@@ -118,80 +136,100 @@ cuttlefish::Texture::Type u2cfType(TextureFormat uf)
     }
 }
 
-cuttlefish::Texture::Quality u2cfQuality(int quality)
+static cuttlefish::Texture::Quality U2cfQuality(int quality)
 {
     if (quality <= 1)
-    {
         return cuttlefish::Texture::Quality::Lowest;
-    }
     else if (quality <= 2)
-    {
         return cuttlefish::Texture::Quality::Low;
-    }
     else if (quality <= 3)
-    {
         return cuttlefish::Texture::Quality::Normal;
-    }
     else if (quality <= 4)
-    {
         return cuttlefish::Texture::Quality::High;
-    }
     else
-    {
         return cuttlefish::Texture::Quality::Highest;
-    }
 }
 
-EXPORT int SanityCheck(int num) {
-    return num + 123;
-}
-
-EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, TextureFormat uf, int quality = 3, int mips = 1)
+EXPORT int SanityCheck(int number)
 {
-    TextureDataBuffer buffer;
-    buffer.size = 0;
-    buffer.data = nullptr;
+    return number + 123;
+}
 
-    bool convertSuccess = texture->convert(u2cfFormat(uf), u2cfType(uf), u2cfQuality(quality));
-    if (!convertSuccess)
+EXPORT void FreeTextureDataBuffer(TextureDataMip* mips, int mipCount)
+{
+    for (int i = 0; i < mipCount; i++)
     {
-        buffer.width = -1;
-        buffer.height = -1;
-        return buffer;
-    }
-
-    if (mips > 1)
-    {
-        bool mipSuccess = texture->generateMipmaps(cuttlefish::Image::ResizeFilter::CatmullRom, mips);
-        if (!mipSuccess)
+        void* data = mips[i].data;
+        if (data != nullptr)
         {
-            buffer.width = -2;
-            buffer.height = -1;
-            return buffer;
+            free(data);
         }
     }
 
-    buffer.width = texture->width();
-    buffer.height = texture->height();
-    buffer.size = (int)texture->dataSize();
-    buffer.data = malloc(buffer.size);
-    if (buffer.data == nullptr)
+    free(mips);
+}
+
+EXPORT TextureDataBuffer ConvertAndFreeTexture(cuttlefish::Texture* texture, TextureFormat uf, int quality = 3)
+{
+    TextureDataBuffer buffer;
+    buffer.mipCount = 0;
+    buffer.mips = nullptr;
+
+    bool convertSuccess = texture->convert(U2cfFormat(uf), U2cfType(uf), U2cfQuality(quality));
+    if (!convertSuccess)
     {
-        buffer.width = -3;
-        buffer.height = -1;
-        return buffer;
+        delete texture;
+        return MakeError(TextureEncoderError::EncodeTexture);
     }
 
-    memcpy(buffer.data, texture->data(), buffer.size);
+    int mipCount = texture->mipLevelCount();
 
-    // todo: free all mips
-    texture->getImage(0).~Image();
+    buffer.width = texture->width();
+    buffer.height = texture->height();
+    buffer.mips = (TextureDataMip*)malloc(sizeof(TextureDataMip) * mipCount);
+    if (buffer.mips == nullptr)
+    {
+        delete texture;
+        return MakeError(TextureEncoderError::AllocateMemory);
+    }
+
+    for (int i = 0; i < mipCount; i++)
+    {
+        TextureDataMip* mip = &buffer.mips[i];
+        mip->width = 0;
+        mip->height = 0;
+        mip->size = 0;
+        mip->data = nullptr;
+    }
+
+    // we could probably just return the buffers from TextureDataMip*
+    // but we're just going to allocate another buffer for now
+    for (int i = 0; i < mipCount; i++)
+    {
+        TextureDataMip* mip = &buffer.mips[i];
+        mip->width = texture->width(i);
+        mip->height = texture->height(i);
+        mip->size = texture->dataSize(i);
+        mip->data = malloc(mip->size);
+        if (mip->data == nullptr)
+        {
+            // cleanup already allocated mips
+            FreeTextureDataBuffer(buffer.mips, i);
+
+            delete texture;
+            return MakeError(TextureEncoderError::AllocateMemory);
+        }
+
+        memcpy(mip->data, texture->data(i), mip->size);
+    }
+
+    buffer.mipCount = mipCount;
+
     delete texture;
-
     return buffer;
 }
 
-EXPORT cuttlefish::Texture* LoadTextureFromFile(char* path)
+EXPORT cuttlefish::Texture* LoadTextureFromFile(const char* path, int mips = 1)
 {
     cuttlefish::Image tmpImage;
     bool success = tmpImage.load(path);
@@ -202,17 +240,33 @@ EXPORT cuttlefish::Texture* LoadTextureFromFile(char* path)
 
     tmpImage.flipVertical();
 
-    auto texture = new cuttlefish::Texture(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height());
+    int maxMipCount = cuttlefish::Texture::maxMipmapLevels(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height());
+    if (mips > maxMipCount)
+        mips = maxMipCount;
+
+    auto texture = new cuttlefish::Texture(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height(), 0, mips);
     bool setSuccess = texture->setImage(tmpImage);
     if (!setSuccess)
     {
+        delete texture;
         return nullptr;
+    }
+
+    int mipCount = texture->mipLevelCount();
+    if (mipCount > 1)
+    {
+        bool mipSuccess = texture->generateMipmaps(cuttlefish::Image::ResizeFilter::CatmullRom, mipCount);
+        if (!mipSuccess)
+        {
+            delete texture;
+            return nullptr;
+        }
     }
 
     return texture;
 }
 
-EXPORT cuttlefish::Texture* LoadTextureFromBuffer(void* data, int size, int width, int height)
+EXPORT cuttlefish::Texture* LoadTextureFromBuffer(void* data, int size, int width, int height, int mips = 1)
 {
     cuttlefish::Image tmpImage;
     bool success = tmpImage.loadRaw(data, size, width, height);
@@ -223,17 +277,28 @@ EXPORT cuttlefish::Texture* LoadTextureFromBuffer(void* data, int size, int widt
 
     tmpImage.flipVertical();
 
-    auto texture = new cuttlefish::Texture(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height());
+    int maxMipCount = cuttlefish::Texture::maxMipmapLevels(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height());
+    if (mips > maxMipCount)
+        mips = maxMipCount;
+
+    auto texture = new cuttlefish::Texture(cuttlefish::Texture::Dimension::Dim2D, tmpImage.width(), tmpImage.height(), 0, mips);
     bool setSuccess = texture->setImage(tmpImage);
     if (!setSuccess)
     {
+        delete texture;
         return nullptr;
     }
 
-    return texture;
-}
+    int mipCount = texture->mipLevelCount();
+    if (mipCount > 1)
+    {
+        bool mipSuccess = texture->generateMipmaps(cuttlefish::Image::ResizeFilter::CatmullRom, mipCount);
+        if (!mipSuccess)
+        {
+            delete texture;
+            return nullptr;
+        }
+    }
 
-EXPORT void FreeTextureDataBuffer(void* data)
-{
-    free(data);
+    return texture;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 Aaron Barany
+ * Copyright 2017-2024 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ public:
 	{
 		Invalid, ///< Invalid format, used for errors.
 		Gray8,   ///< 8-bit grayscale.
+		Gray16,  ///< 16-bit grayscale.
 		RGB5,    ///< 6-bit per channel RGB.
 		RGB565,  ///< 5, 6, and 5 bits per channel RGB.
 		RGB8,    ///< 8-bit per channel RGB.
@@ -77,11 +78,11 @@ public:
 	 */
 	enum class ResizeFilter
 	{
-		Box,        ///< Averages all pixels in the box.
-		Linear,     ///< Linear sampling.
-		Cubic,      ///< Cubic curve sampling.
+		Box,		///< Averages all pixels in the box.
+		Linear,		///< Linear sampling.
+		Cubic,		///< Cubic curve sampling.
 		CatmullRom, ///< Catmull-Rom curve fitting.
-		BSpline     ///< B-Spline curve fitting.
+		BSpline		///< B-Spline curve fitting.
 	};
 
 	/**
@@ -89,12 +90,12 @@ public:
 	 */
 	enum class RotateAngle
 	{
-		CW90,   ///< 90 degrees clockwise.
-		CW180,  ///< 180 degrees clockwise.
-		CW270,  ///< 270 degrees clockwise.
-		CCW90,  ///< 90 degrees counter-clockwise.
+		CW90,	///< 90 degrees clockwise.
+		CW180,	///< 180 degrees clockwise.
+		CW270,	///< 270 degrees clockwise.
+		CCW90,	///< 90 degrees counter-clockwise.
 		CCW180, ///< 180 degrees counter-clockwise.
-		CCW270  ///< 270 degrees counter-clockwise.
+		CCW270	///< 270 degrees counter-clockwise.
 	};
 
 	/**
@@ -114,10 +115,10 @@ public:
 	 */
 	enum class NormalOptions
 	{
-		Default = 0x0,  ///< Default options.
+		Default = 0x0,	///< Default options.
 		KeepSign = 0x1, ///< Keep the range in [-1, 1] rather than [0, 1].
-		WrapX = 0x2,    ///< Wrap along the X axis.
-		WrapY = 0x4     ///< Wrap along the Y axis.
+		WrapX = 0x2,	///< Wrap along the X axis.
+		WrapY = 0x4		///< Wrap along the Y axis.
 	};
 
 	Image();
@@ -128,7 +129,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	explicit Image(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
+	explicit Image(const char *fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from a stream.
@@ -136,7 +137,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	explicit Image(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
+	explicit Image(std::istream &stream, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from data.
@@ -145,7 +146,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @remark The image will be invalid if it failed to load.
 	 */
-	Image(const void* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
+	Image(const void *data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Initializes an empty image.
@@ -156,16 +157,16 @@ public:
 	 * @remark The image will be invalid if it failed to initialize.
 	 */
 	Image(Format format, unsigned int width, unsigned int height,
-		ColorSpace colorSpace = ColorSpace::Linear);
+			ColorSpace colorSpace = ColorSpace::Linear);
 
 	~Image();
 
 	/// @cond
-	Image(const Image& other);
-	Image(Image&& other) noexcept;
+	Image(const Image &other);
+	Image(Image &&other) noexcept;
 
-	Image& operator=(const Image& other);
-	Image& operator=(Image&& other) noexcept;
+	Image &operator=(const Image &other);
+	Image &operator=(Image &&other) noexcept;
 	/// @endcond
 
 	/**
@@ -183,7 +184,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(const char* fileName, ColorSpace colorSpace = ColorSpace::Linear);
+	bool load(const char *fileName, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from a stream.
@@ -191,7 +192,7 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(std::istream& stream, ColorSpace colorSpace = ColorSpace::Linear);
+	bool load(std::istream &stream, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Loads an image from data.
@@ -200,16 +201,16 @@ public:
 	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool load(const void* data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
+	bool load(const void *data, std::size_t size, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
-	 * @brief Loads an image from raw data in RGBA32.
+	 * @brief Loads an image from raw data in BGRA32.
 	 * @param data The data to load from.
 	 * @param size The size of the data.
 	 * @param colorSpace The color space of the image.
 	 * @return False if the image couldn't be loaded.
 	 */
-	bool loadRaw(const void* data, std::size_t size, int width, int height, ColorSpace colorSpace = ColorSpace::Linear);
+	bool loadRaw(const void *data, std::size_t size, int width, int height, ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Saves an image to a file.
@@ -223,7 +224,7 @@ public:
 	 * @param fileName The name of the file to save.
 	 * @return False if the image couldn't be saved.
 	 */
-	bool save(const char* fileName);
+	bool save(const char *fileName);
 
 	/**
 	 * @brief Saves an image to byte vector.
@@ -238,7 +239,7 @@ public:
 	 * @param extension The file extension used to determine the file format.
 	 * @return False if the image couldn't be saved.
 	 */
-	bool save(std::ostream& stream, const char* extension);
+	bool save(std::ostream &stream, const char *extension);
 
 	/**
 	 * @brief Saves an image to a stream.
@@ -253,7 +254,7 @@ public:
 	 * @param extension The file extension used to determine the file format.
 	 * @return False if the image couldn't be saved.
 	 */
-	bool save(std::vector<std::uint8_t>& outData, const char* extension);
+	bool save(std::vector<std::uint8_t> &outData, const char *extension);
 
 	/**
 	 * @brief Initializes an empty image.
@@ -264,7 +265,7 @@ public:
 	 * @return False if the image couldn't be initialized.
 	 */
 	bool initialize(Format format, unsigned int width, unsigned int height,
-		ColorSpace colorSpace = ColorSpace::Linear);
+					ColorSpace colorSpace = ColorSpace::Linear);
 
 	/**
 	 * @brief Resets the image to an unitialized state.
@@ -354,10 +355,10 @@ public:
 	 * @param y The Y coordinate of the scanline.
 	 * @return The data for the scanline.
 	 */
-	void* scanline(unsigned int y);
+	void *scanline(unsigned int y);
 
 	/** @copydoc scanline() */
-	const void* scanline(unsigned int y) const;
+	const void *scanline(unsigned int y) const;
 
 	/**
 	 * @brief Gets a pixel as a floating point value.
@@ -367,25 +368,29 @@ public:
 	 * @param y The Y coordinate of the image.
 	 * @return False if the pixel is out of range.
 	 */
-	bool getPixel(ColorRGBAd& outColor, unsigned int x, unsigned int y) const;
+	bool getPixel(ColorRGBAd &outColor, unsigned int x, unsigned int y) const;
 
 	/**
 	 * @brief Sets a pixel as a floating point value.
 	 * @remark This will work with any image format.
-	 * @remark Conversion to grayscale will be automatic for Format::Gray8.
 	 * @param x The X coordinate of the image.
 	 * @param y The Y coordinate of the image.
 	 * @param color The color of the pixel.
+	 * @param convertGrayscale True to convert to grayscale for grayscale image types
+	 *     (Gray8, Gray16, Float, Double), false to take the red channel as-is.
 	 * @return False if the pixel is out of range.
 	 */
-	bool setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color);
+	bool setPixel(unsigned int x, unsigned int y, const ColorRGBAd& color,
+		bool convertGrayscale = true);
 
 	/**
 	 * @brief Converts the image to another pixel format.
-	 * @param format The new pixel format.
+	 * @param dstFormat The new pixel format.
+	 * @param convertGrayscale True to convert to grayscale for grayscale image types
+	 *     (Gray8, Gray16, Float, Double), false to take the red channel as-is.
 	 * @return The converted image.
 	 */
-	Image convert(Format format) const;
+	Image convert(Format dstFormat, bool convertGrayscale = true) const;
 
 	/**
 	 * @brief Resizes an image.
@@ -455,51 +460,51 @@ public:
 	 * @brief Creates a normal map from the R channel of the image.
 	 * @param options The options to use for computing the normal map.
 	 * @param height The height for the image.
-	 * @param format The format of the final image.
+	 * @param dstFormat The format of the final image.
 	 * @return The normal map image.
 	 */
 	Image createNormalMap(NormalOptions options = NormalOptions::Default, double height = 1.0,
-		Format format = Format::RGBF);
+		Format dstFormat = Format::RGBF);
 
-private:
-	struct Impl;
-	std::unique_ptr<Impl> m_impl;
-};
+	private:
+		struct Impl;
+		std::unique_ptr<Impl> m_impl;
+	};
 
-/**
- * @brief Combines two normal options.
- * @param left The left options.
- * @param right The right options.
- * @return The combination of the left and right options.
- */
-inline Image::NormalOptions operator|(Image::NormalOptions left, Image::NormalOptions right)
-{
-	return static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
-		static_cast<unsigned int>(right));
-}
+	/**
+	 * @brief Combines two normal options.
+	 * @param left The left options.
+	 * @param right The right options.
+	 * @return The combination of the left and right options.
+	 */
+	inline Image::NormalOptions operator|(Image::NormalOptions left, Image::NormalOptions right)
+	{
+		return static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
+												 static_cast<unsigned int>(right));
+	}
 
-/**
- * @brief Combines two normal options.
- * @param left The left options to add right options to.
- * @param right The right options.
- * @return The combination of the left and right options.
- */
-inline Image::NormalOptions& operator|=(Image::NormalOptions& left, Image::NormalOptions right)
-{
-	left = static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
-		static_cast<unsigned int>(right));
-	return left;
-}
+	/**
+	 * @brief Combines two normal options.
+	 * @param left The left options to add right options to.
+	 * @param right The right options.
+	 * @return The combination of the left and right options.
+	 */
+	inline Image::NormalOptions &operator|=(Image::NormalOptions &left, Image::NormalOptions right)
+	{
+		left = static_cast<Image::NormalOptions>(static_cast<unsigned int>(left) |
+												 static_cast<unsigned int>(right));
+		return left;
+	}
 
-/**
- * @brief Checks if there are shared options between two normal options.
- * @param left The left options.
- * @param right The right options.
- * @return True if there are shared options between left and right.
- */
-inline bool operator&(Image::NormalOptions left, Image::NormalOptions right)
-{
-	return (static_cast<unsigned int>(left) & static_cast<unsigned int>(right)) != 0;
-}
+	/**
+	 * @brief Checks if there are shared options between two normal options.
+	 * @param left The left options.
+	 * @param right The right options.
+	 * @return True if there are shared options between left and right.
+	 */
+	inline bool operator&(Image::NormalOptions left, Image::NormalOptions right)
+	{
+		return (static_cast<unsigned int>(left) & static_cast<unsigned int>(right)) != 0;
+	}
 
 } // namespace cuttlefish

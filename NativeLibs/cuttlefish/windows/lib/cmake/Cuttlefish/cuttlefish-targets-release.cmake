@@ -11,8 +11,8 @@ set_target_properties(Cuttlefish::tool PROPERTIES
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/bin/cuttlefish.exe"
   )
 
-list(APPEND _IMPORT_CHECK_TARGETS Cuttlefish::tool )
-list(APPEND _IMPORT_CHECK_FILES_FOR_Cuttlefish::tool "${_IMPORT_PREFIX}/bin/cuttlefish.exe" )
+list(APPEND _cmake_import_check_targets Cuttlefish::tool )
+list(APPEND _cmake_import_check_files_for_Cuttlefish::tool "${_IMPORT_PREFIX}/bin/cuttlefish.exe" )
 
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

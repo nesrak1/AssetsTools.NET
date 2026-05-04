@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Aaron Barany
+ * Copyright 2017-2025 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,22 @@ enum class ColorSpace
  */
 struct ColorRGB16
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	ColorRGB16() = default;
+
+	/**
+	 * @brief Constructs this with the individual channels.
+	 * @param red The red channel.
+	 * @param green The green channel.
+	 * @param blue The blue channel.
+	 */
+	ColorRGB16(std::uint16_t red, std::uint16_t green, std::uint16_t blue)
+		: r(red), g(green), b(blue)
+	{
+	}
+
 	std::uint16_t r; ///< @brief The red channel.
 	std::uint16_t g; ///< @brief The green channel.
 	std::uint16_t b; ///< @brief The blue channel.
@@ -58,6 +74,23 @@ struct ColorRGB16
  */
 struct ColorRGBA16
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	ColorRGBA16() = default;
+
+	/**
+	 * @brief Constructs this with the individual channels.
+	 * @param red The red channel.
+	 * @param green The green channel.
+	 * @param blue The blue channel.
+	 * @param alpha The alpha channel.
+	 */
+	ColorRGBA16(std::uint16_t red, std::uint16_t green, std::uint16_t blue, std::uint16_t alpha)
+		: r(red), g(green), b(blue), a(alpha)
+	{
+	}
+
 	std::uint16_t r; ///< @brief The red channel.
 	std::uint16_t g; ///< @brief The green channel.
 	std::uint16_t b; ///< @brief The blue channel.
@@ -69,6 +102,22 @@ struct ColorRGBA16
  */
 struct ColorRGBf
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	ColorRGBf() = default;
+
+	/**
+	 * @brief Constructs this with the individual channels.
+	 * @param red The red channel.
+	 * @param green The green channel.
+	 * @param blue The blue channel.
+	 */
+	ColorRGBf(float red, float green, float blue)
+		: r(red), g(green), b(blue)
+	{
+	}
+
 	float r; ///< @brief The red channel.
 	float g; ///< @brief The green channel.
 	float b; ///< @brief The blue channel.
@@ -79,6 +128,23 @@ struct ColorRGBf
  */
 struct ColorRGBAf
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	ColorRGBAf() = default;
+
+	/**
+	 * @brief Constructs this with the individual channels.
+	 * @param red The red channel.
+	 * @param green The green channel.
+	 * @param blue The blue channel.
+	 * @param alpha The alpha channel.
+	 */
+	ColorRGBAf(float red, float green, float blue, float alpha)
+		: r(red), g(green), b(blue), a(alpha)
+	{
+	}
+
 	float r; ///< @brief The red channel.
 	float g; ///< @brief The green channel.
 	float b; ///< @brief The blue channel.
@@ -90,6 +156,23 @@ struct ColorRGBAf
  */
 struct ColorRGBAd
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	ColorRGBAd() = default;
+
+	/**
+	 * @brief Constructs this with the individual channels.
+	 * @param red The red channel.
+	 * @param green The green channel.
+	 * @param blue The blue channel.
+	 * @param alpha The alpha channel.
+	 */
+	ColorRGBAd(double red, double green, double blue, double alpha)
+		: r(red), g(green), b(blue), a(alpha)
+	{
+	}
+
 	double r; ///< @brief The red channel.
 	double g; ///< @brief The green channel.
 	double b; ///< @brief The blue channel.
@@ -101,6 +184,21 @@ struct ColorRGBAd
  */
 struct Complex
 {
+	/**
+	 * @brief Default constructor, leaving the members uninitialized.
+	 */
+	Complex() = default;
+
+	/**
+	 * @brief Constructs this with the individual components.
+	 * @param real The real component.
+	 * @param imaginary The imaginary component.
+	 */
+	Complex(double real, double imaginary)
+		: r(real), i(imaginary)
+	{
+	}
+
 	double r; ///< @brief The real component.
 	double i; ///< @brief The imaginary component.
 };
