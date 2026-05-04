@@ -3,9 +3,9 @@ using LibCpp2IL;
 using LibCpp2IL.Metadata;
 using LibCpp2IL.Reflection;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using ARUnityVersion = AssetRipper.Primitives.UnityVersion;
@@ -153,8 +153,9 @@ namespace AssetsTools.NET.Cpp2IL
             Il2CppCustomAttributeDataRange attributeDataRange = metadata.AttributeDataRanges[caIndex];
             Il2CppCustomAttributeDataRange next = metadata.AttributeDataRanges[caIndex + 1];
 
-            long blobStart = metadata.metadataHeader.attributeDataOffset + attributeDataRange.startOffset;
-            long blobEnd = metadata.metadataHeader.attributeDataOffset + next.startOffset;
+            long attributeDataOffset = metadata.metadataHeader.attributeDataRange.Offset;
+            long blobStart = attributeDataOffset + attributeDataRange.startOffset;
+            long blobEnd = attributeDataOffset + next.startOffset;
 
             return metadata.ReadByteArrayAtRawAddress(blobStart, (int)(blobEnd - blobStart));
         }
@@ -178,7 +179,12 @@ namespace AssetsTools.NET.Cpp2IL
                 foreach (uint attrIdx in parsedCustomAttrData.attributeIndices)
                 {
                     var attrCtorMethod = metadata.methodDefs[attrIdx];
-                    var attrType = metadata.typeDefs[attrCtorMethod.declaringTypeIdx];
+
+                    var attrCtorMethodTypeIdx = attrCtorMethod.declaringTypeIdx;
+                    if (attrCtorMethodTypeIdx.IsNull)
+                        continue;
+
+                    var attrType = metadata.typeDefs[attrCtorMethodTypeIdx.Value];
                     attributeNames.Add(attrType.FullName);
                 }
 
@@ -196,7 +202,9 @@ namespace AssetsTools.NET.Cpp2IL
                 for (int attributeIdx = 0; attributeIdx < attributeTypeRange.count; attributeIdx++)
                 {
                     var attributeTypeIndex = metadata.attributeTypes[attributeTypeRange.start + attributeIdx];
-                    var attributeTypeDef = metadata.typeDefs.FirstOrDefault(td => td.ByvalTypeIndex == attributeTypeIndex);
+                    var attributeTypeDef = metadata.typeDefs.FirstOrDefault(
+                        td => td.ByvalTypeIndex.IsNonNull && td.ByvalTypeIndex.Value == attributeTypeIndex);
+
                     if (attributeTypeDef != null)
                     {
                         attributeNames.Add(attributeTypeDef.FullName);
