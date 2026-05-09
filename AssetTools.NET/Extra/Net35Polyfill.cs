@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
 
+#if NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
+
 namespace AssetsTools.NET.Extra
 {
     public static class Net35Polyfill
@@ -8,7 +12,25 @@ namespace AssetsTools.NET.Extra
         //https://stackoverflow.com/a/13022108
         public static void CopyToCompat(this Stream input, Stream output, long bytes = -1, int bufferSize = 80 * 1024)
         {
+#if NETSTANDARD2_1_OR_GREATER
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+            try
+            {
+                CopyToCompat(input, output, bytes, buffer);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+#else
             byte[] buffer = new byte[bufferSize];
+            CopyToCompat(input, output, bytes, buffer);
+#endif
+        }
+
+        private static void CopyToCompat(this Stream input, Stream output, long bytes, byte[] buffer)
+        {
             int read;
 
             // set to largest value so we always go over buffer (hopefully)
