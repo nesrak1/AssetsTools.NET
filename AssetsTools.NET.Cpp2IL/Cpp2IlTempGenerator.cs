@@ -153,7 +153,7 @@ namespace AssetsTools.NET.Cpp2IL
             Il2CppCustomAttributeDataRange attributeDataRange = metadata.AttributeDataRanges[caIndex];
             Il2CppCustomAttributeDataRange next = metadata.AttributeDataRanges[caIndex + 1];
 
-            long attributeDataOffset = metadata.metadataHeader.attributeDataRange.Offset;
+            long attributeDataOffset = metadata.metadataHeader.attributeData.Offset;
             long blobStart = attributeDataOffset + attributeDataRange.startOffset;
             long blobEnd = attributeDataOffset + next.startOffset;
 
