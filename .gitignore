@@ -329,5 +329,3 @@ ASALocalRun/
 # CMake
 out/
 build/
-!NativeLibs/**/windows/bin
-!NativeLibs/**/linux/bin
