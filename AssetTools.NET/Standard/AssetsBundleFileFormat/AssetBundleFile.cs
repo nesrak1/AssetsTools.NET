@@ -173,12 +173,12 @@ namespace AssetsTools.NET
             newBundleInf.DirectoryInfos = dirInfos;
             newBundleInf.Write(writer);
 
+            long assetDataPos = writer.Position;
+
             if ((Header.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
             }
-
-            long assetDataPos = writer.Position;
 
             // write the updated directory infos
             for (int i = 0; i < dirInfos.Count; i++)
