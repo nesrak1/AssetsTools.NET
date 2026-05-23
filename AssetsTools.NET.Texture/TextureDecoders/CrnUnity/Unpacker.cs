@@ -28,8 +28,10 @@
 using System;
 using System.Buffers.Binary;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace AssetsTools.NET.Texture.TextureDecoders.CrnUnity;
+
 public class Unpacker
 {
     private uint _magic;
@@ -182,16 +184,12 @@ public class Unpacker
             }
             case Format.ETC2:
             {
-                // todo
-                status = false;
-                //status = UnpackEtc2(dst, rowPitchInBytes, blocksX, blocksY);
+                status = UnpackEtc1(dst, rowPitchInBytes, blocksX, blocksY);
                 break;
             }
             case Format.ETC2A:
             {
-                // todo
-                status = false;
-                //status = UnpackEtc2A(dst, rowPitchInBytes, blocksX, blocksY);
+                status = UnpackEtc2A(dst, rowPitchInBytes, blocksX, blocksY);
                 break;
             }
             default:
@@ -612,7 +610,7 @@ public class Unpacker
                     {
                         buffer.ColorEndpointIndex = (ushort)colorEndpointIndex;
                     }
-                    else if ((endpointReference & 3) == 2)
+                    else if ((endpointReference & 3) == 3)
                     {
                         buffer.ColorEndpointIndex = (ushort)(colorEndpointIndex = diagonalColorEndpointIndex);
                     }
@@ -624,7 +622,7 @@ public class Unpacker
                     endpointReference >>= 2;
                     BinaryPrimitives.WriteUInt32LittleEndian(e0.Slice(0, 4), _colorEndpoints[colorEndpointIndex]);
                     uint selectorIndex = _codec.Decode(_selectorDeltaDm[0]);
-                    if (selectorIndex != 0)
+                    if (endpointReference != 0)
                     {
                         colorEndpointIndex += _codec.Decode(_endpointDeltaDm[0]);
                         if (colorEndpointIndex >= numColorEndpoints)
@@ -657,9 +655,144 @@ public class Unpacker
                         }
 
                         blockEndpoint[3] = (byte)((e0[3] << 5) | (e1[3] << 2) | (int)(diff << 1) | (int)flip);
+
                         blockEndpoint.Slice(0, 4).CopyTo(dstSpan.Slice(dataPtr, 4));
                         BinaryPrimitives.WriteUInt32LittleEndian(dstSpan.Slice(dataPtr + 4, 4),
                             _colorSelectors[selectorIndex << 1 | flip]
+                        );
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private bool UnpackEtc2A(byte[][] dst, uint outputPitchInBytes, uint outputWidth, uint outputHeight)
+    {
+        uint numColorEndpoints = (uint)_colorEndpoints.Length;
+        uint numAlphaEndpoints = (uint)_alphaEndpoints.Length;
+        int width = (int)((outputWidth + 1) & ~1);
+        int height = (int)((outputHeight + 1) & ~1);
+        int deltaPitchInDwords = ((int)outputPitchInBytes >> 2) - (width << 2);
+
+        if (_blockBuffer.Length < (width << 1))
+        {
+            _blockBuffer = new BlockBufferElement[(width << 1)];
+        }
+
+        uint colorEndpointIndex = 0, diagonalColorEndpointIndex = 0, alpha0EndpointIndex = 0, diagonalAlpha0EndpointIndex = 0;
+        byte referenceGroup = 0;
+        Span<byte> blockEndpoint = stackalloc byte[4];
+        Span<byte> e0 = stackalloc byte[4];
+        Span<byte> e1 = stackalloc byte[4];
+
+        for (int f = 0; f < _header.Faces; f++)
+        {
+            int dataPtr = 0;
+            Span<byte> dstSpan = dst[f].AsSpan();
+            for (int y = 0; y < height; y++, dataPtr += deltaPitchInDwords << 2)
+            {
+                bool visible = y < outputHeight;
+                for (int x = 0; x < width; x++, dataPtr += 4 << 2)
+                {
+                    visible &= x < outputWidth;
+                    ref BlockBufferElement buffer = ref _blockBuffer[x << 1];
+                    byte endpointReference;
+                    if ((y & 1) != 0)
+                    {
+                        endpointReference = (byte)buffer.EndpointReference;
+                    }
+                    else
+                    {
+                        referenceGroup = (byte)_codec.Decode(_referenceEncodingDm);
+                        endpointReference = (byte)((referenceGroup & 3) | ((referenceGroup >> 2) & 12));
+                        buffer.EndpointReference = (ushort)(((referenceGroup >> 2) & 3) | ((referenceGroup >> 4) & 12));
+                    }
+
+                    if ((endpointReference & 3) == 0)
+                    {
+                        colorEndpointIndex += _codec.Decode(_endpointDeltaDm[0]);
+                        if (colorEndpointIndex >= numColorEndpoints)
+                        {
+                            colorEndpointIndex -= numColorEndpoints;
+                        }
+
+                        alpha0EndpointIndex += _codec.Decode(_endpointDeltaDm[1]);
+                        if (alpha0EndpointIndex >= numAlphaEndpoints)
+                        {
+                            alpha0EndpointIndex -= numAlphaEndpoints;
+                        }
+
+                        buffer.ColorEndpointIndex = (ushort)colorEndpointIndex;
+                        buffer.Alpha0EndpointIndex = (ushort)alpha0EndpointIndex;
+                    }
+                    else if ((endpointReference & 3) == 1)
+                    {
+                        buffer.ColorEndpointIndex = (ushort)colorEndpointIndex;
+                        buffer.Alpha0EndpointIndex = (ushort)alpha0EndpointIndex;
+                    }
+                    else if ((endpointReference & 3) == 3)
+                    {
+                        buffer.ColorEndpointIndex = (ushort)(colorEndpointIndex = diagonalColorEndpointIndex);
+                        buffer.Alpha0EndpointIndex = (ushort)(alpha0EndpointIndex = diagonalAlpha0EndpointIndex);
+                    }
+                    else
+                    {
+                        colorEndpointIndex = buffer.ColorEndpointIndex;
+                        alpha0EndpointIndex = buffer.Alpha0EndpointIndex;
+                    }
+
+                    endpointReference >>= 2;
+                    BinaryPrimitives.WriteUInt32LittleEndian(e0.Slice(0, 4), _colorEndpoints[colorEndpointIndex]);
+                    uint colorSelectorIndex = _codec.Decode(_selectorDeltaDm[0]);
+                    uint alpha0SelectorIndex = _codec.Decode(_selectorDeltaDm[1]);
+                    if (endpointReference != 0)
+                    {
+                        colorEndpointIndex += _codec.Decode(_endpointDeltaDm[0]);
+                        if (colorEndpointIndex >= numColorEndpoints)
+                        {
+                            colorEndpointIndex -= numColorEndpoints;
+                        }
+                    }
+
+                    BinaryPrimitives.WriteUInt32LittleEndian(e1.Slice(0, 4), _colorEndpoints[colorEndpointIndex]);
+                    diagonalColorEndpointIndex = _blockBuffer[x << 1 | 1].ColorEndpointIndex;
+                    diagonalAlpha0EndpointIndex = _blockBuffer[x << 1 | 1].Alpha0EndpointIndex;
+                    _blockBuffer[x << 1 | 1].ColorEndpointIndex = (ushort)colorEndpointIndex;
+                    _blockBuffer[x << 1 | 1].Alpha0EndpointIndex = (ushort)alpha0EndpointIndex;
+                    if (visible)
+                    {
+                        uint flip = (uint)(endpointReference >> 1 ^ 1), diff = 1;
+                        for (int c = 0; diff != 0 && c < 3; c++)
+                        {
+                            diff = e0[c] + 3 >= e1[c] && e1[c] + 4 >= e0[c] ? diff : 0;
+                        }
+
+                        for (int c = 0; c < 3; c++)
+                        {
+                            if (diff != 0)
+                            {
+                                blockEndpoint[c] = (byte)(e0[c] << 3 | ((e1[c] - e0[c]) & 7));
+                            }
+                            else
+                            {
+                                blockEndpoint[c] = (byte)((e0[c] << 3 & 0xF0) | e1[c] >> 1);
+                            }
+                        }
+
+                        blockEndpoint[3] = (byte)((e0[3] << 5) | (e1[3] << 2) | (int)(diff << 1) | (int)flip);
+
+                        uint alpha0SelectorsOffset = alpha0SelectorIndex * 6 + ((flip != 0) ? 3u : 0u);
+                        BinaryPrimitives.WriteInt32LittleEndian(dstSpan.Slice(dataPtr, 4),
+                            _alphaEndpoints[alpha0EndpointIndex] | (_alphaSelectors[alpha0SelectorsOffset] << 16)
+                        );
+                        BinaryPrimitives.WriteInt32LittleEndian(dstSpan.Slice(dataPtr + 4, 4),
+                            _alphaSelectors[alpha0SelectorsOffset + 1] | (_alphaSelectors[alpha0SelectorsOffset + 2] << 16)
+                        );
+                        blockEndpoint.Slice(0, 4).CopyTo(dstSpan.Slice(dataPtr + 8, 4));
+                        BinaryPrimitives.WriteUInt32LittleEndian(dstSpan.Slice(dataPtr + 12, 4),
+                            _colorSelectors[colorSelectorIndex << 1 | flip]
                         );
                     }
                 }
@@ -719,12 +852,12 @@ public class Unpacker
             if (!DecodeAlphaEndpoints())
                 return false;
 
-            if (_header.Format == (byte)Format.ETC2AS && !DecodeAlphaSelectorsEtcs())
-                return false;
-            else if (_header.Format == (byte)Format.ETC2A && !DecodeAlphaSelectorsEtc())
-                return false;
-            else if (!DecodeAlphaSelectors())
-                return false;
+            if (_header.Format == (byte)Format.ETC2AS)
+                return DecodeAlphaSelectorsEtcs();
+            else if (_header.Format == (byte)Format.ETC2A)
+                return DecodeAlphaSelectorsEtc();
+            else
+                return DecodeAlphaSelectors();
         }
 
         return true;
@@ -774,7 +907,7 @@ public class Unpacker
                 {
                     a += _codec.Decode(dm[0]) << (int)b;
                 }
-                a &= 0x1f1f1f1f;
+                a &= 0x1F1F1F1F;
                 _colorEndpoints[dst++] = hasSubblocks ? a : (
                     ((a & 0x07000000) << 5) |
                     ((a & 0x07000000) << 2) |
@@ -923,11 +1056,14 @@ public class Unpacker
 
         StaticHuffmanDataModel dm = new StaticHuffmanDataModel();
         _codec.DecodeReceiveStaticDataModel(dm);
-        _alphaSelectors = new ushort[_header.AlphaSelectors.Num * 6];
+        // add 1 because we write out of bounds normally (this bug seems to be present in the original)
+        _alphaSelectors = new ushort[_header.AlphaSelectors.Num * 6 + 1];
+        var data = MemoryMarshal.AsBytes(_alphaSelectors.AsSpan());
 
         Span<byte> sLinear = stackalloc byte[8];
         int dataPtr = 0;
-        for (int i = 0; i < _alphaSelectors.Length; i += 6, dataPtr += 12)
+        // subtract one from length for offset
+        for (int i = 0; i < _alphaSelectors.Length - 1; i += 6, dataPtr += 12)
         {
             uint sGroup = 0;
             for (int p = 0; p < 16; p++)
@@ -950,19 +1086,19 @@ public class Unpacker
                 byte d = (byte)(3 * (p + 1));
                 byte byteOffset = (byte)(d >> 3);
                 byte bitOffset = (byte)(d & 7);
-                _alphaSelectors[dataPtr + byteOffset] |= (ushort)(s << (8 - bitOffset));
+                data[dataPtr + byteOffset] |= (byte)(s << (8 - bitOffset));
                 if (bitOffset < 3)
                 {
-                    _alphaSelectors[dataPtr + byteOffset - 1] |= (ushort)(s >> bitOffset);
+                    data[dataPtr + byteOffset - 1] |= (byte)(s >> bitOffset);
                 }
 
                 d += (byte)(9 * ((p & 3) - (p >> 2)));
                 byteOffset = (byte)(d >> 3);
                 bitOffset = (byte)(d & 7);
-                _alphaSelectors[dataPtr + byteOffset + 6] |= (ushort)(s << (8 - bitOffset));
+                data[dataPtr + byteOffset + 6] |= (byte)(s << (8 - bitOffset));
                 if (bitOffset < 3)
                 {
-                    _alphaSelectors[dataPtr + byteOffset + 5] |= (ushort)(s >> bitOffset);
+                    data[dataPtr + byteOffset + 5] |= (byte)(s >> bitOffset);
                 }
             }
         }
@@ -977,11 +1113,14 @@ public class Unpacker
 
         StaticHuffmanDataModel dm = new StaticHuffmanDataModel();
         _codec.DecodeReceiveStaticDataModel(dm);
-        _alphaSelectors = new ushort[_header.AlphaSelectors.Num * 3];
+        // see comment in DecodeAlphaSelectorsEtc
+        _alphaSelectors = new ushort[_header.AlphaSelectors.Num * 3 + 1];
+        var data = MemoryMarshal.AsBytes(_alphaSelectors.AsSpan());
 
         Span<byte> sLinear = stackalloc byte[8];
 
-        for (int i = 0; i < (_alphaSelectors.Length << 1); i += 6)
+        // subtract one from length for offset
+        for (int i = 0; i < (_alphaSelectors.Length << 1) - 1; i += 6)
         {
             uint sGroup = 0;
             for (int p = 0; p < 16; p++)
@@ -1004,10 +1143,10 @@ public class Unpacker
                 byte d = (byte)(3 * (p + 1) + 9 * ((p & 3) - (p >> 2)));
                 byte byteOffset = (byte)(d >> 3);
                 byte bitOffset = (byte)(d & 7);
-                _alphaSelectors[i + byteOffset] |= (ushort)(s << (8 - bitOffset));
+                data[i + byteOffset] |= (byte)(s << (8 - bitOffset));
                 if (bitOffset < 3)
                 {
-                    _alphaSelectors[i + byteOffset - 1] |= (ushort)(s >> bitOffset);
+                    data[i + byteOffset - 1] |= (byte)(s >> bitOffset);
                 }
             }
         }

@@ -889,6 +889,7 @@ namespace AssetsTools.NET.Texture
                     TextureFormat.DXT1Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT1Crunched, out output),
                     TextureFormat.DXT5Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT5Crunched, out output),
                     TextureFormat.ETC_RGB4Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC_RGB4Crunched, out output),
+                    TextureFormat.ETC2_RGBA8Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC2_RGBA8Crunched, out output),
 
                     _ => 0
                 };
