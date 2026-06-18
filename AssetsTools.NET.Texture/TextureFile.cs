@@ -768,28 +768,19 @@ namespace AssetsTools.NET.Texture
                 data = swizzler.PreprocessDeswizzle(data, out width, out height);
             }
 
+            bool usingRgbaOpto = false;
+
             byte[] output;
             if ((useBgra && (format == TextureFormat.BGRA32 || format == TextureFormat.BGRA32Old))
                 || (!useBgra && format == TextureFormat.RGBA32))
             {
                 output = new byte[width * height * 4];
                 Array.Copy(data, output, width * height * 4);
+
+                usingRgbaOpto = true;
             }
             else
             {
-                /*
-                var blockSize = TextureOperations.GetBlockSize(format);
-                var needsPadding = (width % blockSize.Width) != 0 || (height % blockSize.Height) != 0;
-                int croppedWidth = -1, croppedHeight = -1;
-                if (needsPadding)
-                {
-                    croppedWidth = width;
-                    croppedHeight = height;
-                    width = (width + (blockSize.Width - 1)) / blockSize.Width * blockSize.Width;
-                    height = (height + (blockSize.Height - 1)) / blockSize.Height * blockSize.Height;
-                }
-                */
-
                 output = [];
                 int size = format switch
                 {
@@ -903,7 +894,7 @@ namespace AssetsTools.NET.Texture
 
             if (swizzler != null)
                 output = swizzler.PostprocessDeswizzle(output);
-            if (!useBgra)
+            if (!useBgra && !usingRgbaOpto)
                 TextureOperations.SwapRBComponentsInplace(output);
 
             return output;
