@@ -333,6 +333,6 @@ namespace AssetsTools.NET
             "UInt32\0UInt64\0UInt8\0unsigned int\0unsigned long long\0unsigned short\0vector\0Vector2f\0Vector3f\0" +
             "Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0int2_storage\0int3_storage\0BoundsInt\0" +
             "m_CorrespondingSourceObject\0m_PrefabInstance\0m_PrefabAsset\0FileSize\0Hash128\0RenderingLayerMask\0" +
-            "fixed_array�EntityId\0LoadableObjectId\0LoadableSceneId\0");
+            "fixed_array\0EntityId\0LoadableObjectId\0LoadableSceneId\0");
     }
 }
