@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace AssetsTools.NET
 {
@@ -285,6 +286,15 @@ namespace AssetsTools.NET
 
             TempField = childField;
             valueFieldCache = null;
+
+            // increasing the position past the length does not cause an exception
+            // so we'll manually check ourselves. otherwise, we can end up reading
+            // an obviously incorrect length and running forever.
+            if (reader.BaseStream.Position > reader.BaseStream.Length)
+            {
+                throw new EndOfStreamException("Iterator tried to read past reader's length.");
+            }
+
             return true;
         }
 
