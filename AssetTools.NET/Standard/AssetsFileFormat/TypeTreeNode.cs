@@ -59,7 +59,7 @@ namespace AssetsTools.NET
             ByteSize = reader.ReadInt32();
             Index = reader.ReadUInt32();
             MetaFlags = reader.ReadUInt32();
-            if (version >= 0x12)
+            if (version >= 18)
             {
                 RefTypeHash = reader.ReadUInt64();
             }
@@ -80,7 +80,7 @@ namespace AssetsTools.NET
             writer.Write(ByteSize);
             writer.Write(Index);
             writer.Write(MetaFlags);
-            if (version >= 0x12)
+            if (version >= 18)
             {
                 writer.Write(RefTypeHash);
             }

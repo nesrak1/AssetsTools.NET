@@ -1,4 +1,5 @@
 ﻿using AssetsTools.NET.Extra;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -28,6 +29,14 @@ namespace AssetsTools.NET
         /// </summary>
         public Hash128 TypeHash { get; set; }
         /// <summary>
+        /// Hash for external type tree types.
+        /// </summary>
+        public Hash128 ExtTypeHash { get; set; }
+        /// <summary>
+        /// Is the type a definition (includes nodes)? If not, it is a reference (includes no nodes).
+        /// </summary>
+        public bool ExtTypeIsDefinition { get; set; }
+        /// <summary>
         /// Nodes for this type. This list will be empty if the type is stripped.
         /// </summary>
         public List<TypeTreeNode> Nodes { get; set; }
@@ -54,6 +63,8 @@ namespace AssetsTools.NET
             get => StringBufferBytes != null ? Encoding.UTF8.GetString(StringBufferBytes) : null;
             set => StringBufferBytes = Encoding.UTF8.GetBytes(value);
         }
+
+        private const int TYPE_TREE_HEADER_MAGIC = 0x7474686d;
 
         /// <summary>
         /// Read the <see cref="TypeTreeType"/> with the provided reader and format version.
@@ -91,16 +102,60 @@ namespace AssetsTools.NET
 
             if (hasTypeTree)
             {
-                int typeTreeNodeCount = reader.ReadInt32();
-                int stringBufferLen = reader.ReadInt32();
-                Nodes = new List<TypeTreeNode>(typeTreeNodeCount);
-                for (int i = 0; i < typeTreeNodeCount; i++)
+                // special "extracted typetree" handling
+                int typeTreeSize; // presumably to skip types, but we never do this (yet)
+                bool shouldReadNodes;
+                if (version >= 23)
                 {
-                    TypeTreeNode typeField = new TypeTreeNode();
-                    typeField.Read(reader, version);
-                    Nodes.Add(typeField);
+                    ExtTypeHash = new Hash128(reader);
+                    typeTreeSize = reader.ReadInt32();
+
+                    ExtTypeIsDefinition = typeTreeSize != 0;
+                    shouldReadNodes = ExtTypeIsDefinition;
                 }
-                StringBufferBytes = reader.ReadBytes(stringBufferLen);
+                else
+                {
+                    ExtTypeHash = Hash128.NewBlankHash();
+                    typeTreeSize = 0;
+                    shouldReadNodes = true;
+                }
+
+                if (shouldReadNodes)
+                {
+                    if (version >= 23)
+                    {
+                        // not sure why this is written? seems redundant...
+                        uint extTypeTreeMagic = reader.ReadUInt32();
+                        if (extTypeTreeMagic != TYPE_TREE_HEADER_MAGIC)
+                        {
+                            throw new Exception("Expected tthm in extended type tree type");
+                        }
+
+                        int extTypeTreeVer = reader.ReadInt32();
+                        if (extTypeTreeVer != version)
+                        {
+                            throw new Exception($"Expected version {version} in extended type tree type, found {extTypeTreeVer}");
+                        }
+                    }
+
+                    int typeTreeNodeCount = reader.ReadInt32();
+                    int stringBufferLen = reader.ReadInt32();
+
+                    Nodes = new List<TypeTreeNode>(typeTreeNodeCount);
+                    for (int i = 0; i < typeTreeNodeCount; i++)
+                    {
+                        TypeTreeNode typeField = new TypeTreeNode();
+                        typeField.Read(reader, version);
+                        Nodes.Add(typeField);
+                    }
+
+                    StringBufferBytes = reader.ReadBytes(stringBufferLen);
+                }
+                else
+                {
+                    Nodes = new List<TypeTreeNode>();
+                }
+
                 if (version >= 21)
                 {
                     if (!isRefType)
@@ -147,13 +202,53 @@ namespace AssetsTools.NET
 
             if (hasTypeTree)
             {
-                writer.Write(Nodes.Count);
-                writer.Write(StringBufferBytes.Length);
-                for (int i = 0; i < Nodes.Count; i++)
+                // special "extracted typetree" handling
+                bool shouldWriteNodes;
+                long typeTreeDataStartPos = 0;
+                if (version >= 23)
                 {
-                    Nodes[i].Write(writer, version);
+                    writer.Write(ExtTypeHash.data);
+
+                    writer.Write(0); // we'll come back and fill this later
+                    typeTreeDataStartPos = writer.Position;
+
+                    shouldWriteNodes = ExtTypeIsDefinition;
                 }
-                writer.Write(StringBufferBytes);
+                else
+                {
+                    shouldWriteNodes = true;
+                }
+
+                if (shouldWriteNodes)
+                {
+                    if (version >= 23)
+                    {
+                        writer.Write(TYPE_TREE_HEADER_MAGIC);
+                        writer.Write(version);
+                    }
+
+                    writer.Write(Nodes.Count);
+                    writer.Write(StringBufferBytes.Length);
+
+                    for (int i = 0; i < Nodes.Count; i++)
+                    {
+                        Nodes[i].Write(writer, version);
+                    }
+
+                    writer.Write(StringBufferBytes);
+
+                    if (version >= 23)
+                    {
+                        // write new type tree size
+                        long curPos = writer.Position;
+                        int typeTreeDataLen = (int)(writer.Position - typeTreeDataStartPos);
+
+                        writer.Position = typeTreeDataStartPos - 4;
+                        writer.Write(typeTreeDataLen);
+                        writer.Position = curPos;
+                    }
+                }
+
                 if (version >= 21)
                 {
                     if (!IsRefType)
@@ -236,7 +331,8 @@ namespace AssetsTools.NET
             "Prefab\0Quaternionf\0Rectf\0RectInt\0RectOffset\0second\0set\0short\0size\0SInt16\0SInt32\0SInt64\0" +
             "SInt8\0staticvector\0string\0TextAsset\0TextMesh\0Texture\0Texture2D\0Transform\0TypelessData\0UInt16\0" +
             "UInt32\0UInt64\0UInt8\0unsigned int\0unsigned long long\0unsigned short\0vector\0Vector2f\0Vector3f\0" +
-            "Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0int2_storage\0int3_storage\0BoundsInt\0m_CorrespondingSourceObject\0" +
-            "m_PrefabInstance\0m_PrefabAsset\0FileSize\0Hash128\0RenderingLayerMask\0");
+            "Vector4f\0m_ScriptingClassIdentifier\0Gradient\0Type*\0int2_storage\0int3_storage\0BoundsInt\0" +
+            "m_CorrespondingSourceObject\0m_PrefabInstance\0m_PrefabAsset\0FileSize\0Hash128\0RenderingLayerMask\0" +
+            "fixed_array�EntityId\0LoadableObjectId\0LoadableSceneId\0");
     }
 }
