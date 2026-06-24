@@ -13,7 +13,7 @@ namespace AssetsTools.NET.Extra
             }
 
             refMan = new RefTypeManager();
-            refMan.FromTypeTree(inst.file.Metadata);
+            refMan.FromTypeTree(inst.file.Metadata, typeTreeBlobs);
 
             if (MonoTempGenerator != null)
             {
@@ -85,25 +85,42 @@ namespace AssetsTools.NET.Extra
                 }
 
                 TypeTreeType ttType = file.Metadata.FindTypeTreeTypeByID(typeId, scriptIndex);
-                if (ttType != null && ttType.Nodes.Count > 0)
+                if (ttType != null && (ttType.Nodes.Count > 0 || !ttType.TypeBlobIsDefinition))
                 {
-                    baseField = new AssetTypeTemplateField();
-                    baseField.FromTypeTree(ttType);
-
-                    if (UseTemplateFieldCache && !isMonoBehaviourTypeId)
+                    baseField = null;
+                    if (ttType.TypeBlobIsDefinition)
                     {
-                        templateFieldCache[typeId] = baseField;
+                        baseField = new AssetTypeTemplateField();
+                        baseField.FromTypeTree(ttType);
                     }
-                    else if (UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
+                    else
                     {
-                        if (!monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates))
+                        Hash128 typeBlobHash = ttType.ExtTypeHash;
+                        TypeTreeBlob typeBlob = GetTypeBlob(typeBlobHash);
+                        if (typeBlob != null)
                         {
-                            monoTypeTreeTemplateFieldCache[inst] = templates = new ConcurrentDictionary<ushort, AssetTypeTemplateField>();
+                            baseField = new AssetTypeTemplateField();
+                            baseField.FromTypeBlob(typeBlob);
                         }
-                        templates[scriptIndex] = baseField;
                     }
 
-                    return baseField;
+                    if (baseField != null)
+                    {
+                        if (UseTemplateFieldCache && !isMonoBehaviourTypeId)
+                        {
+                            templateFieldCache[typeId] = baseField;
+                        }
+                        else if (UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
+                        {
+                            if (!monoTypeTreeTemplateFieldCache.TryGetValue(inst, out ConcurrentDictionary<ushort, AssetTypeTemplateField> templates))
+                            {
+                                monoTypeTreeTemplateFieldCache[inst] = templates = new ConcurrentDictionary<ushort, AssetTypeTemplateField>();
+                            }
+                            templates[scriptIndex] = baseField;
+                        }
+
+                        return baseField;
+                    }
                 }
             }
 

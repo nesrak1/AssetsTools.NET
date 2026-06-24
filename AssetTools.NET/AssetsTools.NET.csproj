@@ -29,6 +29,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net40|AnyCPU'">
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
+  <!--
+  https://stackoverflow.com/a/9451635
+  Temporary until I have time to go through and document everything :)
+  -->
+  <PropertyGroup>
+    <NoWarn>1591;1572;1571;1573;1587;1570</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="*.nupkg" />
     <None Remove="*.nuspec" />

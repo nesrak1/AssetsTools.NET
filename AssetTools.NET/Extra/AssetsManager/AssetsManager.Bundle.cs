@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace AssetsTools.NET.Extra
 {
@@ -35,6 +36,8 @@ namespace AssetsTools.NET.Extra
                     Bundles.Add(bunInst);
                 }
             }
+
+            LoadTypeTreeBlobsFromBundle(bunInst);
 
             return bunInst;
         }
@@ -91,6 +94,17 @@ namespace AssetsTools.NET.Extra
                         BundleLookup.Remove(lookupKey);
                     }
                 }
+
+                if (typeTreeBlobOwners.TryGetValue(bunInst, out HashSet<Hash128> typeBlobHashes))
+                {
+                    foreach (Hash128 typeBlobHash in typeBlobHashes)
+                    {
+                        typeBlobHashes.Remove(typeBlobHash);
+                    }
+
+                    typeTreeBlobOwners.Remove(bunInst);
+                }
+
                 return true;
             }
             return false;
@@ -123,6 +137,17 @@ namespace AssetsTools.NET.Extra
                         BundleLookup.Remove(lookupKey);
                     }
                 }
+
+                if (typeTreeBlobOwners.TryGetValue(bunInst, out HashSet<Hash128> typeBlobHashes))
+                {
+                    foreach (Hash128 typeBlobHash in typeBlobHashes)
+                    {
+                        typeBlobHashes.Remove(typeBlobHash);
+                    }
+
+                    typeTreeBlobOwners.Remove(bunInst);
+                }
+
                 return true;
             }
 
@@ -148,6 +173,7 @@ namespace AssetsTools.NET.Extra
 
                     bunInst.loadedAssetsFiles.Clear();
                 }
+
                 lock (BundleLookup)
                 {
                     lock (Bundles)
@@ -156,6 +182,10 @@ namespace AssetsTools.NET.Extra
                         BundleLookup.Clear();
                     }
                 }
+
+                typeTreeBlobs.Clear();
+                typeTreeBlobOwners.Clear();
+
                 return true;
             }
             return false;

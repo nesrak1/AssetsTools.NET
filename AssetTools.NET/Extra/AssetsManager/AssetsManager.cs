@@ -30,23 +30,23 @@ namespace AssetsTools.NET.Extra
         public List<BundleFileInstance> Bundles { get; private set; } = new List<BundleFileInstance>();
         public Dictionary<string, BundleFileInstance> BundleLookup { get; private set; } = new Dictionary<string, BundleFileInstance>();
 
-        private IMonoBehaviourTemplateGenerator _monoTempGenerator = null;
+        private IMonoBehaviourTemplateGenerator monoTempGenerator = null;
         public IMonoBehaviourTemplateGenerator MonoTempGenerator
         {
             get
             {
-                return _monoTempGenerator;
+                return monoTempGenerator;
             }
             set
             {
-                _monoTempGenerator = value;
+                monoTempGenerator = value;
 
                 // refmans aren't connected to the manager so update all of their temp gens manually
                 foreach (var kvp in refTypeManagerCache)
                 {
                     AssetsFileInstance fileInst = kvp.Key;
                     RefTypeManager refMan = kvp.Value;
-                    refMan.WithMonoTemplateGenerator(fileInst.file.Metadata, _monoTempGenerator, UseMonoTemplateFieldCache ? monoTemplateFieldCache : null);
+                    refMan.WithMonoTemplateGenerator(fileInst.file.Metadata, monoTempGenerator, UseMonoTemplateFieldCache ? monoTemplateFieldCache : null);
                 }
             }
         }
@@ -56,6 +56,11 @@ namespace AssetsTools.NET.Extra
         private readonly ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<ushort, AssetTypeTemplateField>> monoTypeTreeTemplateFieldCache = new ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<ushort, AssetTypeTemplateField>>();
         private readonly ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<long, AssetTypeTemplateField>> monoCldbTemplateFieldCache = new ConcurrentDictionary<AssetsFileInstance, ConcurrentDictionary<long, AssetTypeTemplateField>>();
         private readonly ConcurrentDictionary<AssetsFileInstance, RefTypeManager> refTypeManagerCache = new ConcurrentDictionary<AssetsFileInstance, RefTypeManager>();
+
+        // will be problematic if we try to load two in the same place.
+        // probably need to refactor the file key -> object code across the whole manager.
+        private readonly ConcurrentDictionary<Hash128, TypeTreeBlob> typeTreeBlobs = new ConcurrentDictionary<Hash128, TypeTreeBlob>();
+        private readonly ConcurrentDictionary<BundleFileInstance, HashSet<Hash128>> typeTreeBlobOwners = new ConcurrentDictionary<BundleFileInstance, HashSet<Hash128>>();
 
         public void UnloadAll(bool unloadClassData = false)
         {

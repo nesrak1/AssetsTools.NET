@@ -1,5 +1,4 @@
 ﻿using AssetsTools.NET.Extra;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -33,17 +32,13 @@ namespace AssetsTools.NET
         /// </summary>
         public Hash128 ExtTypeHash { get; set; }
         /// <summary>
-        /// Is the type a definition (includes nodes)? If not, it is a reference (includes no nodes).
+        /// Is the type blob a definition (includes nodes)? If not, it is an external reference (includes no nodes).
         /// </summary>
-        public bool ExtTypeIsDefinition { get; set; }
+        public bool TypeBlobIsDefinition { get; set; }
         /// <summary>
-        /// Nodes for this type. This list will be empty if the type is stripped.
+        /// The type tree blob containing type nodes and the string buffer.
         /// </summary>
-        public List<TypeTreeNode> Nodes { get; set; }
-        /// <summary>
-        /// String table bytes for this type.
-        /// </summary>
-        public byte[] StringBufferBytes { get; set; }
+        public TypeTreeBlob TypeBlob { get; set; }
         /// <summary>
         /// Is the type a reference type?
         /// </summary>
@@ -58,13 +53,31 @@ namespace AssetsTools.NET
         /// </summary>
         public AssetTypeReference TypeReference { get; set; }
 
-        public string StringBuffer
+        /// <summary>
+        /// Nodes for this type. This list will be empty if the type is stripped.
+        /// </summary>
+        public List<TypeTreeNode> Nodes
         {
-            get => StringBufferBytes != null ? Encoding.UTF8.GetString(StringBufferBytes) : null;
-            set => StringBufferBytes = Encoding.UTF8.GetBytes(value);
+            get => TypeBlob.Nodes;
+            set => TypeBlob.Nodes = value;
+        }
+        /// <summary>
+        /// String table bytes for this type.
+        /// </summary>
+        public byte[] StringBufferBytes
+        {
+            get => TypeBlob.StringBufferBytes;
+            set => TypeBlob.StringBufferBytes = value;
         }
 
-        private const int TYPE_TREE_HEADER_MAGIC = 0x7474686d;
+        /// <summary>
+        /// <see cref="TypeBlob"/>'s string buffer, decoded to a single string.
+        /// </summary>
+        public string StringBuffer
+        {
+            get => TypeBlob.StringBufferBytes != null ? Encoding.UTF8.GetString(TypeBlob.StringBufferBytes) : null;
+            set => TypeBlob.StringBufferBytes = Encoding.UTF8.GetBytes(value);
+        }
 
         /// <summary>
         /// Read the <see cref="TypeTreeType"/> with the provided reader and format version.
@@ -110,50 +123,29 @@ namespace AssetsTools.NET
                     ExtTypeHash = new Hash128(reader);
                     typeTreeSize = reader.ReadInt32();
 
-                    ExtTypeIsDefinition = typeTreeSize != 0;
-                    shouldReadNodes = ExtTypeIsDefinition;
+                    TypeBlobIsDefinition = typeTreeSize != 0;
+                    shouldReadNodes = TypeBlobIsDefinition;
                 }
                 else
                 {
                     ExtTypeHash = Hash128.NewBlankHash();
+                    TypeBlobIsDefinition = true;
                     typeTreeSize = 0;
                     shouldReadNodes = true;
                 }
 
                 if (shouldReadNodes)
                 {
-                    if (version >= 23)
-                    {
-                        // not sure why this is written? seems redundant...
-                        uint extTypeTreeMagic = reader.ReadUInt32();
-                        if (extTypeTreeMagic != TYPE_TREE_HEADER_MAGIC)
-                        {
-                            throw new Exception("Expected tthm in extended type tree type");
-                        }
-
-                        int extTypeTreeVer = reader.ReadInt32();
-                        if (extTypeTreeVer != version)
-                        {
-                            throw new Exception($"Expected version {version} in extended type tree type, found {extTypeTreeVer}");
-                        }
-                    }
-
-                    int typeTreeNodeCount = reader.ReadInt32();
-                    int stringBufferLen = reader.ReadInt32();
-
-                    Nodes = new List<TypeTreeNode>(typeTreeNodeCount);
-                    for (int i = 0; i < typeTreeNodeCount; i++)
-                    {
-                        TypeTreeNode typeField = new TypeTreeNode();
-                        typeField.Read(reader, version);
-                        Nodes.Add(typeField);
-                    }
-
-                    StringBufferBytes = reader.ReadBytes(stringBufferLen);
+                    TypeBlob = new TypeTreeBlob();
+                    TypeBlob.Read(reader, version);
                 }
                 else
                 {
-                    Nodes = new List<TypeTreeNode>();
+                    TypeBlob = new TypeTreeBlob()
+                    {
+                        Nodes = new List<TypeTreeNode>(),
+                        StringBufferBytes = new byte[0]
+                    };
                 }
 
                 if (version >= 21)
@@ -212,7 +204,7 @@ namespace AssetsTools.NET
                     writer.Write(0); // we'll come back and fill this later
                     typeTreeDataStartPos = writer.Position;
 
-                    shouldWriteNodes = ExtTypeIsDefinition;
+                    shouldWriteNodes = TypeBlobIsDefinition;
                 }
                 else
                 {
@@ -221,21 +213,7 @@ namespace AssetsTools.NET
 
                 if (shouldWriteNodes)
                 {
-                    if (version >= 23)
-                    {
-                        writer.Write(TYPE_TREE_HEADER_MAGIC);
-                        writer.Write(version);
-                    }
-
-                    writer.Write(Nodes.Count);
-                    writer.Write(StringBufferBytes.Length);
-
-                    for (int i = 0; i < Nodes.Count; i++)
-                    {
-                        Nodes[i].Write(writer, version);
-                    }
-
-                    writer.Write(StringBufferBytes);
+                    TypeBlob.Write(writer, version);
 
                     if (version >= 23)
                     {
@@ -281,6 +259,8 @@ namespace AssetsTools.NET
 
             if (version >= 17)
                 size += 2;
+
+            // todo: calculate GetSize correctly for new type tree stuff!
 
             if ((version < 17 && TypeId < 0) ||
                 (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||

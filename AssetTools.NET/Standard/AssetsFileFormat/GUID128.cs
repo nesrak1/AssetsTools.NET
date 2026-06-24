@@ -71,6 +71,7 @@ namespace AssetsTools.NET
             }
         }
 
+        // todo: replace these hex functions with the code from Net35Polyfill
         public override string ToString()
         {
             var stringBuilder = new StringBuilder(32);

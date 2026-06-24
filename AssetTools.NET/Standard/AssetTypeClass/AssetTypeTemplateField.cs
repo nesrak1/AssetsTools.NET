@@ -43,19 +43,37 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Read the template field from a type tree type.
+        /// This function will not do anyting if there is no type information.
         /// </summary>
         /// <param name="typeTreeType">The type tree type to read from.</param>
         public void FromTypeTree(TypeTreeType typeTreeType)
         {
+            TypeTreeBlob typeTreeBlob = typeTreeType.TypeBlob;
+
+            // if we're using external types and this is not a definition,
+            // there is no data for us to read, we just have to bail now.
+            if (typeTreeBlob != null && !typeTreeType.TypeBlobIsDefinition)
+                return;
+
             int fieldIndex = 0;
-            FromTypeTree(typeTreeType, ref fieldIndex);
+            FromTypeTree(typeTreeBlob, ref fieldIndex);
         }
 
-        private void FromTypeTree(TypeTreeType typeTreeType, ref int fieldIndex)
+        /// <summary>
+        /// Read the template field from a type tree blob.
+        /// </summary>
+        /// <param name="typeTreeBlob">The type tree blob to read from.</param>
+        public void FromTypeBlob(TypeTreeBlob typeTreeBlob)
         {
-            TypeTreeNode field = typeTreeType.Nodes[fieldIndex];
-            Name = field.GetNameString(typeTreeType.StringBufferBytes);
-            Type = field.GetTypeString(typeTreeType.StringBufferBytes);
+            int fieldIndex = 0;
+            FromTypeTree(typeTreeBlob, ref fieldIndex);
+        }
+
+        private void FromTypeTree(TypeTreeBlob typeTreeBlob, ref int fieldIndex)
+        {
+            TypeTreeNode field = typeTreeBlob.Nodes[fieldIndex];
+            Name = field.GetNameString(typeTreeBlob.StringBufferBytes);
+            Type = field.GetTypeString(typeTreeBlob.StringBufferBytes);
             ValueType = AssetTypeValueField.GetValueTypeByTypeName(Type);
             IsArray = Net35Polyfill.HasFlag(field.TypeFlags, TypeTreeNodeFlags.Array);
             IsAligned = (field.MetaFlags & 0x4000) != 0;
@@ -64,9 +82,9 @@ namespace AssetsTools.NET
 
             Children = new List<AssetTypeTemplateField>();
 
-            for (fieldIndex++; fieldIndex < typeTreeType.Nodes.Count; fieldIndex++)
+            for (fieldIndex++; fieldIndex < typeTreeBlob.Nodes.Count; fieldIndex++)
             {
-                TypeTreeNode typeTreeField = typeTreeType.Nodes[fieldIndex];
+                TypeTreeNode typeTreeField = typeTreeBlob.Nodes[fieldIndex];
                 if (typeTreeField.Level <= field.Level)
                 {
                     fieldIndex--;
@@ -74,7 +92,7 @@ namespace AssetsTools.NET
                 }
 
                 AssetTypeTemplateField assetField = new AssetTypeTemplateField();
-                assetField.FromTypeTree(typeTreeType, ref fieldIndex);
+                assetField.FromTypeTree(typeTreeBlob, ref fieldIndex);
                 Children.Add(assetField);
             }
 

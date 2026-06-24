@@ -32,7 +32,7 @@ namespace AssetsTools.NET
         /// Load the lookup from the type tree ref types of a serialized file.
         /// </summary>
         /// <param name="metadata">The metadata to load from.</param>
-        public void FromTypeTree(AssetsFileMetadata metadata)
+        public void FromTypeTree(AssetsFileMetadata metadata, IDictionary<Hash128, TypeTreeBlob> typeBlobLookup = null)
         {
             if (!metadata.TypeTreeEnabled || metadata.RefTypes == null)
             {
@@ -44,9 +44,25 @@ namespace AssetsTools.NET
                 if (!type.IsRefType)
                     continue;
 
-                AssetTypeTemplateField templateField = new AssetTypeTemplateField();
-                templateField.FromTypeTree(type);
-                RemoveRedundantRegistry(templateField);
+                AssetTypeTemplateField templateField;
+                if (type.TypeBlobIsDefinition)
+                {
+                    templateField = new AssetTypeTemplateField();
+                    templateField.FromTypeTree(type);
+                    RemoveRedundantRegistry(templateField);
+                }
+                else
+                {
+                    // can't do anything if the external type blob is not loaded
+                    if (typeBlobLookup == null)
+                        continue;
+
+                    if (!typeBlobLookup.TryGetValue(type.ExtTypeHash, out TypeTreeBlob typeBlob))
+                        continue;
+
+                    templateField = new AssetTypeTemplateField();
+                    templateField.FromTypeBlob(typeBlob);
+                }
 
                 typeTreeLookup[type.TypeReference] = templateField;
             }
