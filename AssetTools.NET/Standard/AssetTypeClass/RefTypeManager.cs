@@ -9,11 +9,11 @@ namespace AssetsTools.NET
         private Dictionary<AssetTypeReference, AssetTypeTemplateField> monoTemplateLookup;
         private IMonoBehaviourTemplateGenerator monoTemplateGenerator;
         private UnityVersion unityVersion;
-        private bool isSharedMonoLookup;
 
         public RefTypeManager()
         {
             typeTreeLookup = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
+            monoTemplateLookup = new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
         }
 
         /// <summary>
@@ -22,10 +22,7 @@ namespace AssetsTools.NET
         public void Clear()
         {
             typeTreeLookup.Clear();
-            if (!isSharedMonoLookup)
-            {
-                monoTemplateLookup.Clear();
-            }
+            monoTemplateLookup.Clear();
         }
 
         /// <summary>
@@ -62,6 +59,7 @@ namespace AssetsTools.NET
 
                     templateField = new AssetTypeTemplateField();
                     templateField.FromTypeBlob(typeBlob);
+                    RemoveRedundantRegistry(templateField);
                 }
 
                 typeTreeLookup[type.TypeReference] = templateField;
@@ -83,7 +81,6 @@ namespace AssetsTools.NET
             monoTemplateLookup = monoTemplateFieldCache != null
                 ? new Dictionary<AssetTypeReference, AssetTypeTemplateField>(monoTemplateFieldCache)
                 : new Dictionary<AssetTypeReference, AssetTypeTemplateField>();
-            isSharedMonoLookup = monoTemplateLookup != null;
         }
 
         /// <summary>

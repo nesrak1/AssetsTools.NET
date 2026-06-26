@@ -74,7 +74,10 @@ namespace AssetsTools.NET.Extra
 
         public TypeTreeBlob GetTypeBlob(Hash128 typeBlobHash)
         {
-            return typeTreeBlobs[typeBlobHash];
+            if (typeTreeBlobs.TryGetValue(typeBlobHash, out TypeTreeBlob typeBlob))
+                return typeBlob;
+
+            return null;
         }
     }
 }

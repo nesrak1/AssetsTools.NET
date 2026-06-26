@@ -142,7 +142,7 @@ namespace AssetsTools.NET.Extra
                 {
                     foreach (Hash128 typeBlobHash in typeBlobHashes)
                     {
-                        typeBlobHashes.Remove(typeBlobHash);
+                        typeTreeBlobs.Remove(typeBlobHash);
                     }
 
                     typeTreeBlobOwners.Remove(bunInst);

@@ -43,7 +43,7 @@ namespace AssetsTools.NET
 
         /// <summary>
         /// Read the template field from a type tree type.
-        /// This function will not do anyting if there is no type information.
+        /// This function will not do anything if there is no type information.
         /// </summary>
         /// <param name="typeTreeType">The type tree type to read from.</param>
         public void FromTypeTree(TypeTreeType typeTreeType)

@@ -125,7 +125,7 @@ namespace AssetsTools.NET.Extra
             }
 
             // if we cached a monobehaviour from a class database, clone a copy
-            if (UseTemplateFieldCache && UseMonoTemplateFieldCache && isMonoBehaviourTypeId)
+            if (UseTemplateFieldCache && isMonoBehaviourTypeId)
             {
                 if (templateFieldCache.TryGetValue((int)AssetClassID.MonoBehaviour, out baseField))
                 {
