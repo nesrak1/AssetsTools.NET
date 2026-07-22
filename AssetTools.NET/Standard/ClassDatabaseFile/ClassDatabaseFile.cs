@@ -5,7 +5,6 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -178,7 +177,7 @@ namespace AssetsTools.NET
         }
 
         // for convenience
-        
+
         /// <summary>
         /// Get a string from the string table.
         /// </summary>

@@ -5,8 +5,6 @@ using SevenZip.Compression.LZMA;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace AssetsTools.NET
 {
@@ -53,14 +51,18 @@ namespace AssetsTools.NET
             }
 
             TpkTypeTree = new ClassPackageTypeTree();
-            TpkTypeTree.Read(newReader);
+            TpkTypeTree.Read(newReader, Header.FileVersion);
         }
 
         /// <summary>
         /// Read the <see cref="ClassPackageFile"/> at the given path.
         /// </summary>
         /// <param name="path">The path to read from.</param>
-        public void Read(string path) => Read(new AssetsFileReader(File.OpenRead(path)));
+        public void Read(string path)
+        {
+            using var reader = new AssetsFileReader(File.OpenRead(path));
+            Read(reader);
+        }
 
         /// <summary>
         /// Write the <see cref="ClassPackageFile"/> with the provided writer and compression type.
@@ -77,7 +79,7 @@ namespace AssetsTools.NET
             dStream = new MemoryStream();
             dWriter = new AssetsFileWriter(dStream);
 
-            TpkTypeTree.Write(dWriter);
+            TpkTypeTree.Write(dWriter, Header.FileVersion);
 
             if (Header.CompressionType == ClassFileCompressionType.Lz4)
             {
@@ -116,7 +118,10 @@ namespace AssetsTools.NET
         /// <param name="path">The path to write to.</param>
         /// <param name="compressionType">The compression type to use.</param>
         public void Write(string path, ClassFileCompressionType compressionType)
-            => Write(new AssetsFileWriter(File.OpenWrite(path)), compressionType);
+        {
+            using var writer = new AssetsFileWriter(File.OpenWrite(path));
+            Write(writer, compressionType);
+        }
 
         /// <summary>
         /// Make a class database for a version.
@@ -180,16 +185,16 @@ namespace AssetsTools.NET
 
             cldb.StringTable = TpkTypeTree.StringTable;
 
-            byte commonStringCount = TpkTypeTree.CommonString.GetCommonStringLengthForVersion(version);
-            cldb.CommonStringBufferIndices = new List<ushort>(commonStringCount);
-            for (int i = 0; i < commonStringCount; i++)
+            var commonStringEntries = TpkTypeTree.CommonString.GetStringEntriesForVersion(version);
+            cldb.CommonStringBufferIndices = new List<ushort>(commonStringEntries.Length);
+            for (int i = 0; i < commonStringEntries.Length; i++)
             {
-                cldb.CommonStringBufferIndices.Add(TpkTypeTree.CommonString.StringBufferIndices[i]);
+                cldb.CommonStringBufferIndices.Add(commonStringEntries[i].StringIndex);
             }
 
             return cldb;
         }
-        
+
         private ClassDatabaseTypeNode ConvertNodes(ushort tpkNodeIdx)
         {
             ClassPackageTypeNode tpkNode = TpkTypeTree.Nodes[tpkNodeIdx];

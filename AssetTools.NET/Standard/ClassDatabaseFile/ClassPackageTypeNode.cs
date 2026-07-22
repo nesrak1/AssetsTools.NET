@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AssetsTools.NET
+﻿namespace AssetsTools.NET
 {
     public class ClassPackageTypeNode
     {
@@ -48,7 +44,7 @@ namespace AssetsTools.NET
             writer.Write(TypeFlags);
             writer.Write(MetaFlag);
 
-            writer.Write(SubNodes.Length);
+            writer.Write((ushort)SubNodes.Length);
             for (int i = 0; i < SubNodes.Length; i++)
             {
                 writer.Write(SubNodes[i]);
