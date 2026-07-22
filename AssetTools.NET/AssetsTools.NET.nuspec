@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>AssetsTools.NET</id>
-    <version>3.0.3</version>
+    <version>3.0.5</version>
     <authors>nesrak1</authors>
     <owners>nesrak1</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>	
@@ -11,7 +11,7 @@
     <icon>icon.png</icon>
     <summary>An assets/bundle library, inspired by UABE's AssetsTools</summary>
     <description>An assets/bundle library, inspired by UABE's AssetsTools. Read and write assets and bundle files from engine versions 5.x and later. For most cases, you'll need the class data file which you can find in the AssetRipper/Tpk repo. See the wiki for usage and examples.</description>
-    <releaseNotes>v3.0.3 - added back .net 3.5 support, fixed typetrees with unicode, added field iterator helper class</releaseNotes>
+    <releaseNotes>v3.0.5 - support external type trees, support v2 tpk, throw when value iterator goes out of bounds, and bug fixes</releaseNotes>
     <projectUrl>https://github.com/nesrak1/AssetsTools.NET</projectUrl>
     <repository type="Git" url="https://github.com/nesrak1/AssetsTools.NET" />
     <dependencies>
