@@ -43,8 +43,6 @@ namespace AssetsTools.NET.Texture
         // not assigned by default since we can't gurarantee
         // the swizzle type yet (but may in the future)
         public SwizzleType swizzleType = SwizzleType.None;
-        private int originalWidth; // todo: remove this, for testing
-        private int originalHeight; // ...
 
         public struct GLTextureSettings
         {
@@ -85,10 +83,8 @@ namespace AssetsTools.NET.Texture
                 texture.m_DownscaleFallback = tempField.AsBool;
 
             texture.m_Width = baseField["m_Width"].AsInt;
-            texture.originalWidth = texture.m_Width;
 
             texture.m_Height = baseField["m_Height"].AsInt;
-            texture.originalHeight = texture.m_Height;
 
             if (!(tempField = baseField["m_CompleteImageSize"]).IsDummy)
                 texture.m_CompleteImageSize = tempField.AsInt;
