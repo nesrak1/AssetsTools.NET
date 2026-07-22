@@ -173,6 +173,7 @@ namespace AssetsTools.NET
             newBundleInf.DirectoryInfos = dirInfos;
             newBundleInf.Write(writer);
 
+            long assetDataPosBeforeAlign = writer.Position;
             if ((Header.FileStreamHeader.Flags & AssetBundleFSHeaderFlags.BlockInfoNeedPaddingAtStart) != 0)
             {
                 writer.Align16();
@@ -222,7 +223,7 @@ namespace AssetsTools.NET
             writer.Position = bundleInfPos;
             newBundleInf.Write(writer);
 
-            uint infoSize = (uint)(assetDataPos - bundleInfPos);
+            uint infoSize = (uint)(assetDataPosBeforeAlign - bundleInfPos);
 
             writer.Position = writeStart;
             AssetBundleHeader newBundleHeader = new AssetBundleHeader
