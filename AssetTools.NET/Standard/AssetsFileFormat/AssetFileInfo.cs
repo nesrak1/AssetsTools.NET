@@ -318,8 +318,11 @@ namespace AssetsTools.NET
                             ScriptTypeIndex = scriptIndex,
                             ScriptIdHash = Hash128.NewBlankHash(),
                             TypeHash = Hash128.NewBlankHash(),
-                            Nodes = new List<TypeTreeNode>(),
-                            StringBufferBytes = new byte[0],
+                            TypeBlob = new TypeTreeBlob()
+                            {
+                                Nodes = new List<TypeTreeNode>(),
+                                StringBufferBytes = new byte[0]
+                            },
                             TypeDependencies = new int[0],
                             IsRefType = false,
                             TypeReference = null,
