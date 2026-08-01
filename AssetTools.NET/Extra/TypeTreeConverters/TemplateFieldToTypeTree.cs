@@ -27,7 +27,8 @@ namespace AssetsTools.NET.Extra
                 IsStrippedType = false,
                 ScriptIdHash = Hash128.NewBlankHash(),
                 TypeHash = Hash128.NewBlankHash(),
-                TypeDependencies = new int[0]
+                TypeDependencies = new int[0],
+                TypeBlob = new TypeTreeBlob(),
             };
 
             stringTablePos = 0;
