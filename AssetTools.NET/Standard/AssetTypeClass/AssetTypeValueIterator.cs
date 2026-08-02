@@ -231,6 +231,7 @@ namespace AssetsTools.NET
                             case AssetValueType.ManagedReferencesRegistry:
                                 // this allocates, but I'm skipping writing code to do this the "right" way
                                 AssetTypeValueField ignored = new AssetTypeValueField();
+                                ignored.TemplateField = TempField;
                                 TempField.ReadManagedReferencesRegistryType(reader, ignored, refMan);
                                 break;
                         }
