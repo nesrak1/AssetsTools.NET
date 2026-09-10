@@ -164,6 +164,7 @@ namespace AssetsTools.NET.Texture
         {
             return textureFormat switch
             {
+                TextureFormat.Alpha8 => new Size(width, height),
                 TextureFormat.ARGB4444 => new Size(width, height),
                 TextureFormat.RGB24 => new Size(width, height),
                 TextureFormat.RGBA32 => new Size(width, height),
