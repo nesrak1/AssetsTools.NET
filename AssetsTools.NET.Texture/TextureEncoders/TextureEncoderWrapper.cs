@@ -98,7 +98,7 @@ namespace AssetsTools.NET.Texture
                 return null;
             }
 
-            IntPtr image = LoadTextureFromBuffer(rgbaData, mipCount, width, height, mipCount);
+            IntPtr image = LoadTextureFromBuffer(rgbaData, rgbaData.Length, width, height, mipCount);
             if (image == IntPtr.Zero)
                 throw new Exception($"{nameof(LoadTextureFromFile)} returned null.");
 
@@ -117,7 +117,7 @@ namespace AssetsTools.NET.Texture
                 return null;
             }
 
-            IntPtr image = LoadTextureFromBuffer(rgbaData, mipCount, width, height, mipCount);
+            IntPtr image = LoadTextureFromBuffer(rgbaData, rgbaData.Length, width, height, mipCount);
             if (image == IntPtr.Zero)
                 throw new Exception($"{nameof(LoadTextureFromFile)} returned null.");
 
