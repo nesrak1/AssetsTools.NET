@@ -103,6 +103,7 @@ namespace AssetsTools.NET
                 ScriptTypeIndex = 0xffff;
             }
 
+            // todo: also support ScriptedImporter?
             if ((version < 17 && TypeId < 0) ||
                 (version >= 17 && TypeId == (int)AssetClassID.MonoBehaviour) ||
                 (isRefType && ScriptTypeIndex != 0xffff))

@@ -781,7 +781,32 @@ namespace AssetsTools.NET.Texture
                 int size = format switch
                 {
                     // different versions of .net == different versions of texture decoder == different type names :/
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
+                    TextureFormat.Alpha8 => RgbConverter.Convert<ColorA<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    //TextureFormat.ARGBFloat => not supported :(
+                    TextureFormat.RGB24 => RgbConverter.Convert<ColorRGB<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    //TextureFormat.BGR24 => not supported :(
+                    TextureFormat.RGBA32 => RgbConverter.Convert<ColorRGBA<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGB565 => RgbConverter.Convert<ColorRGB16, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ARGB32 => RgbConverter.Convert<ColorARGB<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.R16 => RgbConverter.Convert<ColorR<ushort>, ushort, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGBA4444 => RgbConverter.Convert<ColorRGBA16, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.BGRA32 or TextureFormat.BGRA32Old => data.Length,
+                    TextureFormat.RG16 => RgbConverter.Convert<ColorRG<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.R8 => RgbConverter.Convert<ColorR<byte>, byte, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RHalf => RgbConverter.Convert<ColorR<Half>, Half, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGHalf => RgbConverter.Convert<ColorRG<Half>, Half, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGBAHalf => RgbConverter.Convert<ColorRGBA<Half>, Half, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RFloat => RgbConverter.Convert<ColorR<float>, float, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGFloat => RgbConverter.Convert<ColorRG<float>, float, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGBFloat => RgbConverter.Convert<ColorRGB<float>, float, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGBAFloat => RgbConverter.Convert<ColorRGBA<float>, float, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGB9e5Float => RgbConverter.Convert<ColorRGB9e5, double, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RG32 => RgbConverter.Convert<ColorRG<ushort>, ushort, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGB48 => RgbConverter.Convert<ColorRGB<ushort>, ushort, ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA<ushort>, ushort, ColorBGRA<byte>, byte>(data, width, height, out output),
+#elif NET7_0_OR_GREATER
                     TextureFormat.Alpha8 => RgbConverter.Convert<ColorA<byte>, byte, ColorBGRA32, byte>(data, width, height, out output),
                     TextureFormat.ARGB4444 => RgbConverter.Convert<ColorARGB16, byte, ColorBGRA32, byte>(data, width, height, out output),
                     //TextureFormat.ARGBFloat => not supported :(
@@ -833,6 +858,52 @@ namespace AssetsTools.NET.Texture
                     TextureFormat.RGBA64 => RgbConverter.Convert<ColorRGBA64, ushort, ColorBGRA32, byte>(data, width, height, out output),
 #endif
 
+#if NET8_0_OR_GREATER
+                    TextureFormat.DXT1 => DxtDecoder.DecompressDXT1<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.DXT3 => DxtDecoder.DecompressDXT3<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.DXT5 => DxtDecoder.DecompressDXT5<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.BC4 => Bc4.Decompress<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.BC5 => Bc5.Decompress<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.BC6H => Bc6h.Decompress<ColorBGRA<byte>, byte>(data, width, height, false, out output),
+                    TextureFormat.BC7 => Bc7.Decompress<ColorBGRA<byte>, byte>(data, width, height, out output),
+
+                    TextureFormat.ETC_RGB4 => EtcDecoder.DecompressETC<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ETC2_RGB4 => EtcDecoder.DecompressETC2<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ETC2_RGBA1 => EtcDecoder.DecompressETC2A1<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ETC2_RGBA8 => EtcDecoder.DecompressETC2A8<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.EAC_R => EtcDecoder.DecompressEACRUnsigned<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.EAC_R_SIGNED => EtcDecoder.DecompressEACRSigned<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.EAC_RG => EtcDecoder.DecompressEACRGUnsigned<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.EAC_RG_SIGNED => EtcDecoder.DecompressEACRGSigned<ColorBGRA<byte>, byte>(data, width, height, out output),
+
+                    TextureFormat.ASTC_RGB_4x4 or
+                    TextureFormat.ASTC_RGBA_4x4 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 4, 4, out output),
+                    TextureFormat.ASTC_RGB_5x5 or
+                    TextureFormat.ASTC_RGBA_5x5 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 5, 5, out output),
+                    TextureFormat.ASTC_RGB_6x6 or
+                    TextureFormat.ASTC_RGBA_6x6 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 6, 6, out output),
+                    TextureFormat.ASTC_RGB_8x8 or
+                    TextureFormat.ASTC_RGBA_8x8 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 8, 8, out output),
+                    TextureFormat.ASTC_RGB_10x10 or
+                    TextureFormat.ASTC_RGBA_10x10 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 10, 10, out output),
+                    TextureFormat.ASTC_RGB_12x12 or
+                    TextureFormat.ASTC_RGBA_12x12 => AstcDecoder.DecodeASTC<ColorBGRA<byte>, byte>(data, width, height, 12, 12, out output),
+
+                    TextureFormat.ATC_RGB4 => AtcDecoder.DecompressAtcRgb4<ColorBGRA<byte>, byte>(data, width, height, out output),
+                    TextureFormat.ATC_RGBA8 => AtcDecoder.DecompressAtcRgba8<ColorBGRA<byte>, byte>(data, width, height, out output),
+
+                    TextureFormat.PVRTC_RGB2 or
+                    TextureFormat.PVRTC_RGBA2 => PvrtcDecoder.DecompressPVRTC<ColorBGRA<byte>, byte>(data, width, height, true, out output),
+                    TextureFormat.PVRTC_RGB4 or
+                    TextureFormat.PVRTC_RGBA4 => PvrtcDecoder.DecompressPVRTC<ColorBGRA<byte>, byte>(data, width, height, false, out output),
+
+                    TextureFormat.YUY2 => Yuy2Decoder.DecompressYUY2<ColorBGRA<byte>, byte>(data, width, height, out output),
+
+                    TextureFormat.DXT1Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT1Crunched, out output),
+                    TextureFormat.DXT5Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT5Crunched, out output),
+                    TextureFormat.ETC_RGB4Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC_RGB4Crunched, out output),
+                    TextureFormat.ETC2_RGBA8Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC2_RGBA8Crunched, out output),
+#else
                     TextureFormat.DXT1 => DxtDecoder.DecompressDXT1(data, width, height, out output),
                     TextureFormat.DXT3 => DxtDecoder.DecompressDXT3(data, width, height, out output),
                     TextureFormat.DXT5 => DxtDecoder.DecompressDXT5(data, width, height, out output),
@@ -877,6 +948,7 @@ namespace AssetsTools.NET.Texture
                     TextureFormat.DXT5Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.DXT5Crunched, out output),
                     TextureFormat.ETC_RGB4Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC_RGB4Crunched, out output),
                     TextureFormat.ETC2_RGBA8Crunched => CrunchDecoder.Decompress(data, width, height, TextureFormat.ETC2_RGBA8Crunched, out output),
+#endif
 
                     _ => 0
                 };

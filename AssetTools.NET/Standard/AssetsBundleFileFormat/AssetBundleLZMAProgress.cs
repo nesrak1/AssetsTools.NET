@@ -4,22 +4,20 @@ namespace AssetsTools.NET
 {
     internal class AssetBundleLZMAProgress : ICodeProgress
     {
-        private IAssetBundleCompressProgress progress;
-        private long currentSize;
-        private long length;
+        private readonly IAssetBundleCompressProgress _progress;
+        private readonly long _length;
 
         public AssetBundleLZMAProgress(IAssetBundleCompressProgress progress, long length)
         {
-            this.progress = progress;
-            this.currentSize = 0;
-            this.length = length;
+            _progress = progress;
+            _length = length;
         }
 
         public void SetProgress(long inSize, long outSize)
         {
-            if (progress != null)
+            if (_progress != null)
             {
-                progress.SetProgress((float)inSize / length);
+                _progress.SetProgress((float)inSize / _length);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using AssetRipper.TextureDecoder.Dxt;
 using AssetRipper.TextureDecoder.Etc;
+using AssetRipper.TextureDecoder.Rgb.Formats;
 using AssetsTools.NET.Texture.TextureDecoders.CrnUnity;
 using System;
 
@@ -48,10 +49,17 @@ namespace AssetsTools.NET.Texture
             byte[] firstFace = faceData[0];
             return format switch
             {
+#if NET8_0_OR_GREATER
+                TextureFormat.DXT1Crunched => DxtDecoder.DecompressDXT1<ColorBGRA<byte>, byte>(firstFace, width, height, out output),
+                TextureFormat.DXT5Crunched => DxtDecoder.DecompressDXT5<ColorBGRA<byte>, byte>(firstFace, width, height, out output),
+                TextureFormat.ETC_RGB4Crunched => EtcDecoder.DecompressETC<ColorBGRA<byte>, byte>(firstFace, width, height, out output),
+                TextureFormat.ETC2_RGBA8Crunched => EtcDecoder.DecompressETC2A8<ColorBGRA<byte>, byte>(firstFace, width, height, out output),
+#else
                 TextureFormat.DXT1Crunched => DxtDecoder.DecompressDXT1(firstFace, width, height, out output),
                 TextureFormat.DXT5Crunched => DxtDecoder.DecompressDXT5(firstFace, width, height, out output),
                 TextureFormat.ETC_RGB4Crunched => EtcDecoder.DecompressETC(firstFace, width, height, out output),
                 TextureFormat.ETC2_RGBA8Crunched => EtcDecoder.DecompressETC2A8(firstFace, width, height, out output),
+#endif
                 _ => 0,
             };
         }
