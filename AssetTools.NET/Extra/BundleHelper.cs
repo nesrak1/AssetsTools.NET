@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace AssetsTools.NET.Extra
@@ -121,6 +122,81 @@ namespace AssetsTools.NET.Extra
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// Calculates the CRC32 (IEEE) of the bundle data stream.
+        /// This is the same CRC verified by Unity when loading an AssetBundle. It is independent of the 
+        /// compression method and depends only on the actual content; for compressed bundles, 
+        /// the data is unpacked before the CRC is calculated.
+        /// </summary>
+        /// <param name="bundle">Loaded bundle to calculate CRC for.</param>
+        /// <returns>CRC32 value.</returns>
+        public static uint CalculateBundleCrc32(AssetBundleFile bundle)
+        {
+            AssetBundleFile crcBundle = bundle;
+            bool closeCrcBundle = false;
+
+            if (bundle.DataIsCompressed)
+            {
+                crcBundle = UnpackBundle(bundle, false);
+                closeCrcBundle = true;
+            }
+
+            try
+            {
+                long totalDataLen = 0;
+                AssetBundleBlockInfo[] blocks = crcBundle.BlockAndDirInfo.BlockInfos;
+                for (int i = 0; i < blocks.Length; i++)
+                {
+                    totalDataLen += blocks[i].DecompressedSize;
+                }
+
+                AssetsFileReader dataReader = crcBundle.DataReader;
+                long oldPos = dataReader.Position;
+                try
+                {
+                    dataReader.Position = 0;
+                    uint crc = Crc32Helper.InitialValue;
+                    long consumed = 0;
+
+                    while (consumed < totalDataLen)
+                    {
+                        int toRead = (int)Math.Min(Crc32Helper.ChunkSize, totalDataLen - consumed);
+                        byte[] chunk = dataReader.ReadBytes(toRead);
+                        if (chunk.Length != toRead)
+                        {
+                            throw new EndOfStreamException(
+                                $"Unexpected end of bundle data while calculating CRC at 0x{consumed:X}."
+                            );
+                        }
+
+                        crc = Crc32Helper.Feed(crc, chunk);
+                        consumed += toRead;
+                    }
+
+                    return Crc32Helper.Finalize(crc);
+                }
+                finally
+                {
+                    dataReader.Position = oldPos;
+                }
+            }
+            finally
+            {
+                if (closeCrcBundle)
+                {
+                    try
+                    {
+                        crcBundle.Close();
+                    }
+                    catch
+                    {
+                        // some streams may have been closed during unpack operations
+                        // so we will ignore this
+                    }
+                }
+            }
         }
     }
 }
